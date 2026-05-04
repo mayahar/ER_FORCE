@@ -1,11 +1,11 @@
 import streamlit as st
-from state import init_state
+from UI.state import init_state
 from screens import enter_id, questionnaire, game, voice, result
 
 # external controller (assumed existing)
-from core.controller import AppController
+from core.mock_controller import MockController
 
-controller = AppController()
+controller = MockController()
 
 st.set_page_config(page_title="Fatigue App", layout="wide")
 
