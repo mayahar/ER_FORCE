@@ -1,6 +1,6 @@
 import streamlit as st
-from UI.state import init_state
-from screens import enter_id, questionnaire, game, voice, result
+from state import init_state
+from screens import enter_id, questionnaire, game, results
 
 # external controller (assumed existing)
 from core.mock_controller import MockController
@@ -24,8 +24,11 @@ elif state == "questionnaire":
 elif state == "game":
     game.render(controller)
 
-elif state == "voice":
-    voice.render(controller)
 
 elif state == "result":
-    result.render(controller)
+    results.render(controller)
+
+if "controller" not in st.session_state:
+    st.session_state.controller = MockController()
+
+controller = st.session_state.controller
