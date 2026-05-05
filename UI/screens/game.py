@@ -11,10 +11,12 @@ def render(controller):
         controller.dispatch("GAME_STARTED")
 
         with st.spinner("Running multimodal session..."):
-
             controller.run_multimodal_game()
 
         controller.dispatch("GAME_DONE")
+
+        with st.spinner("Computing fatigue score..."):
+            controller.compute_fatigue()
 
         st.session_state.state["screen"] = "result"
         st.rerun()

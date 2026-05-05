@@ -1,142 +1,197 @@
 import numpy as np
 
-from fatigue_weights import (
+from score.fatigue_weights import (
     VOICE_WEIGHTS,
     EYE_WEIGHTS,
     MODALITY_WEIGHTS
 )
 
-from fatigue_variances import (
+from score.fatigue_variances import (
     VOICE_STD,
     EYE_STD,
     GAME_STD
 )
 
-# =========================
-# HELPERS
-# =========================
+VOICE_DIRECTION = {
+    "dLPC": 1,
+    "PARCOR": 1,
+    "LPC": 1,
+    "Pitch": 1,
+    "MFCC": 1
+}
 
-def safe_get(d, key):
-    return d[key] if key in d and d[key] is not None else None
+EYE_DIRECTION = {
+    "fixation_duration": 1,
+    "fixation_count": 1,
+    "saccade_count": 1
+}
+
+GAME_DIRECTION = {
+    "score": -1
+}
+
+
+def safe_get(d, k):
+    return d.get(k, None)
 
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
-def compute_feature_score(current, baseline, std=None):
+# =========================
+# FEATURE SCORE
+# =========================
+def compute_feature_score(current, baseline, std=None, direction=1):
+
     if current is None or baseline is None:
         return None
 
-    # CASE 1 — WITH POPULATION VARIANCE
-    if std is not None and std != 0:
-        z = (current - baseline) / std
-        return sigmoid(abs(z))
+    if std is not None:
+        z = (current - baseline) / (std + 1e-8)
+        return sigmoid(direction * z)
 
-    # CASE 2 — NO VARIANCE → RELATIVE CHANGE
     delta = (current - baseline) / (abs(baseline) + 1e-8)
-    return sigmoid(abs(delta))
+    return sigmoid(direction * delta)
 
 
 # =========================
-# VOICE
+# VOICE + CONTRIBUTIONS
 # =========================
+def compute_voice_score(cur, base, info=None):
 
-def compute_voice_score(current_voice, baseline_voice, subject_info=None):
-    weighted_sum = 0.0
-    weight_sum = 0.0
+    contributions = {}
 
-    sex = subject_info.get("sex") if subject_info else None
+    total = 0
+    wsum = 0
 
-    for feature, weight in VOICE_WEIGHTS.items():
-        cur = safe_get(current_voice, feature)
-        base = safe_get(baseline_voice, feature)
+    sex = info.get("sex") if info else None
+
+    for k, w in VOICE_WEIGHTS.items():
+
+        c = safe_get(cur, k)
+        b = safe_get(base, k)
 
         std = None
+        direction = VOICE_DIRECTION.get(k, 1)
 
-        if feature == "Pitch" and sex in ["male", "female"]:
-            std = VOICE_STD["Pitch"][sex]
-
-        elif feature == "MFCC":
+        if k == "Pitch" and sex:
+            std = VOICE_STD["Pitch"].get(sex)
+        elif k == "MFCC":
             std = VOICE_STD["MFCC"]
 
-        score = compute_feature_score(cur, base, std)
+        s = compute_feature_score(c, b, std, direction)
 
-        if score is None:
+        if s is None:
             continue
 
-        weighted_sum += score * weight
-        weight_sum += weight
+        contrib = w * s
 
-    return weighted_sum / weight_sum if weight_sum > 0 else None
+        contributions[k] = {
+            "value": float(contrib),
+            "raw_score": float(s),
+            "weight": w,
+            "direction": direction
+        }
+
+        total += contrib
+        wsum += w
+
+    score = total / wsum if wsum else None
+
+    return score, contributions
 
 
 # =========================
-# EYE
+# EYE + CONTRIBUTIONS
 # =========================
+def compute_eye_score(cur, base):
 
-def compute_eye_score(current_eye, baseline_eye):
-    weighted_sum = 0.0
-    weight_sum = 0.0
+    contributions = {}
 
-    for feature, weight in EYE_WEIGHTS.items():
-        cur = safe_get(current_eye, feature)
-        base = safe_get(baseline_eye, feature)
-        std = EYE_STD.get(feature)
+    total = 0
+    wsum = 0
 
-        score = compute_feature_score(cur, base, std)
+    for k, w in EYE_WEIGHTS.items():
 
-        if score is None:
+        c = safe_get(cur, k)
+        b = safe_get(base, k)
+
+        std = EYE_STD.get(k)
+        direction = EYE_DIRECTION.get(k, 1)
+
+        s = compute_feature_score(c, b, std, direction)
+
+        if s is None:
             continue
 
-        weighted_sum += score * weight
-        weight_sum += weight
+        contrib = w * s
 
-    return weighted_sum / weight_sum if weight_sum > 0 else None
+        contributions[k] = {
+            "value": float(contrib),
+            "raw_score": float(s),
+            "weight": w,
+            "direction": direction
+        }
+
+        total += contrib
+        wsum += w
+
+    score = total / wsum if wsum else None
+
+    return score, contributions
 
 
 # =========================
-# GAME
+# GAME + CONTRIBUTIONS
 # =========================
+def compute_game_score(cur, base):
 
-def compute_game_score(current_game, baseline_game):
-    cur = safe_get(current_game, "score")
-    base = safe_get(baseline_game, "score")
+    c = safe_get(cur, "score")
+    b = safe_get(base, "score")
+
+    if c is None or b is None:
+        return None, {}
+
     std = GAME_STD.get("score")
+    direction = GAME_DIRECTION["score"]
 
-    if cur is None or base is None:
-        return None
+    s = compute_feature_score(c, b, std, direction)
 
-    # performance drop = fatigue
-    score = compute_feature_score(base, cur, std)
+    contrib = s  # single feature
 
-    return score
+    return s, {
+        "score": {
+            "value": float(contrib),
+            "raw_score": float(s),
+            "weight": 1.0,
+            "direction": direction
+        }
+    }
 
 
 # =========================
-# FINAL SCORE
+# FINAL SCORE + EXPLANATION
 # =========================
-
 def compute_fatigue_score(data):
-    baseline = data["baseline"]
-    current = data["current"]
 
-    subject_info = data.get("subject_info", {})
+    b = data["baseline"]
+    c = data["current"]
 
-    voice_score = compute_voice_score(
-        current.get("voice", {}),
-        baseline.get("voice", {}),
-        subject_info
+    voice_score, voice_contrib = compute_voice_score(
+        c["voice"],
+        b["voice"],
+        data.get("subject_info")
     )
 
-    eye_score = compute_eye_score(
-        current.get("eye", {}),
-        baseline.get("eye", {})
+    eye_score, eye_contrib = compute_eye_score(
+        c["eye"],
+        b["eye"]
     )
 
-    game_score = compute_game_score(
-        current.get("game", {}),
-        baseline.get("game", {})
+    game_score, game_contrib = compute_game_score(
+        c["game"],
+        b["game"]
     )
 
     scores = {
@@ -145,26 +200,28 @@ def compute_fatigue_score(data):
         "game": game_score
     }
 
-    numerator = 0.0
-    denominator = 0.0
+    modality_contributions = {
+        "voice": voice_contrib,
+        "eye": eye_contrib,
+        "game": game_contrib
+    }
 
-    for modality, weight in MODALITY_WEIGHTS.items():
-        score = scores.get(modality)
+    num = 0
+    den = 0
 
-        if score is None:
+    for k, w in MODALITY_WEIGHTS.items():
+        s = scores.get(k)
+
+        if s is None:
             continue
 
-        numerator += weight * score
-        denominator += weight
+        num += s * w
+        den += w
 
-    final_score = (numerator / denominator) if denominator > 0 else None
+    final = num / den if den else None
 
     return {
-        "subject_id": data.get("subject_id"),
-        "session_id": data.get("session_id"),
-
+        "score": float(final * 100) if final is not None else None,
         "scores": scores,
-        "modality_weights": MODALITY_WEIGHTS,
-
-        "fatigue_score": float(final_score * 100) if final_score is not None else None
+        "feature_contributions": modality_contributions
     }
