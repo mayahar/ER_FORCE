@@ -154,8 +154,6 @@ def render(result):
 
         st.pyplot(fig)
 
-        st.dataframe(df)
-
     else:
         st.info("אין נתוני contributions להצגה")
 

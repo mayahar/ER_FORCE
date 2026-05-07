@@ -19,7 +19,6 @@ SUBJECTS_DB = {
             },
             "game": {
                 "score": 85,
-                "reaction_time": 0.40
             }
         }
     },
@@ -44,7 +43,6 @@ SUBJECTS_DB = {
             },
             "game": {
                 "score": 80,
-                "reaction_time": 0.45
             }
         }
     }

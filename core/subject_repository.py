@@ -30,7 +30,7 @@ def get_all_subject_ids():
 REQUIRED_KEYS = {
     "voice": {"dLPC", "PARCOR", "LPC", "Pitch", "MFCC"},
     "eye": {"fixation_duration", "fixation_count", "saccade_count"},
-    "game": {"score", "reaction_time"}
+    "game": {"score"}
 }
 
 

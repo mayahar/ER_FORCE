@@ -69,7 +69,6 @@ class MockController:
 
             "game": {
                 "score": int(b["game"]["score"] * random.uniform(0.7, 0.95)),
-                "reaction_time": b["game"]["reaction_time"] * random.uniform(1.1, 1.5)
             }
         }
 
