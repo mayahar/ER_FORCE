@@ -85,12 +85,15 @@ def render(controller):
         fatigue = st.slider("רמת עייפות", 0, 10, 5)
         st.write("")  # Spacing
         sleep_last = st.slider("שעות שינה אתמול", 0, 8, 4)
+        st.write("")  # Spacing
+        sleep_previous = st.slider("שעות שינה שלשום", 0, 8, 4)
 
     # Position button at bottom left
     if st.button("המשך"):
         controller.dispatch("QUESTIONNAIRE_DONE", {
             "fatigue_self": fatigue,
             "sleep_last": sleep_last,
+            "sleep_previous": sleep_previous
         })
 
         st.session_state.state["screen"] = "game"

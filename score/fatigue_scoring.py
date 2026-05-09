@@ -1,35 +1,13 @@
 import numpy as np
 
-from score.fatigue_weights import (
-    VOICE_WEIGHTS,
-    EYE_WEIGHTS,
+from score.fatigue_features import (
+    FEATURES,
     MODALITY_WEIGHTS
 )
 
-from score.fatigue_variances import (
-    VOICE_STD,
-    EYE_STD,
-    GAME_STD
-)
-
-VOICE_DIRECTION = {
-    "dLPC": 1,
-    "PARCOR": 1,
-    "LPC": 1,
-    "Pitch": 1,
-    "MFCC": 1
-}
-
-EYE_DIRECTION = {
-    "fixation_duration": 1,
-    "fixation_count": 1,
-    "saccade_count": 1
-}
-
-GAME_DIRECTION = {
-    "score": -1
-}
-
+# =====================================================
+# HELPERS
+# =====================================================
 
 def safe_get(d, k):
     return d.get(k, None)
@@ -39,162 +17,258 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
-# =========================
+# =====================================================
 # FEATURE SCORE
-# =========================
-def compute_feature_score(current, baseline, std=None, direction=1):
+# =====================================================
+
+def compute_feature_score(
+    current,
+    baseline,
+    feature_name,
+    feature_cfg,
+    sex=None
+):
 
     if current is None or baseline is None:
         return None
 
+    direction = feature_cfg["direction"]
+    std = feature_cfg["std"]
+    expected_change = feature_cfg["expected_change"]
+
+    # -------------------------------------------------
+    # RELATIVE CHANGE
+    # -------------------------------------------------
+
+    relative_change = (
+        (current - baseline) /
+        (abs(baseline) + 1e-8)
+    )
+
+    # -------------------------------------------------
+    # NORMALIZE BY EXPECTED FATIGUE EFFECT
+    # -------------------------------------------------
+
+    normalized_effect = (
+        relative_change /
+        (expected_change + 1e-8)
+    )
+
+    # -------------------------------------------------
+    # OPTIONAL POPULATION VARIANCE SCALING
+    # -------------------------------------------------
+
     if std is not None:
-        z = (current - baseline) / (std + 1e-8)
-        return sigmoid(direction * z)
 
-    delta = (current - baseline) / (abs(baseline) + 1e-8)
-    return sigmoid(direction * delta)
+        if isinstance(std, dict):
+            std = std.get(sex)
 
+        if std is not None:
 
-# =========================
-# VOICE + CONTRIBUTIONS
-# =========================
-def compute_voice_score(cur, base, info=None):
+            variance_scale = (
+                abs(baseline) /
+                (std + 1e-8)
+            )
 
-    contributions = {}
+            normalized_effect *= variance_scale
 
-    total = 0
-    wsum = 0
+    # -------------------------------------------------
+    # APPLY DIRECTION
+    # -------------------------------------------------
 
-    sex = info.get("sex") if info else None
+    signed_effect = direction * normalized_effect
 
-    for k, w in VOICE_WEIGHTS.items():
+    # -------------------------------------------------
+    # SIGMOID
+    # baseline -> 0.5
+    # -------------------------------------------------
 
-        c = safe_get(cur, k)
-        b = safe_get(base, k)
+    raw = sigmoid(signed_effect)
 
-        std = None
-        direction = VOICE_DIRECTION.get(k, 1)
+    # -------------------------------------------------
+    # RECENTER
+    # baseline -> 0
+    # fatigue -> positive
+    # improvement -> negative
+    # -------------------------------------------------
 
-        if k == "Pitch" and sex:
-            std = VOICE_STD["Pitch"].get(sex)
-        elif k == "MFCC":
-            std = VOICE_STD["MFCC"]
+    centered = 2 * (raw - 0.5)
 
-        s = compute_feature_score(c, b, std, direction)
-
-        if s is None:
-            continue
-
-        contrib = w * s
-
-        contributions[k] = {
-            "value": float(contrib),
-            "raw_score": float(s),
-            "weight": w,
-            "direction": direction
-        }
-
-        total += contrib
-        wsum += w
-
-    score = total / wsum if wsum else None
-
-    return score, contributions
-
-
-# =========================
-# EYE + CONTRIBUTIONS
-# =========================
-def compute_eye_score(cur, base):
-
-    contributions = {}
-
-    total = 0
-    wsum = 0
-
-    for k, w in EYE_WEIGHTS.items():
-
-        c = safe_get(cur, k)
-        b = safe_get(base, k)
-
-        std = EYE_STD.get(k)
-        direction = EYE_DIRECTION.get(k, 1)
-
-        s = compute_feature_score(c, b, std, direction)
-
-        if s is None:
-            continue
-
-        contrib = w * s
-
-        contributions[k] = {
-            "value": float(contrib),
-            "raw_score": float(s),
-            "weight": w,
-            "direction": direction
-        }
-
-        total += contrib
-        wsum += w
-
-    score = total / wsum if wsum else None
-
-    return score, contributions
-
-
-# =========================
-# GAME + CONTRIBUTIONS
-# =========================
-def compute_game_score(cur, base):
-
-    c = safe_get(cur, "score")
-    b = safe_get(base, "score")
-
-    if c is None or b is None:
-        return None, {}
-
-    std = GAME_STD.get("score")
-    direction = GAME_DIRECTION["score"]
-
-    s = compute_feature_score(c, b, std, direction)
-
-    contrib = s  # single feature
-
-    return s, {
-        "score": {
-            "value": float(contrib),
-            "raw_score": float(s),
-            "weight": 1.0,
-            "direction": direction
-        }
+    return {
+        "fatigue_score": centered,
+        "raw_sigmoid": raw,
+        "better_than_baseline": centered < 0,
+        "relative_change": relative_change,
+        "normalized_effect": normalized_effect
     }
 
 
-# =========================
-# FINAL SCORE + EXPLANATION
-# =========================
+# =====================================================
+# MODALITY SCORE
+# =====================================================
+
+def compute_modality_score(
+    modality_name,
+    current_data,
+    baseline_data,
+    sex=None
+):
+
+    total = 0
+    wsum = 0
+
+    contributions = {}
+
+    for feature_name, cfg in FEATURES.items():
+
+        if cfg["modality"] != modality_name:
+            continue
+
+        current = safe_get(current_data, feature_name)
+        baseline = safe_get(baseline_data, feature_name)
+
+        result = compute_feature_score(
+            current=current,
+            baseline=baseline,
+            feature_name=feature_name,
+            feature_cfg=cfg,
+            sex=sex
+        )
+
+        if result is None:
+            continue
+
+        fatigue_score = result["fatigue_score"]
+
+        weight = cfg["weight"]
+
+        weighted_contribution = (
+            fatigue_score * weight
+        )
+
+        contributions[feature_name] = {
+
+            # -----------------------------------
+            # signed contribution
+            # -----------------------------------
+
+            "weighted_contribution": float(
+                weighted_contribution
+            ),
+
+            # -----------------------------------
+            # signed feature fatigue score
+            # -----------------------------------
+
+            "fatigue_score": float(
+                fatigue_score
+            ),
+
+            # -----------------------------------
+            # internal debug info
+            # -----------------------------------
+
+            "relative_change": float(
+                result["relative_change"]
+            ),
+
+            "normalized_effect": float(
+                result["normalized_effect"]
+            ),
+
+            "raw_sigmoid": float(
+                result["raw_sigmoid"]
+            ),
+
+            "better_than_baseline": bool(
+                result["better_than_baseline"]
+            ),
+
+            # -----------------------------------
+            # metadata
+            # -----------------------------------
+
+            "weight": float(weight),
+
+            "direction": int(
+                cfg["direction"]
+            ),
+
+            "expected_change": float(
+                cfg["expected_change"]
+            ),
+
+            "std": cfg["std"],
+
+            "baseline": float(baseline),
+
+            "current": float(current)
+        }
+
+        total += weighted_contribution
+        wsum += weight
+
+    modality_score = (
+        total / wsum
+        if wsum else None
+    )
+
+    return modality_score, contributions
+
+
+# =====================================================
+# FINAL FATIGUE SCORE
+# =====================================================
+
 def compute_fatigue_score(data):
 
-    b = data["baseline"]
-    c = data["current"]
+    baseline = data["baseline"]
+    current = data["current"]
 
-    voice_score, voice_contrib = compute_voice_score(
-        c["voice"],
-        b["voice"],
-        data.get("subject_info")
+    sex = (
+        data
+        .get("subject_info", {})
+        .get("sex")
     )
 
-    eye_score, eye_contrib = compute_eye_score(
-        c["eye"],
-        b["eye"]
+    # =================================================
+    # VOICE
+    # =================================================
+
+    voice_score, voice_contrib = (
+        compute_modality_score(
+            modality_name="voice",
+            current_data=current["voice"],
+            baseline_data=baseline["voice"],
+            sex=sex
+        )
     )
 
-    game_score, game_contrib = compute_game_score(
-        c["game"],
-        b["game"]
+    # =================================================
+    # EYE
+    # =================================================
+
+    eye_score, eye_contrib = (
+        compute_modality_score(
+            modality_name="eye",
+            current_data=current["eye"],
+            baseline_data=baseline["eye"]
+        )
     )
 
-    scores = {
+    # =================================================
+    # GAME
+    # =================================================
+
+    game_score, game_contrib = (
+        compute_modality_score(
+            modality_name="game",
+            current_data=current["game"],
+            baseline_data=baseline["game"]
+        )
+    )
+
+    modality_scores = {
         "voice": voice_score,
         "eye": eye_score,
         "game": game_score
@@ -206,22 +280,124 @@ def compute_fatigue_score(data):
         "game": game_contrib
     }
 
-    num = 0
-    den = 0
+    # =================================================
+    # FINAL AGGREGATION
+    # =================================================
 
-    for k, w in MODALITY_WEIGHTS.items():
-        s = scores.get(k)
+    numerator = 0
+    denominator = 0
 
-        if s is None:
+    modality_level_contributions = {}
+
+    for modality, modality_weight in MODALITY_WEIGHTS.items():
+
+        modality_score = modality_scores.get(modality)
+
+        if modality_score is None:
             continue
 
-        num += s * w
-        den += w
+        weighted_modality = (
+            modality_score *
+            modality_weight
+        )
 
-    final = num / den if den else None
+        modality_level_contributions[modality] = {
+            "score": float(modality_score),
+            "weight": float(modality_weight),
+            "weighted_contribution": float(weighted_modality)
+        }
+
+        numerator += weighted_modality
+        denominator += modality_weight
+
+    final_score_raw = (
+        numerator / denominator
+        if denominator else None
+    )
+
+    # =================================================
+    # DISPLAY SCORE
+    # clip only at final UI level
+    # =================================================
+
+    if final_score_raw is not None:
+        final_score_display = max(
+            0.0,
+            final_score_raw * 100
+        )
+    else:
+        final_score_display = None
+
+    # =================================================
+    # GLOBAL BETTER-THAN-BASELINE FLAG
+    # =================================================
+
+    better_than_baseline = (
+        final_score_raw is not None and
+        final_score_raw < 0
+    )
+
+    # =================================================
+    # RETURN
+    # =================================================
 
     return {
-        "score": float(final * 100) if final is not None else None,
-        "scores": scores,
-        "feature_contributions": modality_contributions
+
+        # ---------------------------------------------
+        # UI score
+        # clipped to >=0
+        # ---------------------------------------------
+
+        "score": (
+            float(final_score_display)
+            if final_score_display is not None
+            else None
+        ),
+
+        # ---------------------------------------------
+        # true internal raw score
+        # can be negative
+        # ---------------------------------------------
+
+        "raw_score": (
+            float(final_score_raw * 100)
+            if final_score_raw is not None
+            else None
+        ),
+
+        # ---------------------------------------------
+        # modality-level scores
+        # signed
+        # ---------------------------------------------
+
+        "scores": {
+            k: (
+                float(v * 100)
+                if v is not None
+                else None
+            )
+            for k, v in modality_scores.items()
+        },
+
+        # ---------------------------------------------
+        # modality contribution to final score
+        # ---------------------------------------------
+
+        "modality_contributions":
+            modality_level_contributions,
+
+        # ---------------------------------------------
+        # feature-level explainability
+        # signed contributions
+        # ---------------------------------------------
+
+        "feature_contributions":
+            modality_contributions,
+
+        # ---------------------------------------------
+        # global flag
+        # ---------------------------------------------
+
+        "better_than_baseline":
+            better_than_baseline
     }

@@ -1,8 +1,39 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
+def fix_hebrew(text):
+    # הופך כל שורה בנפרד כדי לשמור על סדר השורות מלמעלה למטה
+    lines = text.split('\n')
+    fixed_lines = [line[::-1] for line in lines]
+    return '\n'.join(fixed_lines)
 
+
+# =========================
+# SCORE COLOR MAPPING
+# =========================
+def get_score_color(score):
+
+    if score <= 15:
+        return "#00ff00"  # green
+
+    elif score <= 35:
+        return "#7CFC00"  # yellow-green
+
+    elif score <= 60:
+        return "#ffd700"  # yellow
+
+    elif score <= 80:
+        return "#ff8c00"  # orange
+
+    else:
+        return "#ff0000"  # red
+
+
+# =========================
+# MAIN RENDER
+# =========================
 def render(result):
 
     # =========================
@@ -33,36 +64,38 @@ def render(result):
 
     .metric-box {
         background-color: #001a33;
-        border: 2px solid #0066cc;
-        padding: 15px;
-        border-radius: 10px;
+        border-radius: 12px;
+        padding: 20px;
         text-align: center;
-        box-shadow: 0 0 10px #0066cc;
         margin-bottom: 20px;
-    }
-
-    .section-title {
-        color: #66aaff;
-        font-size: 18px;
-        margin-bottom: 10px;
-        text-shadow: 0 0 6px #66aaff;
     }
 
     .stButton > button {
         background-color: #0066cc;
         color: white;
-        border: none;
-        border-radius: 5px;
+        border-radius: 6px;
         font-weight: bold;
-        box-shadow: 0 0 10px #0066cc;
     }
 
     .stButton > button:hover {
         background-color: #004499;
-        box-shadow: 0 0 20px #0066cc;
     }
+
+    .stDownloadButton > button {
+        background-color: #0066cc;
+        color: white;
+        border-radius: 6px;
+        font-weight: bold;
+    }
+    
+    .stDownloadButton > button:hover {
+        background-color: #004499;
+    }           
+    
     </style>
     """, unsafe_allow_html=True)
+
+    
 
     # =========================
     # VALIDATION
@@ -74,7 +107,7 @@ def render(result):
         return
 
     # =========================
-    # PARSE DATA
+    # DATA
     # =========================
     subject_id = result.get("subject_id", "UNKNOWN")
 
@@ -88,127 +121,205 @@ def render(result):
     # =========================
     # HEADER
     # =========================
-    st.markdown(f"<h1>דוח תוצאות - ID: {subject_id}</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1>דוח תוצאות - {subject_id}</h1>", unsafe_allow_html=True)
 
     # =========================
-    # SCORE DISPLAY
+    # SCORE WITH GLOW
     # =========================
     if isinstance(score, (int, float)):
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.markdown("<h2>רמת עייפות</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h1>{score:.2f}</h1>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+
+        color = get_score_color(score)
+
+        st.markdown(f"""
+        <div style="
+            text-align:center;
+            padding:25px;
+            border-radius:20px;
+            box-shadow: 0 0 30px {color};
+            border: 2px solid {color};
+            margin-bottom:20px;
+        ">
+            <h2>רמת עייפות</h2>
+            <h1 style="color:{color}; font-size:60px;">
+                {score:.2f}
+            </h1>
+        </div>
+        """, unsafe_allow_html=True)
+
     else:
         st.error("שגיאה בחישוב ציון עייפות")
 
     st.divider()
 
     # =========================
-    # FEATURE VIEW
+    # FEATURE CONTRIBUTIONS TABLE
     # =========================
-    def pretty_block(title, data):
-        st.markdown('<div class="block-box">', unsafe_allow_html=True)
-        st.markdown(f"<div class='section-title'>{title}</div>", unsafe_allow_html=True)
-        st.json(data)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-
-    # =========================
-    # CONTRIBUTION GRAPH
-    # =========================
-    st.subheader("📉 תרומת פיצ'רים לציון העייפות")
-
-    rows = []
+    export_rows = []
+    graph_rows = []
 
     for modality, feats in contributions.items():
+
         for fname, data in feats.items():
 
-            rows.append({
-                "feature": f"{modality}.{fname}",
-                "contribution": data["value"],
-                "weight": data["weight"],
-                "raw_score": data["raw_score"],
-                "direction": data["direction"]
+            contribution_value = data.get(
+                "weighted_contribution",
+                0
+            )
+
+            export_rows.append({
+
+                # -------------------------
+                # identifiers
+                # -------------------------
+
+                "modality": modality,
+                "feature": fname,
+
+                # -------------------------
+                # values
+                # -------------------------
+
+                "baseline": data.get("baseline"),
+                "current": data.get("current"),
+
+                # -------------------------
+                # scoring internals
+                # -------------------------
+
+                "fatigue_score": data.get(
+                    "fatigue_score"
+                ),
+
+                "relative_change": data.get(
+                    "relative_change"
+                ),
+
+                "normalized_effect": data.get(
+                    "normalized_effect"
+                ),
+
+                "raw_sigmoid": data.get(
+                    "raw_sigmoid"
+                ),
+
+                # -------------------------
+                # config
+                # -------------------------
+
+                "weight": data.get("weight"),
+
+                "direction": data.get(
+                    "direction"
+                ),
+
+                "expected_change": data.get(
+                    "expected_change"
+                ),
+
+                # -------------------------
+                # final contribution
+                # -------------------------
+
+                "contribution": contribution_value,
+
+                "better_than_baseline": data.get(
+                    "better_than_baseline"
+                )
             })
 
-    df = pd.DataFrame(rows)
+            graph_rows.append({
 
-    if not df.empty:
+                "modality": modality,
 
-        df = df.sort_values("contribution")
+                "feature": fname,
 
-        fig, ax = plt.subplots()
+                "value": contribution_value
+            })
+    df_export = pd.DataFrame(export_rows)
+    df_graph = pd.DataFrame(graph_rows)
 
-        colors = ["red" if x > 0 else "green" for x in df["contribution"]]
+    st.divider()
 
-        ax.barh(df["feature"], df["contribution"], color=colors)
+    # =========================
+    # CUSTOM GROUPED BAR GRAPH
+    # =========================
+    st.subheader("📊 פירוט המשתנים")
 
-        ax.axvline(0, color="white", linewidth=1)
+    if not df_graph.empty:
+        fig, ax = plt.subplots(figsize=(14, 7))
+        
+        # הגדרת סדר הקטגוריות
+        modalities = ["game", "eye", "voice"]
+        modality_labels = {"game": "משחק", "eye": "עיניים", "voice": "קול"}
+        
+        x_positions = []
+        labels = []
+        values = []
+        colors = []
+        
+        current_x = 0
+        group_boundaries = [0]
 
+        for m in modalities:
+            subset = df_graph[df_graph["modality"] == m]
+            for _, row in subset.iterrows():
+                x_positions.append(current_x)
+                # ניקוי שמות הפיצ'רים למראה מקצועי
+                clean_label = row['feature'].replace('_', '\n').title()
+                labels.append(clean_label)
+                values.append(row["value"])
+                colors.append("#ef4444" if row["value"] > 0 else "#84cc16")
+                current_x += 1
+            group_boundaries.append(current_x)
+
+        # ציור הגרף
+        ax.bar(x_positions, values, color=colors, width=0.6, zorder=3)
+        ax.axhline(0, color="white", linewidth=1, zorder=4)
+
+        # --- ציר X: שמות פיצ'רים וקטגוריות ---
+        ax.set_xticks([]) 
+        
+        for x, label in zip(x_positions, labels):
+            ax.text(x, -0.1, label, ha='center', va='top', fontsize=9, color="white", transform=ax.get_xaxis_transform())
+
+        for i in range(len(modalities)):
+            start = group_boundaries[i]
+            end = group_boundaries[i+1]
+            if start == end: continue # הגנה ממקרה של קטגוריה ריקה
+            
+            mid = (start + end - 1) / 2
+            ax.text(mid, -0.04, fix_hebrew(modality_labels[modalities[i]]), 
+                    ha='center', va='top', fontsize=12, fontweight='bold', color="white", transform=ax.get_xaxis_transform())
+            
+            # קווי הפרדה דקים בין קבוצות
+            if i > 0:
+                ax.axvline(start - 0.5, color="white", linewidth=0.5, alpha=0.3, zorder=1)
+
+        # --- תוויות צד (Y) ללא חצים ---
+        # הזזנו את ה-x ל- -0.12 כדי שיהיה מחוץ לציר
+        ax.text(-0.12, 0.85, fix_hebrew("עלייה ברמת\nהעייפות"), transform=ax.transAxes, 
+                ha='center', va='center', color="white", fontsize=10, 
+                bbox=dict(facecolor='none', edgecolor='white', alpha=0.5, pad=5))
+
+        ax.text(-0.12, 0.15, fix_hebrew("שיפור בביצועים"), transform=ax.transAxes, 
+                ha='center', va='center', color="white", fontsize=10, 
+                bbox=dict(facecolor='none', edgecolor='white', alpha=0.5, pad=5))
+
+        # עיצוב אסתטי
         ax.set_facecolor("#001122")
         fig.patch.set_facecolor("#001122")
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        ax.spines['left'].set_color('white')
+        ax.tick_params(axis='y', colors="white", labelsize=9)
 
-        ax.tick_params(colors="white")
-
-        ax.set_title("Contribution (weight × feature score)", color="white")
-
+        # מתיחת הגבולות כדי שהטקסט בצד ובאמצע לא ייחתך
+        plt.subplots_adjust(left=0.15, bottom=0.2)
+        
         st.pyplot(fig)
-
     else:
-        st.info("אין נתוני contributions להצגה")
-
-    st.divider()
-
-
-    st.subheader("📊 פרטי מדידות")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        pretty_block("👁️ עכשיו", features.get("eye", {}))
-        pretty_block("👁️ בסיס", baseline.get("eye", {}))
-
-    with col2:
-        pretty_block("🎮 עכשיו", features.get("game", {}))
-        pretty_block("🎮 בסיס", baseline.get("game", {}))
-
-    with col3:
-        pretty_block("🎙️ עכשיו", features.get("voice", {}))
-        pretty_block("🎙️ בסיס", baseline.get("voice", {}))
-
-    st.divider()
-
-    # =========================
-    # MODALITY BREAKDOWN
-    # =========================
-    if scores:
-        st.subheader("📈 פירוק לפי מודל")
-
-        st.markdown('<div class="block-box">', unsafe_allow_html=True)
-        st.json(scores)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # =========================
-    # FEATURE TABLE PER MODALITY
-    # =========================
-    st.subheader("🔬 פירוט מלא לפי פיצ'ר")
-
-    for modality, feats in contributions.items():
-
-        st.markdown(f"### {modality.upper()}")
-
-        table = []
-
-        for fname, data in feats.items():
-            table.append({
-                "feature": fname,
-                "contribution": data["value"],
-                "weight": data["weight"],
-                "score": data["raw_score"],
-                "direction": data["direction"]
-            })
-
-        st.dataframe(pd.DataFrame(table))
+        st.info("אין נתונים לגרף")
 
     st.divider()
 
@@ -222,10 +333,13 @@ def render(result):
             st.session_state.state["screen"] = "enter_id"
             st.session_state.result = None
             st.rerun()
+    
+    csv = df_export.to_csv(index=False)
 
     with col2:
         st.download_button(
             "יצוא תוצאות",
-            data=str(result),
-            file_name="session.json"
+            data=csv,
+            file_name="fatigue_full_report.csv",
+            mime="text/csv"
         )
