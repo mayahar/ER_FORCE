@@ -1,5 +1,5 @@
 import streamlit as st
-from core.subject_repository import subject_exists, get_all_subject_ids
+from core.subject_repository import subject_exists, get_all_subject_ids, create_subject
 
 def render(controller):
     # Add Air Force inspired styling with dark blue theme
@@ -67,6 +67,12 @@ def render(controller):
     # Display available subject IDs
     available_ids = get_all_subject_ids()
 
+    mode = st.radio(
+        "בחר פעולה",
+        ["ניסיון חדש", "הזן משתמש חדש"],
+        horizontal=True,
+    )
+
     subject_id = st.text_input("הזן מס' אישי")
 
     if st.button("המשך"):
@@ -75,14 +81,26 @@ def render(controller):
             st.error("❌ אנא הזן מזהה תקני")
             return
         
-        if not subject_exists(subject_id):
+        if mode == "ניסיון חדש" and not subject_exists(subject_id):
             st.error(f"❌ שגיאה: מזהה {subject_id} לא קיים במסד הנתונים")
             st.error(f"📋 מזהים זמינים: {', '.join(map(str, available_ids))}")
             return
+
+        if mode == "הזן משתמש חדש":
+            if subject_exists(subject_id):
+                st.error("❌ המשתמש כבר קיים. בחר 'ניסיון חדש' כדי להמשיך.")
+                return
+            try:
+                create_subject(subject_id)
+            except (ValueError, TypeError):
+                st.error("❌ מס' אישי חייב להיות מספרי")
+                return
         
         # Load subject and proceed
         if controller.load_subject(subject_id):
             controller.dispatch("ID_SUBMITTED", {"subject_id": subject_id})
             st.session_state.state["session_id"] = subject_id
-            st.session_state.state["screen"] = "questionnaire"
+            st.session_state.state["screen"] = (
+                "new_user_sleep_gate" if mode == "הזן משתמש חדש" else "questionnaire"
+            )
             st.rerun()

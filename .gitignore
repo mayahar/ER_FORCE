@@ -1,11 +1,48 @@
+# =========================
+# Python / environment
+# =========================
 __pycache__/
 *.py[cod]
 *$py.class
 .venv/
-game/bin/
+
+# =========================
+# Runtime / generated data
+# =========================
 game/data/
+game/sivaks_logging_version/runs/
+game/bin/
+
+# =========================
+# Ignore everything in sivaks_logging_version by default
+# =========================
 game/sivaks_logging_version/*
+
+# =========================
+# BUT keep specific files
+# =========================
+
+# main logging script
 !game/sivaks_logging_version/logging_fg_start_ver5.py
-!game/sivaks_logging_version/runs/
-game/sivaks_logging_version/Aircraft/f16/*
+
+# keep F16 tutorials (must reopen full path chain)
+!game/sivaks_logging_version/
+!game/sivaks_logging_version/Aircraft/
+!game/sivaks_logging_version/Aircraft/f16/
 !game/sivaks_logging_version/Aircraft/f16/Tutorials/
+!game/sivaks_logging_version/Aircraft/f16/Tutorials/**
+
+game/sivaks_logging_version/Aircraft/f16/Engines
+game/sivaks_logging_version/Aircraft/f16/Engines/direct.xml
+game/sivaks_logging_version/Aircraft/f16/Fonts
+game/sivaks_logging_version/Aircraft/f16/gui
+game/sivaks_logging_version/Aircraft/f16/Kneeboards
+game/sivaks_logging_version/Aircraft/f16/Models
+game/sivaks_logging_version/Aircraft/f16/Nasal
+game/sivaks_logging_version/Aircraft/f16/Scenarios
+game/sivaks_logging_version/Aircraft/f16/Shaders
+game/sivaks_logging_version/Aircraft/f16/Shaders4
+game/sivaks_logging_version/Aircraft/f16/Sounds
+game/sivaks_logging_version/Aircraft/f16/states
+game/sivaks_logging_version/Aircraft/f16/sview
+game/sivaks_logging_version/Aircraft/f16/Systems

@@ -47,3 +47,6 @@ SUBJECTS_DB = {
         }
     }
 }
+
+# Stores per-run results objects
+RESULTS_DB = []

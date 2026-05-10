@@ -2,7 +2,9 @@ import streamlit as st
 import copy
 
 from core.mock_controller import Controller
+from core.subject_repository import save_result_object
 from screens import enter_id, questionnaire, game, results
+from screens import new_user_sleep_gate
 
 st.set_page_config(page_title="Fatigue App", layout="wide")
 
@@ -30,6 +32,9 @@ if state == "enter_id":
 elif state == "questionnaire":
     questionnaire.render(controller)
 
+elif state == "new_user_sleep_gate":
+    new_user_sleep_gate.render(controller)
+
 elif state == "game":
     game.render(controller)
 
@@ -52,6 +57,7 @@ elif state == "result":
 
         # 🔥 חשוב מאוד: freeze snapshot
         st.session_state.result = copy.deepcopy(controller.get_result())
+        save_result_object(st.session_state.result)
 
     result = st.session_state.result
 

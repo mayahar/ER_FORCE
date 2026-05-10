@@ -1,4 +1,4 @@
-from core.database import SUBJECTS_DB
+from core.database import SUBJECTS_DB, RESULTS_DB
 
 def get_subject(subject_id):
     """
@@ -21,6 +21,50 @@ def get_all_subjects():
 
 def get_all_subject_ids():
     return sorted(SUBJECTS_DB.keys())
+
+
+def create_subject(subject_id):
+    """
+    Creates a new subject with default baseline.
+    """
+    sid = int(subject_id)
+
+    if sid in SUBJECTS_DB:
+        return SUBJECTS_DB[sid]
+
+    SUBJECTS_DB[sid] = {
+        "id": sid,
+        "name": f"נושא {sid}",
+        "sex": "unknown",
+        "age": 0,
+        "baseline": {
+            "voice": {
+                "dLPC": 0.41,
+                "PARCOR": 0.54,
+                "LPC": 0.60,
+                "Pitch": 150.0,
+                "MFCC": 0.52,
+            },
+            "eye": {
+                "fixation_duration": 0.21,
+                "fixation_count": 122,
+                "saccade_count": 155,
+            },
+            "game": {"score": 82},
+        },
+    }
+
+    return SUBJECTS_DB[sid]
+
+
+def save_result_object(result):
+    """
+    Persist a full result object with subject id.
+    """
+    if not result:
+        return
+
+    RESULTS_DB.append(result)
 
 
 # =========================

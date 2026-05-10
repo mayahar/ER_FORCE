@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+	<tutorial include="ca_static_balloons_surprise_feedback_level3.xml"/>
+<!--
+	<tutorial include="ca_static_balloons_surprise_feedback.xml"/>
+	<tutorial include="ca_static_balloons_surprise.xml"/>
+	<tutorial include="ca_static_balloons_altitude.xml"/>
+	<tutorial include="ca_static_balloons.xml"/>
+
+	<tutorial include="ca_static_balloons_surprise_debug.xml"/>	
+	<tutorial include="ca_balloons_hit_alternating_upgrade.xml"/>
+	<tutorial include="ca_balloons_hit_alternating_7_levels.xml"/>
+	<tutorial include="ca_balloons_hit_alternating.xml"/>
+	<tutorial include="ca_balloons_hit_gradual.xml"/>
+	<tutorial include="ca_tunnel.xml"/>
+	<tutorial include="ca_lights_hit.xml"/>
+	<tutorial include="ca_balloons_hit.xml"/>
+    <tutorial include="ca_balloons.xml"/>
+    <tutorial include="ca_steady_flight_speed.xml"/>
+	<tutorial include="ca_7000feet.xml"/>
+    <tutorial include="ca_landing.xml"/>
+    <tutorial include="const-speed-fpm_3params.xml"/>
+    <tutorial include="steady_flight_speed.xml"/>
+    <tutorial include="takeoff.xml"/>
+	<tutorial include="steady_flight.xml"/>
+    <tutorial include="terrainfollow.xml"/>
+	<tutorial include="const-speed-fpm.xml"/>
+	<tutorial include="const-speed-3000fpm.xml"/>
+	<tutorial include="const-speed-10000fpm.xml"/>
+-->	
+</PropertyList>
