@@ -29,6 +29,10 @@ def _start_flightgear_session() -> tuple[int, str]:
     script_dir = os.path.dirname(FG_SCRIPT_PATH)
 
     try:
+        # Mark "this run" for the Streamlit process so results can read the correct session.
+        # MockController will look for the first session folder created after this timestamp.
+        os.environ["SIVAKS_FG_MIN_START_TS"] = str(time.time())
+
         p = subprocess.Popen(
             [sys.executable, FG_SCRIPT_PATH],
             cwd=script_dir,

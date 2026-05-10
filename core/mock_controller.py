@@ -1,5 +1,8 @@
 import time
 import random
+import os
+import re
+from pathlib import Path
 
 from core.subject_repository import get_subject
 from score.fatigue_scoring import compute_fatigue_score
@@ -52,6 +55,8 @@ class MockController:
 
         b = self.subject["baseline"]
 
+        fg_score = self._try_get_latest_flightgear_score()
+
         self.features = {
             "voice": {
                 "dLPC": b["voice"]["dLPC"] * random.uniform(0.9, 1.1),
@@ -68,9 +73,57 @@ class MockController:
             },
 
             "game": {
-                "score": int(b["game"]["score"] * random.uniform(0.7, 0.95)),
+                # Prefer the real FlightGear score (from logging_fg_start_ver5.py final_score.txt).
+                # Fallback to the prior mock behavior if we can't find a recent run.
+                "score": int(fg_score) if fg_score is not None else int(b["game"]["score"] * random.uniform(0.7, 0.95)),
             }
         }
+
+    def _try_get_latest_flightgear_score(self) -> int | None:
+        
+        runs_root = os.environ.get(
+            "SIVAKS_FG_RUNS_ROOT",
+            r"C:\Users\srule\OneDrive\Desktop\yan\FlightGear_2020_3\sivaks_logging_version\runs",
+        )
+
+        root = Path(runs_root)
+        if not root.exists() or not root.is_dir():
+            return None
+
+        sessions = [p for p in root.glob("session_*") if p.is_dir()]
+        if not sessions:
+            return None
+
+        min_ts = None
+        try:
+            raw_min_ts = os.environ.get("SIVAKS_FG_MIN_START_TS")
+            if raw_min_ts:
+                min_ts = float(raw_min_ts)
+        except Exception:
+            min_ts = None
+
+        if min_ts is not None:
+            sessions = [p for p in sessions if p.stat().st_mtime >= (min_ts - 1.0)]
+            if not sessions:
+                return None
+
+        sessions.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+
+        for session in sessions[:10]:
+            report = session / "final_score.txt"
+            if not report.exists():
+                continue
+            try:
+                text = report.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                continue
+
+            m = re.search(r"Score:\s*(\d+)\s*/\s*100", text)
+            if m:
+                score = int(m.group(1))
+                return max(0, min(100, score))
+
+        return None
 
     # -------------------
     # SCORING
