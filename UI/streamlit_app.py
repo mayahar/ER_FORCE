@@ -1,7 +1,7 @@
 import streamlit as st
 import copy
 
-from core.mock_controller import MockController
+from core.mock_controller import Controller
 from screens import enter_id, questionnaire, game, results
 
 st.set_page_config(page_title="Fatigue App", layout="wide")
@@ -10,7 +10,7 @@ st.set_page_config(page_title="Fatigue App", layout="wide")
 # SESSION STATE
 # ------------------------
 if "controller" not in st.session_state:
-    st.session_state.controller = MockController()
+    st.session_state.controller = Controller()
 
 if "state" not in st.session_state:
     st.session_state.state = {"screen": "enter_id"}

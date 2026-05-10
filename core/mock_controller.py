@@ -8,7 +8,7 @@ from core.subject_repository import get_subject
 from score.fatigue_scoring import compute_fatigue_score
 
 
-class MockController:
+class Controller:
 
     def __init__(self):
         self.subject = None

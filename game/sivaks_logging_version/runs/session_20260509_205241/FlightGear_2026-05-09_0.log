@@ -1,0 +1,955 @@
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:554: Created multi-app mutex, we are in writeable mode
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:609: FlightGear:  Version 2020.3.19
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:610: FlightGear:  Build Type Release
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:611: Built with Microsoft Visual C++ version 1900
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:613: Jenkins number/ID 349:349
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:3036: platform default fg_root = Path "../data"
+    0.00 [INFO]:input     C:\Jenkins\workspace\Windows-release\flightgear\src\Main\globals.cxx:849: Reading user settings from Path "C:/Users/לינוי/AppData/Roaming/flightgear.org/autosave_2020_3.xml"
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:1510: init package root at:Path "C:/Users/לינוי/FlightGear/Downloads/Aircraft"
+    0.00 [INFO]:input     C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2276: aircraft = f16-block-52
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:234: found aircraft in dir: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16
+    0.00 [ALRT]:input     C:\Jenkins\workspace\Windows-release\simgear\simgear\props\props_io.cxx:221: Not overwriting write-protected property /sim/version/compositor-support
+ at c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/f16-base.xml,
+line 25, column 12
+    0.00 [INFO]:aircraft  C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\initialstate.cxx:94: Applying aircraft state:take-off
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:127: User langauge 0:he-IL
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:127: User langauge 1:en-US
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:177: Found language resource for: en
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:329: Reading localized strings for 'en' from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Translations/default/sys.xml"
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:329: Reading localized strings for 'en' from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Translations/default/atc.xml"
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:329: Reading localized strings for 'en' from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Translations/default/tips.xml"
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:329: Reading localized strings for 'en' from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Translations/default/weather-scenarios.xml"
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:fg-aircraft = c:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Aircraft;c:\Users\לינוי\Documents\ער FORCE\07-05-2026\sivaks_logging_version\Aircraft
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:airport = PHTO
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:aircraft-dir = c:\Users\לינוי\Documents\ער FORCE\07-05-2026\sivaks_logging_version\Aircraft\f16
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:aircraft = f16-block-52
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:log-level = info
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:log-dir = c:\Users\לינוי\Documents\ער FORCE\07-05-2026\sivaks_logging_version\runs\session_20260509_205241
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:disable-splash-screen = 
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /sim/menubar/visibility=false
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:disable-ai-traffic = 
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:fg-scenery = c:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Scenery
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /nasal/local_weather/enabled=false
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:metar = XXXX 012345Z 15003KT 19SM FEW072 FEW350 25/07 Q1028 NOSIG
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /environment/weather-scenario=Core high pressure region
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /sim/rendering/texture-cache/cache-enabled=true
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:disable-terrasync = 
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:disable-sentry = 
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:state = take-off
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /sim/sivaks/autostart-tutorial-enabled=true
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /sim/sivaks/autostart-tutorial=CorrActions DEFAULT
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2626: Reading command-line property file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/runs/session_20260509_205241/sivaks_logging_20260509_205241.xml"
+    0.03 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2641: Using default download dir: Path "C:/Users/לינוי/FlightGear/Downloads"
+    0.03 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2664: Using default texture cache directory: Path "C:/Users/לינוי/FlightGear/Downloads/TextureCache"
+    0.03 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2687: Using TerraSync dir: Path "C:/Users/לינוי/FlightGear/Downloads/TerraSync"
+    0.03 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:716: EmbeddedResourceManager: selected locale 'he-IL'
+    0.03 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\fg_os_osgviewer.cxx:373: Using stock OSG implementation of GraphicsWindow
+    0.03 [INFO]:astro     C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\sky\cloud.cxx:343: initializing cloud layers
+    0.25 [WARN]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:755: Enabling ATI/AMD viewport hack
+    0.25 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:959: Configuration State
+    0.25 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:960: ============= =====
+    0.25 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:962: aircraft-dir = "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16"
+    0.25 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:963: fghome-dir = "Path "C:/Users/לינוי/AppData/Roaming/flightgear.org""
+    0.25 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:964: download-dir = "C:/Users/לינוי/FlightGear/Downloads"
+    0.25 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:965: terrasync-dir = "C:/Users/לינוי/FlightGear/Downloads/TerraSync"
+    0.25 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:967: aircraft-search-paths = 
+	c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft
+	c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft
+    0.25 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:968: scenery-search-paths = 
+	c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery
+	C:/Users/לינוי/FlightGear/Downloads/TerraSync
+    0.29 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\renderer_legacy.cxx:1592: FGRenderer:: Maximum texture size 16384
+    0.29 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\gui.cxx:127: Intel
+    0.29 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\gui.cxx:130: Intel(R) Iris(R) Xe Graphics
+    0.29 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\gui.cxx:133: 4.6.0 - Build 32.0.101.7077
+    0.29 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\gui.cxx:143: 4.60 - Build 32.0.101.7077
+    0.29 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\gui.cxx:154: VertexAttribDivisor supported
+    0.34 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress loading-aircraft-list
+    0.36 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress loading-nav-dat
+    0.37 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:299: NavCache at:Path "C:/Users/לינוי/AppData/Roaming/flightgear.org/navdata_2020_3.cache"
+    0.37 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:302: NavCache read-only flags is:0
+    0.38 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1808: readStringProperty: unknown:apt.dat files
+    0.38 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1214: NavCache: rebuild required for apt.dat files (no file in cache, but 2 such files found in scenery paths)
+    0.38 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1455: NavCache: main cache rebuild required
+    0.38 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:299: NavCache at:Path "C:/Users/לינוי/AppData/Roaming/flightgear.org/navdata_2020_3.cache"
+    0.38 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:302: NavCache read-only flags is:0
+    0.38 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:338: will create tables
+    0.48 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1662: Loading apt.dat file: 'c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/NavData/apt/BIKF.dat'
+    0.48 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:146: apt.dat format version (c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/NavData/apt/BIKF.dat): 1000
+    0.49 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1662: Loading apt.dat file: 'c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz'
+    0.49 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:146: apt.dat format version (c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz): 1000
+    0.51 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress navdata-reading-apt-dat-files
+    1.45 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:194: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1093393: skipping airport BIKF (already defined earlier)
+    2.67 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1673: apt.dat files load took: 2186
+    2.70 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress loading-nav-dat
+    2.70 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:692272: skipping invalid 25 kHz Frequency 136190 for ESSU
+    2.75 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress navdata-loading-airports
+    2.76 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1205792: skipping invalid 25 kHz Frequency 123680 for EHLE
+    2.83 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:8533: skipping invalid 25 kHz Frequency 132690 for CYXX
+    2.85 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:786938: skipping invalid 25 kHz Frequency 126180 for RCAY
+    2.90 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:92405: skipping invalid 25 kHz Frequency 123380 for EDCQ
+    2.91 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:202744: skipping invalid 25 kHz Frequency 128190 for EGAA
+    2.92 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:658956: skipping invalid 25 kHz Frequency 118630 for EDAR
+    2.94 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:18724: skipping invalid 25 kHz Frequency 130440 for YPAD
+    2.94 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1325928: skipping invalid 25 kHz Frequency 129780 for EDFM
+    2.96 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1689502: skipping invalid 25 kHz Frequency 120330 for EGSP
+    2.97 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:588696: skipping invalid 25 kHz Frequency 130730 for EGLD
+    3.06 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1311170: skipping invalid 25 kHz Frequency 128690 for UIKM
+    3.07 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1419482: skipping invalid 25 kHz Frequency 125830 for LKML
+    3.08 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1839117: skipping invalid 25 kHz Frequency 120430 for EDFB
+    3.10 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2310756: skipping invalid 25 kHz Frequency 135690 for KIAD
+    3.11 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1577375: skipping invalid 25 kHz Frequency 128690 for UENN
+    3.20 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2134417: skipping invalid 25 kHz Frequency 126180 for RCNN
+    3.25 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:315729: skipping invalid 25 kHz Frequency 133190 for KHWV
+    3.27 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:354295: skipping invalid 25 kHz Frequency 135440 for LFAC
+    3.45 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:247076: skipping invalid 25 kHz Frequency 134780 for KBID
+    3.46 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:71301: skipping invalid 25 kHz Frequency 121030 for EDFA
+    3.48 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:119454: skipping invalid 25 kHz Frequency 123430 for EBAV
+    3.50 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:390168: skipping invalid 25 kHz Frequency 132480 for EGFF
+    3.54 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:184290: skipping invalid 25 kHz Frequency 126180 for RPUF
+    3.64 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:119125: skipping invalid 25 kHz Frequency 135690 for YMAV
+    3.65 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2134301: skipping invalid 25 kHz Frequency 135180 for 39WA
+    3.78 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1898674: skipping invalid 25 kHz Frequency 130190 for NZRC
+    3.81 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:155600: skipping invalid 25 kHz Frequency 129690 for YSBK
+    3.82 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1304132: skipping invalid 25 kHz Frequency 126180 for RCQC
+    3.96 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1238094: skipping invalid 25 kHz Frequency 124230 for EPLL
+    4.10 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:616560: skipping invalid 25 kHz Frequency 129910 for EIDL
+    4.13 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:256208: skipping invalid 25 kHz Frequency 118280 for LKBO
+    4.14 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:895067: skipping invalid 25 kHz Frequency 128690 for CYUX
+    4.23 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:293962: skipping invalid 25 kHz Frequency 134930 for LZIB
+    4.23 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1894688: skipping invalid 25 kHz Frequency 130190 for EGDC
+    4.23 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1894689: skipping invalid 25 kHz Frequency 130190 for EGDC
+    4.25 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1839950: skipping invalid 25 kHz Frequency 123480 for EDOX
+    4.29 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1289659: skipping invalid 25 kHz Frequency 128190 for ESPA
+    4.32 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2355012: skipping invalid 25 kHz Frequency 128190 for LOWW
+    4.33 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1714301: skipping invalid 25 kHz Frequency 126180 for RCDC
+    4.36 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:358506: skipping invalid 25 kHz Frequency 128690 for YCDR
+    4.38 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:977276: skipping invalid 25 kHz Frequency 126180 for RCYU
+    4.42 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:386661: skipping invalid 25 kHz Frequency 131410 for KSPI
+    4.44 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1548808: skipping invalid 25 kHz Frequency 129980 for EHNR
+    4.47 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:408768: skipping invalid 25 kHz Frequency 125880 for EBCF
+    4.49 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1675048: skipping invalid 25 kHz Frequency 135190 for KNHK
+    4.61 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:443409: skipping invalid 25 kHz Frequency 126180 for RCKU
+    4.67 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:651118: skipping invalid 25 kHz Frequency 128230 for EGNX
+    4.76 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:502038: skipping invalid 25 kHz Frequency 123880 for KAAO
+    4.77 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1293930: skipping invalid 25 kHz Frequency 129230 for EGMD
+    4.77 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1293931: skipping invalid 25 kHz Frequency 128530 for EGMD
+    4.79 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:577669: skipping invalid 25 kHz Frequency 130190 for LFMS
+    4.86 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1130259: skipping invalid 25 kHz Frequency 129580 for LZKZ
+    4.90 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:730913: skipping invalid 25 kHz Frequency 129690 for LHBP
+    4.93 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1381322: skipping invalid 25 kHz Frequency 132690 for YMML
+    4.96 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:582431: skipping invalid 25 kHz Frequency 122030 for EDMW
+    5.04 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1753988: skipping invalid 25 kHz Frequency 127780 for LKPO
+    5.04 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:605755: skipping invalid 25 kHz Frequency 129190 for UODD
+    5.04 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:605756: skipping invalid 25 kHz Frequency 128190 for UODD
+    5.12 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:648483: skipping invalid 25 kHz Frequency 122430 for EGSR
+    5.13 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:825212: skipping invalid 25 kHz Frequency 128690 for CYHK
+    5.20 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1777087: skipping invalid 25 kHz Frequency 128680 for EPRA
+    5.21 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:695011: skipping invalid 25 kHz Frequency 135690 for YMEN
+    5.28 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1102989: skipping invalid 25 kHz Frequency 128690 for NZKK
+    5.36 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1118380: skipping invalid 25 kHz Frequency 123480 for LKKL
+    5.37 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2103797: skipping invalid 25 kHz Frequency 120680 for LKSB
+    5.38 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1728067: skipping invalid 25 kHz Frequency 135690 for YMPC
+    5.40 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1980566: skipping invalid 25 kHz Frequency 124880 for EGHE
+    5.44 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:744292: skipping invalid 25 kHz Frequency 132690 for YFRT
+    5.46 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:760537: skipping invalid 25 kHz Frequency 121730 for EDFE
+    5.46 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:760538: skipping invalid 25 kHz Frequency 118780 for EDFE
+    5.47 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1414472: skipping invalid 25 kHz Frequency 132690 for LIMC
+    5.47 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2390481: skipping invalid 25 kHz Frequency 121780 for EGTB
+    5.51 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:980248: skipping invalid 25 kHz Frequency 135180 for 7WA4
+    5.60 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:824165: skipping invalid 25 kHz Frequency 128690 for AYGR
+    5.65 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1235594: skipping invalid 25 kHz Frequency 128180 for LJLJ
+    5.65 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1235595: skipping invalid 25 kHz Frequency 121630 for LJLJ
+    5.79 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2316516: skipping invalid 25 kHz Frequency 118730 for EPWT
+    5.81 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1032504: skipping invalid 25 kHz Frequency 132940 for YPJT
+    5.84 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:948411: skipping invalid 25 kHz Frequency 131030 for EHHV
+    5.84 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:949923: skipping invalid 25 kHz Frequency 128440 for YMHB
+    5.88 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:980227: skipping invalid 25 kHz Frequency 119130 for EGNJ
+    5.93 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1007849: skipping invalid 25 kHz Frequency 130690 for EIKN
+    5.98 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2055666: skipping invalid 25 kHz Frequency 134940 for KTIX
+    5.99 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1038980: skipping invalid 25 kHz Frequency 126180 for RCQS
+    6.02 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1065486: skipping invalid 25 kHz Frequency 129980 for ED11
+    6.05 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1074110: skipping invalid 25 kHz Frequency 121230 for LKKV
+    6.08 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1714262: skipping invalid 25 kHz Frequency 126180 for RCSQ
+    6.08 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1252312: skipping invalid 25 kHz Frequency 129690 for SBLO
+    6.13 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1134008: skipping invalid 25 kHz Frequency 124480 for ENCN
+    6.15 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2269061: skipping invalid 25 kHz Frequency 128690 for UENI
+    6.18 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1874560: skipping invalid 25 kHz Frequency 119480 for KWRB
+    6.18 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1874562: skipping invalid 25 kHz Frequency 133230 for KWRB
+    6.18 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1174112: skipping invalid 25 kHz Frequency 122030 for EDWL
+    6.20 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1185872: skipping invalid 25 kHz Frequency 119830 for KIFP
+    6.25 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1223378: skipping invalid 25 kHz Frequency 135690 for YLIL
+    6.34 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1303654: skipping invalid 25 kHz Frequency 128690 for UEMM
+    6.37 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2232189: skipping invalid 25 kHz Frequency 125430 for LKTB
+    6.45 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1398699: skipping invalid 25 kHz Frequency 119130 for LFJL
+    6.48 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2220235: skipping invalid 25 kHz Frequency 133690 for KTTN
+    6.48 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1945567: skipping invalid 25 kHz Frequency 119280 for EGHN
+    6.49 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1520019: skipping invalid 25 kHz Frequency 123280 for EGNF
+    6.51 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1438927: skipping invalid 25 kHz Frequency 132230 for KMHV
+    6.61 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2367028: skipping invalid 25 kHz Frequency 135180 for KCLM
+    6.61 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2367029: skipping invalid 25 kHz Frequency 122980 for KCLM
+    6.63 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1507541: skipping invalid 25 kHz Frequency 128440 for KBNA
+    6.82 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1632811: skipping invalid 25 kHz Frequency 126130 for ENGM
+    6.83 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1637027: skipping invalid 25 kHz Frequency 135440 for EFOU
+    6.88 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1678884: skipping invalid 25 kHz Frequency 130190 for YPEA
+    6.96 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1728648: skipping invalid 25 kHz Frequency 135180 for KNTD
+    6.97 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1728844: skipping invalid 25 kHz Frequency 129080 for TFFR
+    6.98 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1737082: skipping invalid 25 kHz Frequency 122980 for KNOW
+    7.00 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1753501: skipping invalid 25 kHz Frequency 128690 for LIRE
+    7.03 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1771391: skipping invalid 25 kHz Frequency 135230 for KUIL
+    7.12 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1846266: skipping invalid 25 kHz Frequency 130480 for EGNE
+    7.14 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1860674: skipping invalid 25 kHz Frequency 130130 for ED09
+    7.18 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1884492: skipping invalid 25 kHz Frequency 128440 for ESDF
+    7.22 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:1912229: skipping invalid 25 kHz Frequency 119260 for LFMH
+    7.33 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2009780: skipping invalid 25 kHz Frequency 135480 for S83
+    7.35 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2287159: skipping invalid 25 kHz Frequency 125830 for LKTV
+    7.41 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2083179: skipping invalid 25 kHz Frequency 128940 for TNCM
+    7.50 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2143581: skipping invalid 25 kHz Frequency 122830 for EDMT
+    7.50 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2146902: skipping invalid 25 kHz Frequency 128690 for NZAP
+    7.54 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2174983: skipping invalid 25 kHz Frequency 135180 for 16WA
+    7.60 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2242232: skipping invalid 25 kHz Frequency 135690 for PAUN
+    7.61 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2248542: skipping invalid 25 kHz Frequency 128690 for UEBT
+    7.63 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2262879: skipping invalid 25 kHz Frequency 119830 for EDWU
+    7.65 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2286573: skipping invalid 25 kHz Frequency 123180 for EHVK
+    7.70 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2333721: skipping invalid 25 kHz Frequency 120230 for EDXW
+    7.80 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2413928: skipping invalid 25 kHz Frequency 128690 for UESU
+    7.84 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:727: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Airports/apt.dat.gz:2428613: skipping invalid 25 kHz Frequency 123330 for GECE
+    7.92 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Airports\apt_loader.cxx:312: Loaded data for 34074 airports
+    7.92 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1707: processing airports took:5248
+    7.95 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1662: Loading fix.dat file: 'c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz'
+    7.96 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress loading-nav-dat
+    8.02 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress navdata-fixes
+    8.21 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:18393: skipping fix CANIS (already defined nearby)
+    8.32 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:27229: skipping fix DF162 (already defined nearby)
+    8.33 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:28227: skipping fix DITRE (already defined nearby)
+    8.34 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:28794: skipping fix DM072 (already defined nearby)
+    8.34 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:28801: skipping fix DM078 (already defined nearby)
+    8.34 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:28806: skipping fix DM082 (already defined nearby)
+    8.40 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:34052: skipping fix ENETA (already defined nearby)
+    8.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:58351: skipping fix KESIX (already defined nearby)
+    8.74 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:62530: skipping fix LANZA (already defined nearby)
+    8.78 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:65499: skipping fix LOPNA (already defined nearby)
+    8.83 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:69430: skipping fix MENDI (already defined nearby)
+    9.00 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:82429: skipping fix PAS21 (already defined nearby)
+    9.26 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:102812: skipping fix TEXIT (already defined nearby)
+    9.39 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\fixlist.cxx:139: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/fix.dat.gz:114683: skipping fix WW022 (already defined nearby)
+    9.44 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1673: fix.dat files load took: 1496
+    9.44 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1662: Loading nav.dat file: 'c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/NavData/nav/BIKF.dat'
+    9.46 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:476: nav.dat format version (c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/NavData/nav/BIKF.dat): 1000
+    9.46 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/NavData/nav/BIKF.dat:22: skipping navaid 'BIKF 01 DME-ILS DME' (nearby suspected duplicate 'BIKF 01 DME-ILS')
+    9.46 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/NavData/nav/BIKF.dat:23: skipping navaid 'BIKF 19 DME-ILS DME' (nearby suspected duplicate 'BIKF 19 DME-ILS')
+    9.46 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/NavData/nav/BIKF.dat:24: skipping navaid 'BIKF 28 DME-ILS DME' (nearby suspected duplicate 'BIKF 28 DME-ILS')
+    9.46 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1662: Loading nav.dat file: 'c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz'
+    9.48 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:476: nav.dat format version (c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz): 810
+    9.48 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:102: skipping navaid 'AKRON NDB' (already defined nearby)
+    9.48 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:157: skipping navaid 'ALGOA NDB' (nearby suspected duplicate 'ALGOA (LOM/NDB) NDB')
+    9.48 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:356: skipping navaid 'ASHLY NDB' (nearby suspected duplicate 'ASHLY (LOM/NDB) NDB')
+    9.49 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:606: skipping navaid 'BEDDS NDB' (nearby suspected duplicate 'BEDDS (LOM) NDB')
+    9.49 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:607: skipping navaid 'BEDDS NDB' (already defined nearby)
+    9.49 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:608: skipping navaid 'BEDDS NDB' (already defined nearby)
+    9.49 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:783: skipping navaid 'BOLLN NDB' (nearby suspected duplicate 'BOLLN LOM')
+    9.49 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:791: skipping navaid 'BOMDE NDB' (already defined nearby)
+    9.49 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:802: skipping navaid 'BOOIE NDB' (already defined nearby)
+    9.49 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:840: skipping navaid 'BOUTN NDB' (already defined nearby)
+    9.50 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:989: skipping navaid 'BUSHE NDB' (nearby suspected duplicate 'BUSHE (LOM) NDB')
+    9.50 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:990: skipping navaid 'BUSHE NDB' (already defined nearby)
+    9.52 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress navdata-navaids
+    9.52 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:1779: skipping navaid 'DUSTT NDB' (already defined nearby)
+    9.52 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:1780: skipping navaid 'DUSTT NDB' (already defined nearby)
+    9.52 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:2126: skipping navaid 'FUROR NDB' (nearby suspected duplicate 'Furor LOM')
+    9.53 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:2542: skipping navaid 'HERBB NDB' (nearby suspected duplicate 'Herbb LOM')
+    9.53 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:2587: skipping navaid 'HOKITIKA NDB-DME' (nearby suspected duplicate 'HOKITIKA NDB')
+    9.54 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:2655: skipping navaid 'HUGGY NDB' (already defined nearby)
+    9.55 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:3209: skipping navaid 'KOLOE NDB' (already defined nearby)
+    9.55 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:3371: skipping navaid 'LAANG NDB' (already defined nearby)
+    9.56 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:3955: skipping navaid 'MCDEN NDB' (already defined nearby)
+    9.58 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:4477: skipping navaid 'NOVARA NDB-DME' (nearby suspected duplicate 'NOVARA NDB')
+    9.58 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:4518: skipping navaid 'OBLIO NDB' (already defined nearby)
+    9.58 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:4577: skipping navaid 'ONIDA NDB' (already defined nearby)
+    9.58 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:4578: skipping navaid 'ONIDA NDB' (already defined nearby)
+    9.59 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:4904: skipping navaid 'PIEVE NDB' (already defined nearby)
+    9.59 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:5073: skipping navaid 'PRILEP NDB-DME' (nearby suspected duplicate 'PRILEP NDB')
+    9.61 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:302: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:5829: skipping navaid 'SNUFF NDB' (already defined nearby)
+    9.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:10562: skipping navaid 'VELIKIYE LUKI VOR-DME' (nearby suspected duplicate 'VELIKIYE LUKI VOR')
+    9.71 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 02 ILS-cat-I
+    9.72 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 02 ILS-cat-I
+    9.72 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:396: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:10828: couldn't find matching runway for ILS/LOC/GS navaid 'BIKF 02 ILS-cat-I', ignoring it.
+    9.72 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 11 ILS-cat-II
+    9.73 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 11 ILS-cat-II
+    9.73 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:396: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:10829: couldn't find matching runway for ILS/LOC/GS navaid 'BIKF 11 ILS-cat-II', ignoring it.
+    9.73 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 20 ILS-cat-II
+    9.74 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 20 ILS-cat-II
+    9.74 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:396: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:10830: couldn't find matching runway for ILS/LOC/GS navaid 'BIKF 20 ILS-cat-II', ignoring it.
+    9.74 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 29 ILS-cat-I
+    9.75 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 29 ILS-cat-I
+    9.75 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:396: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:10831: couldn't find matching runway for ILS/LOC/GS navaid 'BIKF 29 ILS-cat-I', ignoring it.
+   10.09 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 02 GS
+   10.10 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 02 GS
+   10.10 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:396: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:14330: couldn't find matching runway for ILS/LOC/GS navaid 'BIKF 02 GS', ignoring it.
+   10.10 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 11 GS
+   10.11 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 11 GS
+   10.11 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:396: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:14331: couldn't find matching runway for ILS/LOC/GS navaid 'BIKF 11 GS', ignoring it.
+   10.11 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 20 GS
+   10.12 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 20 GS
+   10.12 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:396: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:14332: couldn't find matching runway for ILS/LOC/GS navaid 'BIKF 20 GS', ignoring it.
+   10.12 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 29 GS
+   10.13 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 29 GS
+   10.13 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:396: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:14333: couldn't find matching runway for ILS/LOC/GS navaid 'BIKF 29 GS', ignoring it.
+   10.41 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:243: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:16455: unable to parse (invalid stod argument): '6  40.75644400  016.94085000   1184        10  300321.163  LIBV 32L GS'
+   10.42 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:243: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:16758: unable to parse (invalid stod argument): '6  28.27461100  068.45741900    185        10  300327.389 MCCT OPJA 33  GS'
+   10.42 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:243: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:16812: unable to parse (invalid stod argument): '6  22.74861100  121.09566700    143        10  300038.513 MFNN RCFN 04  GS'
+   10.42 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:243: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:16827: unable to parse (invalid stod argument): '6  24.01447200  121.61319400     52        10  320026.187  RCYU 03  GS'
+   10.46 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 11 OM
+   10.46 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:328: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:17526: couldn't find matching runway for marker 'BIKF 11 OM', skipping.
+   10.50 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 11 MM
+   10.50 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:328: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:19140: couldn't find matching runway for marker 'BIKF 11 MM', skipping.
+   10.54 [WARN]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:2511: findAirportRunway: unknown airport/runway:BIKF 11 IM
+   10.54 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:328: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:20752: couldn't find matching runway for marker 'BIKF 11 IM', skipping.
+   10.55 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:20964: skipping navaid 'BIKF 02 DME-ILS' (nearby suspected duplicate 'BIKF 01 DME-ILS')
+   10.55 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:20965: skipping navaid 'BIKF 20 DME-ILS' (nearby suspected duplicate 'BIKF 19 DME-ILS')
+   10.55 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:20966: skipping navaid 'BIKF 29 DME-ILS' (nearby suspected duplicate 'BIKF 28 DME-ILS')
+   10.55 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:386: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:21006: couldn't find any colocated navaid for DME 'TBL' (DTTA 01 DME-ILS)
+   10.56 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:386: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:21367: couldn't find any colocated navaid for DME 'ICBF' (KCBF 36 DME-ILS)
+   10.57 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:21819: skipping navaid 'KTKI 18 DME-ILS' (nearby suspected duplicate 'KTKI 17 DME-ILS')
+   10.58 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:386: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:22113: couldn't find any colocated navaid for DME 'OKR' (LZIB 22 DME-ILS)
+   10.58 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:386: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:22114: couldn't find any colocated navaid for DME 'OB' (LZIB 31 DME-ILS)
+   10.59 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:381: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:22396: DME 'GP' (SCSN 23 DME-ILS): while looking for a colocated navaid, found that the closest match has wrong name: 'GP' (ESGP 19 ILS-cat-I)
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26004: skipping navaid 'AALBORG TACAN' (nearby suspected duplicate 'AALBORG VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26006: skipping navaid 'ABBEVILLE DME' (nearby suspected duplicate 'ABBEVILLE VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26010: skipping navaid 'AGEN DME' (nearby suspected duplicate 'AGEN-Gaudonville VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26011: skipping navaid 'AJACCIO DME' (nearby suspected duplicate 'AJACCIO VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26032: skipping navaid 'AMBOISE DME' (nearby suspected duplicate 'AMBOISE VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26060: skipping navaid 'BALE MULHOUSE DME' (nearby suspected duplicate 'BALE-MULHOUSE VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26072: skipping navaid 'BASTIA DME' (nearby suspected duplicate 'BASTIA PORETTA VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26083: skipping navaid 'BIARRITZ DME' (nearby suspected duplicate 'BIARRITZ BAYONNE ANGLET VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26085: skipping navaid 'BIKF 02 DME-ILS DME' (nearby suspected duplicate 'BIKF 01 DME-ILS')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26086: skipping navaid 'BIKF 20 DME-ILS DME' (nearby suspected duplicate 'BIKF 19 DME-ILS')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26087: skipping navaid 'BIKF 29 DME-ILS DME' (nearby suspected duplicate 'BIKF 28 DME-ILS')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26088: skipping navaid 'BIKR 01 DME-ILS DME' (nearby suspected duplicate 'BIKR 01 DME-ILS')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26092: skipping navaid 'BORDEAUX DME' (nearby suspected duplicate 'BORDEAUX MERIGNAC VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26095: skipping navaid 'BOURSONNE DME' (nearby suspected duplicate 'BOURSONNE VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26097: skipping navaid 'BRAY SUR SEINE DME' (nearby suspected duplicate 'BRAY SUR SEINE VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26107: skipping navaid 'BUDAPEST DME' (nearby suspected duplicate 'BUDAPEST VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26108: skipping navaid 'BURGOS DME' (nearby suspected duplicate 'BURGOS VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26112: skipping navaid 'CACERES DME' (nearby suspected duplicate 'CACERES VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26115: skipping navaid 'CAMBRAI DME' (nearby suspected duplicate 'CAMBRAI EPINOY VORTAC')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26123: skipping navaid 'CASELLE DME' (nearby suspected duplicate 'CASELLE VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26130: skipping navaid 'CHARLES-DE-GAULLE (PARIS) DME' (nearby suspected duplicate 'PARIS CHARLES DE GAULLE VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26131: skipping navaid 'CHARLES-DE-GAULLE (PARIS) DME' (nearby suspected duplicate 'PARIS CHARLES DE GAULLE VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26132: skipping navaid 'CHARTRES DME' (nearby suspected duplicate 'CHARTRES La Loupe VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26133: skipping navaid 'CHATILLON SUR MARNE DME' (nearby suspected duplicate 'CHATILLON SUR MARNE VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26145: skipping navaid 'CITY CENTRE DME' (nearby suspected duplicate 'CYTZ 08 DME-ILS')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26147: skipping navaid 'CLERMONT DME' (nearby suspected duplicate 'CLERMONT FERRAND AUVERGNE VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26159: skipping navaid 'COULOMMIERS DME' (nearby suspected duplicate 'COULOMMIERS Voisins VOR-DME')
+   10.68 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26171: skipping navaid 'DEELEN TACAN' (nearby suspected duplicate 'Deelen VORTAC')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26176: skipping navaid 'DIJON DME' (nearby suspected duplicate 'DIJON-LONGVIC VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26178: skipping navaid 'DINARD DME' (nearby suspected duplicate 'DINARD PLEURTUIT SAINT MALO VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26183: skipping navaid 'DONETSK DME' (nearby suspected duplicate 'DONETSK VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26196: skipping navaid 'EDMONTON MUNI DME' (nearby suspected duplicate 'CYXD 34 DME-ILS')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26201: skipping navaid 'EINDHOVEN TACAN' (nearby suspected duplicate 'Eindhoven VORTAC')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26213: skipping navaid 'EPERNON DME' (nearby suspected duplicate 'EPERNON VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26222: skipping navaid 'EVREUX DME' (nearby suspected duplicate 'EVREUX FAUVILLE VORTAC')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26223: skipping navaid 'EZEIZA DME' (nearby suspected duplicate 'EZEIZA VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26241: skipping navaid 'GANDER DME' (nearby suspected duplicate 'CYQX 03 DME-ILS')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26244: skipping navaid 'GENOVA DME' (nearby suspected duplicate 'GENOVA VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26250: skipping navaid 'GILZE RIJEN TACAN' (nearby suspected duplicate 'Gilze Rijen VORTAC')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26259: skipping navaid 'GOMEL DME' (nearby suspected duplicate 'GOMEL VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26268: skipping navaid 'GROSTENQUIN DME' (nearby suspected duplicate 'GROSTENQUIN VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26325: skipping navaid 'IZA DME' (nearby suspected duplicate 'LDZA 05 DME-ILS')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26331: skipping navaid 'JIAYUGUAN DME' (nearby suspected duplicate 'JIAYUGUAN VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26354: skipping navaid 'KBHM 24 DME-ILS DME' (nearby suspected duplicate 'KBHM 24 DME-ILS')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26386: skipping navaid 'KYZYL DME' (nearby suspected duplicate 'KYZYL VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26389: skipping navaid 'LA TOUR DU PIN DME' (nearby suspected duplicate 'LA TOUR DU PIN-Lyon Est VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26401: skipping navaid 'Lanzhou DME' (nearby suspected duplicate 'Lanzhou VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26404: skipping navaid 'LE BOURGET (PARIS) DME' (nearby suspected duplicate 'PARIS LE BOURGET VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26412: skipping navaid 'LFPN 25R DME' (nearby suspected duplicate 'LFPN 25R DME-ILS')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26416: skipping navaid 'LIMOGES DME' (nearby suspected duplicate 'LIMOGES VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26429: skipping navaid 'LYON/SAINT EXUPERY DME' (nearby suspected duplicate 'LYON SAINT EXUPERY VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26444: skipping navaid 'MARSEILLE PROVENCE DME' (nearby suspected duplicate 'MARSEILLE PROVENCE VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26445: skipping navaid 'MARTIGUES DME' (nearby suspected duplicate 'MARTIGUES VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26454: skipping navaid 'MENDE DME' (nearby suspected duplicate 'MENDE-Nasbinals VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26473: skipping navaid 'MONTELIMAR DME' (nearby suspected duplicate 'MONTELIMAR ANCONE VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26482: skipping navaid 'MOULINS DME' (nearby suspected duplicate 'MOULINS VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26490: skipping navaid 'MURCIA/SAN JAVIER TACAN' (nearby suspected duplicate 'MURCIA/SAN JAVIER VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26494: skipping navaid 'NANTES DME' (nearby suspected duplicate 'NANTES ATLANTIQUE VOR-DME')
+   10.69 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26502: skipping navaid 'NICE DME' (nearby suspected duplicate 'NICE COTE D AZUR VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26526: skipping navaid 'ORLY (PARIS) DME' (nearby suspected duplicate 'PARIS ORLY VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26560: skipping navaid 'PRILEP NDB-DME' (nearby suspected duplicate 'PRILEP DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26562: skipping navaid 'PRISTINA DME' (nearby suspected duplicate 'BKPR 17 DME-ILS')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26570: skipping navaid 'RAMBOUILLET DME' (nearby suspected duplicate 'RAMBOUILLET-Les Bordes VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26577: skipping navaid 'REIMS DME' (nearby suspected duplicate 'REIMS CHAMPAGNE VORTAC')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26585: skipping navaid 'ROLAMPONT DME' (nearby suspected duplicate 'ROLAMPONT VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26586: skipping navaid 'RONNE TACAN' (nearby suspected duplicate 'RONNE VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26589: skipping navaid 'ROSARIO DME' (nearby suspected duplicate 'ROSARIO VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26593: skipping navaid 'SAAR 20 DME' (nearby suspected duplicate 'SAAR 20 DME-ILS')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26603: skipping navaid 'SANKT-PETERBURG DME' (nearby suspected duplicate 'SANKT-PETERBURG Pulkovo VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26618: skipping navaid 'SESTRI DME' (nearby suspected duplicate 'SESTRI VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26639: skipping navaid 'SOESTERBERG TACAN' (nearby suspected duplicate 'Soesterberg VORTAC')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26640: skipping navaid 'SOFIA DME' (nearby suspected duplicate 'SOFIA VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26654: skipping navaid 'ST. TROPEZ DME' (nearby suspected duplicate 'SAINT TROPEZ VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26655: skipping navaid 'STEFANIK DME' (nearby suspected duplicate 'LZIB 22 DME-ILS')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26659: skipping navaid 'STRASBOURG DME' (nearby suspected duplicate 'STRASBOURG ENTZHEIM VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26687: skipping navaid 'TERRACE DME' (nearby suspected duplicate 'CYXT 33 DME-ILS')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26694: skipping navaid 'TIVAT DME' (nearby suspected duplicate 'LYTV 32 DME-ILS')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26700: skipping navaid 'TORONTO DME' (nearby suspected duplicate 'CYYZ 24R DME-ILS')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26702: skipping navaid 'TOULOUSE DME' (nearby suspected duplicate 'TOULOUSE BLAGNAC VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26729: skipping navaid 'VIENTIANE DME' (nearby suspected duplicate 'VIENTIANE VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26757: skipping navaid 'WOENSDRECHT TACAN' (nearby suspected duplicate 'Woensdrecht VORTAC')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26761: skipping navaid 'XIANYANG DME' (nearby suspected duplicate 'XIANYANG VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\navdb.cxx:317: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Navaids/nav.dat.gz:26763: skipping navaid 'Yakutsk DME' (nearby suspected duplicate 'YAKUTSK VOR-DME')
+   10.70 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1673: nav.dat files load took: 1259
+   10.71 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress loading-nav-dat
+   10.81 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1721: stage 1 commit took:107
+   11.00 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1725: SKIPPING POI load on Windows
+   12.43 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1751: awy.dat load took:1417
+   12.49 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1760: final commit took:64
+   12.49 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:206: cache rebuild took:12115msec
+   12.53 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress init-scenery
+   12.53 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:924: General Initialization
+   12.53 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:925: ======= ==============
+   12.53 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:934: FG_ROOT = "Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data""
+
+   12.54 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\positioninit.cxx:219: Attempting to set starting position from airport code PHTO heading 270
+   12.56 [INFO]:event     C:\Jenkins\workspace\Windows-release\simgear\simgear\timing\sg_time.cxx:88: Reading timezone info from: Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Timezone/zone.tab"
+   12.57 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\scenery.cxx:401: Selected scenery is tilecache
+   12.57 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\terrain_stg.cxx:243: FGStgTerrain::init - init tilemgr
+   12.57 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:180: Initializing Tile Manager subsystem.
+   12.57 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilecache.cxx:64: Initializing the tile cache.
+   12.57 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilecache.cxx:67:   max cache size = 100
+   12.57 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilecache.cxx:69:   current cache size = 0
+   12.57 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilecache.cxx:73:   done with init()
+   12.57 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress finalize-position
+   12.64 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress creating-subsystems
+   12.64 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:977: Creating Subsystems
+   12.64 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:978: ======== ==========
+   12.64 [INFO]:input     C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\material\matlib.cxx:73: Reading materials from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Materials/regions/materials.xml"
+   16.17 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Systems\system_mgr.cxx:45: Reading systems from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Systems/f16-airdata.xml"
+   16.18 [INFO]:cockpit   C:\Jenkins\workspace\Windows-release\flightgear\src\Instrumentation\HUD\HUD.cxx:116: Initializing HUD Instrument
+   16.18 [INFO]:sound     C:\Jenkins\workspace\Windows-release\flightgear\src\Sound\fg_fx.cxx:133: Reading sound sound from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Systems/f16-sound.xml"
+   16.22 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:388: Creating subsystems took:3585
+   16.23 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress binding-subsystems
+   16.23 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:396: Binding subsystems took:1
+   16.23 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress init-subsystems
+   16.27 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:329: Reading localized strings for 'en' from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Translations/default/menu.xml"
+   21.74 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\FGPUIMenuBar.cxx:58: Initializing old dialog commands:
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\fgmetar.cxx:154: XXXX 012345Z 15003KT 19SM FEW072 FEW350 25/07 Q1028 NOSIG 
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\fgmetar.cxx:158: METAR from tgftp.nws.noaa.gov
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:333: Reusing metar properties at /environment[0]/metar[0] for 
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[1] for 
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[2] for 
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[3] for 
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[4] for 
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[5] for 
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[6] for 
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[10] for 
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[11] for 
+   21.91 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:398: NoaaMetarRealWxController::update(): nearest airport with METAR has changed. Old: '', new: 'PHTO'
+   21.99 [INFO]:astro     C:\Jenkins\workspace\Windows-release\simgear\simgear\ephemeris\stardata.cxx:58:   Loading stars from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Astro/stars"
+   22.02 [INFO]:astro     C:\Jenkins\workspace\Windows-release\simgear\simgear\ephemeris\stardata.cxx:114:   Loaded 9098 stars
+   22.02 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Environment/metarinterpolator.xml"
+   22.12 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem Environment METAR Interpolation Rule
+   22.12 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Environment/interpolator.xml"
+   22.14 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem Environment Interpolation Rule
+   22.14 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Environment/local-weather-rules.xml"
+   22.23 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem Local Weather Rules 
+   22.23 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/g-forces.xml"
+   22.26 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem g force effects
+   22.26 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Systems/sound-rules.xml"
+   22.28 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem Sound properties
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:67: FlightRecorder: Recorder configuration #0
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:101: FlightRecorder: Using custom recorder configuration: F-16 Flight Recorder
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'surface-positions/elevator-pos-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'surface-positions/right-aileron-pos-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'surface-positions/left-aileron-pos-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'fdm/jsbsim/fcs/lef-pos-deg'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'surface-positions/rudder-pos-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'surface-positions/nose-wheel-pos-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'fdm/jsbsim/fcs/dht-left-pos-rad'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'canopy/position-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/tailhook/position-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'engines/engine[0]/n2-low'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'engines/engine[0]/n1-mid'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/orientation/side-slip-rad'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/orientation/beta-deg'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/orientation/roll-rate-degps'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/orientation/pitch-rate-degps'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/orientation/yaw-rate-degps'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/accelerations/pilot/x-accel-fps_sec'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/accelerations/pilot/y-accel-fps_sec'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/instrumentation/slip-skid-ball/indicated-slip-skid'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/gear[1]/steering-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/gear[2]/steering-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/gear[0]/compression-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/gear[1]/compression-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/gear[2]/compression-norm'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/sim/alarms/stall-warning'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/hazards/icing/wing'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/controls/switches/master-avionics'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/controls/fuel/tank[8]/fuel_selector'.
+   30.49 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:124: FlightRecorder: record size is 416 bytes
+   30.78 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:246:   loaded aero.
+   30.78 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:253: 
+   30.78 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:254: 
+   30.78 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:255: After loading aero definition file ...
+   30.78 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:258: num engines = 1
+   30.84 [INFO]:cockpit   C:\Jenkins\workspace\Windows-release\flightgear\src\Instrumentation\instrument_mgr.cxx:83: Reading instruments from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Systems/instrumentation.xml"
+   30.87 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Systems/autoflight-rules.xml"
+   30.88 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem generic autopilot
+   30.88 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Systems/wingflexer.xml"
+   30.89 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem wing flexer property rule
+   30.94 [INFO]:network   C:\Jenkins\workspace\Windows-release\flightgear\src\MultiPlayer\multiplaymgr.cxx:1039: FGMultiplayMgr - multiplayer mode disabled (no MP server specificed).
+   31.27 [INFO]:cockpit   C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\cockpitDisplayManager.cxx:70: Reading cockpit displays from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Systems/instrumentation.xml"
+   31.50 [INFO]:event     C:\Jenkins\workspace\Windows-release\flightgear\src\Time\light.cxx:54: Initializing Lighting interpolation tables.
+   32.46 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/window_frost.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   32.46 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/window_frost.png will generate mipmap only
+   32.53 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/hud-glass.rgb will generate mipmap only
+   33.21 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/null_bumpspec.png will generate mipmap only
+   33.27 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/fuselage/dirt.png will generate mipmap only
+   33.30 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/fuselage/rust1.png will generate mipmap only
+   34.17 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Terrain/void.png will generate mipmap only
+   35.21 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/dust-effect-overlay.png will generate mipmap only
+   36.46 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/dust3.png will generate mipmap only
+   37.60 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:348:  Already have c72bb41552cd546d8b713e62db71d76228def102 : C:\Users\לינוי\Documents\ער FORCE\07-05-2026\sivaks_logging_version\Aircraft\f16\Models\Cockpit\Avionics\DED\canvas.png not C:\Users\לינוי\Documents\ער FORCE\07-05-2026\sivaks_logging_version\Aircraft\f16\Models\Cockpit\Avionics\PFD\canvas.png
+   37.60 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:348:  Already have c72bb41552cd546d8b713e62db71d76228def102 : C:\Users\לינוי\Documents\ער FORCE\07-05-2026\sivaks_logging_version\Aircraft\f16\Models\Cockpit\Avionics\DED\canvas.png not C:\Users\לינוי\Documents\ער FORCE\07-05-2026\sivaks_logging_version\Aircraft\f16\Models\Cockpit\Avionics\PFD\canvas.png
+   37.83 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/dust2.png will generate mipmap only
+   38.31 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/greymap.png will generate mipmap only
+   38.35 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/ReflectMaps/reflectmap.png for inclusion into the texture cache because pixel density too low at 8 bits per pixek
+   38.35 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/ReflectMaps/reflectmap.png will generate mipmap only
+   39.08 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/fgfs-sky2/1.png will generate mipmap only
+   39.09 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/fgfs-sky2/4.png will generate mipmap only
+   39.09 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/fgfs-sky2/2.png will generate mipmap only
+   39.10 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/fgfs-sky2/3.png will generate mipmap only
+   39.10 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/fgfs-sky2/6.png will generate mipmap only
+   39.11 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/fgfs-sky2/5.png will generate mipmap only
+   47.78 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/FlightGear/Downloads/TerraSync/Models/Airport/Pushback/Military-smoke.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   48.04 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:348:  Already have e29a27d4944f4ac1121a5b9fb20c730664e109b8 : C:\Users\לינוי\Documents\ער FORCE\07-05-2026\sivaks_logging_version\Aircraft\f16\Models\Effects\glass\canopy2.png not c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/canopy2.png
+   48.05 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-front.png will generate mipmap only
+   48.06 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-back.png will generate mipmap only
+   48.08 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-left.png will generate mipmap only
+   48.09 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-right.png will generate mipmap only
+   48.11 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-up.png for inclusion into the texture cache because pixel density too low at 8 bits per pixek
+   48.11 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-up.png will generate mipmap only
+   48.11 [WARN]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\material\mipmap.cxx:272: mipmapping: texture size not a power-of-two: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-up.png
+   48.12 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-down.png will generate mipmap only
+   48.35 [INFO]:sound     C:\Jenkins\workspace\Windows-release\simgear\simgear\sound\soundmgr_openal.cxx:183: Initializing OpenAL sound manager
+   48.87 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress finishing-subsystems
+   49.20 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/aircraft.nas:367: loading aircraft data from C:/Users/לינוי/AppData/Roaming/flightgear.org/aircraft-data/f16-block-52.xml
+   49.56 [WARN]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/emexec.nas:88: (EMEXEC) FrameNotification.frame_rate_worst = /sim/frame-rate-worst -> /sim/frame-rate-worst
+   49.56 [WARN]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/emexec.nas:88: (EMEXEC) FrameNotification.elapsed_seconds = /sim/time/elapsed-sec -> /sim/time/elapsed-sec
+   49.56 [WARN]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/emexec.nas:88: (EMEXEC) FrameNotification.frame_rate = /sim/frame-rate -> /sim/frame-rate
+   49.56 [WARN]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/emexec.nas:88: (EMEXEC) FrameNotification.eframe_rate = /sim/emexec/frame-rate -> /sim/emexec/frame-rate
+   50.03 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/seaport.nas:2: *** NEW LOCATION ***
+   50.21 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/wildfire.nas:1190: Wildfire ... initialized.
+   51.16 [INFO]:general   C:\Jenkins\workspace\Windows-release\simgear\simgear\canvas\elements\CanvasElement.cxx:260: addEventListener(/sim[0]/gui[0]/canvas[0], mousedown)
+   53.80 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /sim[0]/current-view[0]/heading-offset-deg[0]
+   53.99 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:39: incr log_level
+   54.06 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/emesary_mp_bridge.nas:90: OutgoingMPBridge created for f16mp.geo mp=18
+   54.06 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/emesary_mp_bridge.nas:102:   f16mp.geo  outwards bridge[] notifications of type --> ArmamentInFlightNotification Id 21
+   54.06 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/emesary_mp_bridge.nas:90: OutgoingMPBridge created for f16mp.hit mp=19
+   54.06 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/emesary_mp_bridge.nas:102:   f16mp.hit  outwards bridge[] notifications of type --> ArmamentNotification Id 19
+   54.06 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/emesary_mp_bridge.nas:102:   f16mp.hit  outwards bridge[] notifications of type --> StaticNotification Id 25
+   54.06 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/emesary_mp_bridge.nas:90: OutgoingMPBridge created for f16mp.object mp=17
+   54.06 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/emesary_mp_bridge.nas:102:   f16mp.object  outwards bridge[] notifications of type --> ObjectInFlightNotification Id 22
+   54.73 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'sodipodi:namedview' [path='c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/HUD/HUD.svg']
+   54.73 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'metadata' [path='c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/HUD/HUD.svg']
+   56.12 [WARN]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\material\mipmap.cxx:272: mipmapping: texture size not a power-of-two: c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/HUD/main_mask.png
+   58.20 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/gear[0]/brake-parking[0]
+   58.20 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/gear[0]/gear-down[0]
+   58.20 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /instrumentation[0]/altimeter[0]/setting-inhg[0]
+   58.20 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/flight[0]/flaps[0]
+   58.20 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/flight[0]/rudder-trim[0]
+   58.20 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/flight[0]/elevator-trim[0]
+   58.20 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/flight[0]/aileron-trim[0]
+   58.52 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Time\TimeManager.cxx:502: After TimeManager::setTimeOffset(): warp = 0
+   58.52 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/flightPlanDelegate.nas:160: creating default GPS FPDelegate
+   58.52 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\route_mgr.cxx:854: route manager, current-wp is now -1
+   58.52 [INFO]:input     C:\Jenkins\workspace\Windows-release\flightgear\src\Input\FGHIDEventInput.cxx:929: HID event input starting up
+   58.53 [INFO]:ai        C:\Jenkins\workspace\Windows-release\flightgear\src\AIModel\AIManager.cxx:287: loading scenario 'nimitz_demo'
+   58.53 [INFO]:ai        C:\Jenkins\workspace\Windows-release\flightgear\src\AIModel\AIManager.cxx:287: loading scenario 'balloon_CorrActions'
+   58.54 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/debug.nas:268: [31m'balloon scenario load script complete'[m
+   58.56 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:1218: Subsystems postinit took:40
+   58.56 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:1227: 
+
+   58.56 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress finalize-position
+   58.62 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Textures\Sky\moon.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:5
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:537: FGTileMgr: at lon = -155.029deg, lat = 19.7214deg, elev = -3047.7m, scheduling needed for:-156:7, 19:5, visibility=32000
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:322: scheduling needed tiles for -156:7, 19:5, tile-width-m:13096.4, tile-height-m:13914.9
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:2
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:3
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:4
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:5
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:6
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:7
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 20:0
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:2
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:3
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:4
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:5
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:6
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:7
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 20:0
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:2
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:3
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:4
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:5
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:6
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:7
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 20:0
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:2
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:3
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:4
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:6
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:7
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 20:0
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:2
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:3
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:4
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:5
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:6
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:7
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 20:0
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:2
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:3
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:4
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:5
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:6
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:7
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 20:0
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:2
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:3
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:4
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:5
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:6
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:7
+   58.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 20:0
+   58.74 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'ehsi-display.png' for object 'EHSI-Display'
+   58.74 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'HUDImage2'
+   58.74 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'HUDImage2'
+   58.74 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'HUDImage2'
+   58.74 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'HUDImage2'
+   58.74 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'rwr-bkg.png' for object 'bkg'
+   58.74 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'rwr-bkg.png' for object 'bkg'
+   58.81 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400212.stg
+   58.82 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400212.stg"
+   58.83 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400212.stg"
+   58.87 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Main\positioninit.cxx:824: Using METAR for runway selection: 'XXXX 012345Z 15003KT 19SM FEW072 FEW350 25/07 Q1028 NOSIG '
+   58.87 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\positioninit.cxx:219: Attempting to set starting position from airport code PHTO heading 150
+   58.87 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/seaport.nas:2: *** NEW LOCATION ***
+   58.87 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress loading-scenery
+   58.98 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Terrain/grain_texture.png will generate mipmap only
+   59.15 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Terrain/void.png will generate mipmap only
+   59.23 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400239.stg
+   59.23 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400239.stg"
+   59.24 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400239.stg"
+   59.74 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Globe/ocean_depth_1.png will generate mipmap only
+   61.08 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Terrain/packice-overlay.png will generate mipmap only
+   61.51 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Runway/lf_broken_white.png will generate mipmap only
+   61.55 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Runway/rwy-reflect.png will generate mipmap only
+   61.56 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/Rainbow.png will generate mipmap only
+   61.56 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/FresnelLookUp.png for inclusion into the texture cache because pixel density too low at 8 bits per pixek
+   61.56 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Effects/FresnelLookUp.png will generate mipmap only
+   61.59 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Runway/lf_dbl_lane_queue.png will generate mipmap only
+   61.60 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Runway/lf_dbl_solid_yellow.png will generate mipmap only
+   61.60 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Runway/lf_runway_hold.png will generate mipmap only
+   61.61 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Runway/lf_sng_lane_queue.png will generate mipmap only
+   61.61 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Runway/lf_sng_solid_white.png will generate mipmap only
+   61.62 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Runway/lf_sng_solid_yellow.png will generate mipmap only
+   61.75 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:348:  Already have 440273eb48d08de315e945d92d20f5ce75ba9da2 : c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Runway/pa_centerline.png not c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Runway/pa_rest.png
+   61.99 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400231.stg
+   61.99 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400231.stg"
+   62.00 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400231.stg"
+   62.10 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400238.stg
+   62.10 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400238.stg"
+   62.11 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400238.stg"
+   62.25 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400247.stg
+   62.25 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400247.stg"
+   62.26 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400247.stg"
+   62.42 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416616.stg
+   62.43 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w155n19/416616.stg"
+   62.44 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400230.stg
+   62.44 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400230.stg"
+   62.45 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400230.stg"
+   62.45 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\fdm_shell.cxx:192: Scenery loaded, will init FDM
+   62.45 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:412: Starting and initializing JSBsim
+   62.45 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:432: T,p,rho: 518.67, 2116.23, 0.00237691
+   62.45 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:139: Start common FDM init
+   62.45 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:146: ...initializing position...
+   62.45 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1088: FGJSBsim::set_Longitude: -2.70627
+   62.45 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1067: FGJSBsim::set_Latitude: 0.344203
+   62.45 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1068:  cur alt (ft) =  0
+   62.45 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:158: Checking for lon = -155.058deg, lat = 19.7214deg, alt = -9999ft
+   62.47 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1101: FGJSBsim::set_Altitude: 29.6013
+   62.47 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:175: ...initializing ground elevation to 29.5013ft...
+   62.47 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:178: ...initializing sea-level radius...
+   62.47 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:181:  lat = 19.7214 alt = 29.6013
+   62.47 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:186: ...initializing Euler angles...
+   62.47 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1197: FGJSBsim::set_Euler_Angles: 0, 0.0074002, 1.57149
+   62.47 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:195: ...initializing velocities...
+   62.47 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1113: FGJSBsim::set_V_calibrated_kts: 0
+   62.47 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:233: End common FDM init
+   62.47 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:462: Ready to trim, terrain elevation is: 29.4977
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1353:   Trim complete
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:486:   Initialized JSBSim with:
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:493:   Vn,Ve,Vd= 0, 0, 0 ft/s
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:515:   Bank Angle: -0.375308 deg
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:517:   Pitch Angle: 2.78634 deg
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:519:   True Heading: 90.0331 deg
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:521:   Latitude: 19.5994 deg
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:523:   Longitude: -155.058 deg
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:525:   Altitude: 34.6678 feet
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:526:   loaded initial conditions
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:528:   set dt
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:530: Finished initializing JSBSim
+   62.50 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:533: FGControls::get_gear_down()= 1
+   62.51 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/flight[0]/flaps[0]
+   62.51 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/gear[0]/gear-down[0]
+   62.51 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1759: 
+   62.51 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1760: ********************************************************************
+   62.51 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1761:       Initializing General Dynamics F-16CJ Block 52 systems.           
+   62.51 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1762:                 Version 3.72 on FlightGear 2020.3.19
+   62.51 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1763: ********************************************************************
+   62.51 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1764: 
+   62.52 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'sodipodi:namedview' [path='c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/MFD/MFD.svg']
+   62.52 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'metadata' [path='c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/MFD/MFD.svg']
+   62.70 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'sodipodi:namedview' [path='c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/MFD/MFD.svg']
+   62.70 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'metadata' [path='c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/MFD/MFD.svg']
+   62.91 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   63.04 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/modules.nas:155: Module.load() f16_HMD
+   63.06 [ALRT]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\fdm_shell.cxx:206: Failed to save initial FDM property state
+   63.06 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 0: GEAR_CONTACT: 0 seconds: NOSE_LG 1
+   63.06 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 1: GEAR_CONTACT: 0 seconds: LEFT_MLG 1
+   63.06 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 2: GEAR_CONTACT: 0 seconds: RIGHT_MLG 1
+   63.06 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 3: GEAR_CONTACT: 0 seconds: NOZZLE 1
+   63.06 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 4: GEAR_CONTACT: 0 seconds: INTAKE 1
+   63.06 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress 
+   63.06 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'MFDimage1'
+   63.06 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'MFDimage1'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'MFDimage2'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'MFDimage2'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'tranbg.png' for object 'MFDimage3'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'canvas.png' for object 'poly.003'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'canvas.png' for object 'poly.003'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'canvas.png' for object 'PFDscreen'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'canvas.png' for object 'PFDscreen'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'navFreq.png' for object 'freqDisplay'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'navFreq.png' for object 'freqDisplay'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper-r'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper-r'
+   63.07 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper-r'
+   63.33 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Trees/hawaii-shrub.png will generate mipmap only
+   63.66 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 5: GEAR_CONTACT: 0.00833333 seconds: NOZZLE 0
+   63.66 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 6: GEAR_CONTACT: 0.00833333 seconds: INTAKE 0
+   63.70 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2216:     found trigger: loading animation for standing to position 0
+   63.70 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2177:     found trigger: loading animation for walking to position 1
+   63.70 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2190:     found trigger: loading animation for running to position 2
+   63.70 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2203:     found trigger: loading animation for backwards to position 3
+   63.70 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2229:     found trigger: loading animation for falling to position 4
+   63.70 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2242:     found trigger: loading animation for open-parachute to position 5
+   63.70 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2255:     found trigger: loading animation for landing to position 6
+   63.70 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2268:     found trigger: loading animation for crashing to position 7
+   63.76 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Trees/tropical-alt.png will generate mipmap only
+   64.18 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Scenery\Models\Industrial\generic_chimney_011.png will generate mipmap only
+   64.43 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Sky/cl_cumulus2.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   64.43 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Sky/cl_cumulus2.png will generate mipmap only
+   64.58 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Scenery\Models\Power\generic_pylon_50m.png will generate mipmap only
+   65.96 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/seaport.nas:2: *** NEW LOCATION ***
+   65.96 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:1237: fgStartReposition()
+   65.96 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/aircraft.nas:383: saving aircraft data to C:/Users/לינוי/AppData/Roaming/flightgear.org/aircraft-data/f16-block-52.xml
+   65.97 [WARN]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\fdm_shell.cxx:149: FDM: Some errors restoring preserved state
+   66.08 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:246:   loaded aero.
+   66.08 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:253: 
+   66.08 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:254: 
+   66.08 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:255: After loading aero definition file ...
+   66.08 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:258: num engines = 1
+   66.08 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:67: FlightRecorder: Recorder configuration #0
+   66.08 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:101: FlightRecorder: Using custom recorder configuration: F-16 Flight Recorder
+   66.08 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:124: FlightRecorder: record size is 416 bytes
+   66.08 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Systems/autoflight-rules.xml"
+   66.08 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem generic autopilot
+   66.08 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Systems/wingflexer.xml"
+   66.09 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem wing flexer property rule
+   66.09 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Time\TimeManager.cxx:502: After TimeManager::setTimeOffset(): warp = 0
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\fdm_shell.cxx:192: Scenery loaded, will init FDM
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:412: Starting and initializing JSBsim
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:432: T,p,rho: 518.67, 2116.23, 0.00237691
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:139: Start common FDM init
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:146: ...initializing position...
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1088: FGJSBsim::set_Longitude: -2.70617
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1067: FGJSBsim::set_Latitude: 0.344251
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1068:  cur alt (ft) =  2000
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:158: Checking for lon = -155.052deg, lat = 19.7242deg, alt = 2000ft
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1101: FGJSBsim::set_Altitude: 2000
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:175: ...initializing ground elevation to 29.8221ft...
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:178: ...initializing sea-level radius...
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:181:  lat = 19.7242 alt = 2000
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:186: ...initializing Euler angles...
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1197: FGJSBsim::set_Euler_Angles: 0, 0.0074002, 0
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:195: ...initializing velocities...
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1113: FGJSBsim::set_V_calibrated_kts: 350
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1241: FGJSBsim::set_Gamma_vert_rad: 0
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:233: End common FDM init
+   66.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:462: Ready to trim, terrain elevation is: 29.8222
+   67.03 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Scenery\Models\Airport\rot-bcn-2.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   67.05 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Scenery\Models\Airport\rot-bcn-2.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   67.05 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Scenery\Models\Airport\rot-bcn-2.png will generate mipmap only
+   67.17 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Models\Maritime\Civilian\white.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   67.23 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Models\Maritime\Civilian\white.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   67.23 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Models\Maritime\Civilian\white.png will generate mipmap only
+   67.25 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Models\Maritime\Civilian\wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   67.27 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Models\Maritime\Civilian\wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   67.27 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Models\Maritime\Civilian\wake_small.png will generate mipmap only
+   67.40 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   67.86 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   68.24 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   68.60 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   68.92 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400246.stg
+   68.92 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400246.stg"
+   69.05 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416608.stg
+   69.05 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w155n19/416608.stg"
+   69.06 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w155n19/416608.stg"
+   69.11 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416624.stg
+   69.11 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416624
+   69.11 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400223.stg
+   69.11 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400223.stg"
+   69.14 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400237.stg
+   69.14 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400237.stg"
+   69.18 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400255.stg
+   69.19 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400255.stg"
+   69.20 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416617.stg
+   69.20 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416617
+   69.20 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400222.stg
+   69.21 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400222.stg"
+   69.24 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400229.stg
+   69.25 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400229.stg"
+   69.25 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400229.stg"
+   69.28 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400245.stg
+   69.29 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400245.stg"
+   69.33 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400254.stg
+   69.33 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400254.stg"
+   69.34 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400254.stg"
+   69.41 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416600.stg
+   69.42 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w155n19/416600.stg"
+   69.42 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w155n19/416600.stg"
+   69.47 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416609.stg
+   69.47 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w155n19/416609.stg"
+   69.49 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416625.stg
+   69.49 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416625
+   69.49 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416632.stg
+   69.49 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416632
+   69.49 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400221.stg
+   69.50 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400221.stg"
+   69.51 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400221.stg"
+   69.58 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400253.stg
+   69.59 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400253.stg"
+   69.59 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400253.stg"
+   69.64 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416601.stg
+   69.65 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w155n19/416601.stg"
+   69.66 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416633.stg
+   69.66 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416633
+   69.66 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400215.stg
+   69.67 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400215.stg"
+   69.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400236.stg
+   69.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400236.stg"
+   69.70 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400236.stg"
+   69.75 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400263.stg
+   69.75 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n20/w156n20/400263
+   69.75 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416618.stg
+   69.75 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416618
+   69.75 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400214.stg
+   69.75 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400214.stg"
+   69.78 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400228.stg
+   69.79 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400228.stg"
+   69.81 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400244.stg
+   69.81 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400244.stg"
+   69.89 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400262.stg
+   69.89 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n20/w156n20/400262
+   69.89 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416592.stg
+   69.90 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w155n19/416592.stg"
+   69.91 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416610.stg
+   69.91 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416610
+   69.91 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416626.stg
+   69.91 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416626
+   69.91 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416640.stg
+   69.91 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n20/w155n20/416640
+   69.91 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400213.stg
+   69.92 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400213.stg"
+   69.96 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400220.stg
+   69.96 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400220.stg"
+   69.97 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400220.stg"
+   70.04 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400252.stg
+   70.05 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n10/w156n19/400252.stg"
+   70.05 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n10/w156n19/400252.stg"
+   70.11 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400261.stg
+   70.11 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n20/w156n20/400261.stg"
+   70.14 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416593.stg
+   70.14 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416593
+   70.14 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416602.stg
+   70.14 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416602
+   70.14 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416634.stg
+   70.14 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416634
+   70.14 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416641.stg
+   70.14 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n20/w155n20/416641
+   70.15 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400260.stg
+   70.15 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Objects/w160n20/w156n20/400260.stg"
+   70.16 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Scenery/Terrain/w160n20/w156n20/400260.stg"
+   70.30 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/Terrain/airport_grass2.png will generate mipmap only
+   70.36 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416594.stg
+   70.36 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416594
+   70.36 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416642.stg
+   70.36 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n20/w155n20/416642
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1353:   Trim complete
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:486:   Initialized JSBSim with:
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:508:   Indicated Airspeed: 347.11 knots
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:515:   Bank Angle: -1.58738e-15 deg
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:517:   Pitch Angle: 0.424 deg
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:519:   True Heading: 7.89276e-16 deg
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:521:   Latitude: 19.6022 deg
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:523:   Longitude: -155.052 deg
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:525:   Altitude: 2000 feet
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:526:   loaded initial conditions
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:528:   set dt
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:530: Finished initializing JSBSim
+   77.03 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:533: FGControls::get_gear_down()= 1
+   77.04 [ALRT]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\fdm_shell.cxx:206: Failed to save initial FDM property state
+   77.84 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Nasal/screen.nas:505: {copilot} Welcome aboard! Need help? Use 'Help -> Tutorials'.
+   81.11 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\fgmetar.cxx:154: XXXX 012345Z 15003KT 12SM SCT041 FEW200 20/08 Q1015 NOSIG 
+   81.11 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\fgmetar.cxx:158: METAR from tgftp.nws.noaa.gov
+   81.11 [ALRT]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1437: Nasal runtime error: No such member: autostart
+   81.11 [ALRT]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1457:   at /sim/tutorials/tutorial/step/nasal, line 3
+   81.19 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Models/Weather/cumulus_sheet1.rgb for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   81.19 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Models/Weather/cumulus_sheet1.rgb will generate mipmap only
+   83.09 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 7: GEAR_CONTACT: 6.96667 seconds: RADOME 1
+   83.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 8: GEAR_CONTACT: 6.99167 seconds: INTAKE 1
+   83.12 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 9: GEAR_CONTACT: 7 seconds: CANOPY 1
+   83.14 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 10: GEAR_CONTACT: 7.03333 seconds: LEFT_WT 1
+   83.14 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 11: GEAR_CONTACT: 7.03333 seconds: RIGHT_WT 1
+   83.21 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 12: GEAR_CONTACT: 7.08333 seconds: NOZZLE 1
+   83.52 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 13: GEAR_CONTACT: 7.41667 seconds: NOZZLE 0
+   84.12 [WARN]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\ErrorReporter.cxx:277: Error:error-type-not-found from error-dialog-load::Dialog not found:sivaks_pilot_info_dlg
+	
+   84.12 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\new_gui.cxx:213: Dialog sivaks_pilot_info_dlg not defined
+   84.94 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 14: GEAR_CONTACT: 8.81667 seconds: NOZZLE 1
+   85.09 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Models\Maritime\Civilian\wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   85.18 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent c:/Users/לינוי/Documents/ער FORCE/07-05-2026/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   85.49 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\Models\Maritime\Civilian\wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   89.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 15: GEAR_CONTACT: 13.2917 seconds: CANOPY 0
+   89.40 [INFO]:nasal     c:/Users/לינוי/Documents/ער FORCE/07-05-2026/sivaks_logging_version/Aircraft/f16/Nasal/crash-and-stress.nas:391: Aircraft hit Ocean.
+   89.63 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 16: GEAR_CONTACT: 13.5167 seconds: LEFT_WT 0
+   89.69 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 17: GEAR_CONTACT: 13.575 seconds: LEFT_WT 1
+   89.79 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 18: GEAR_CONTACT: 13.675 seconds: LEFT_WT 0
+   90.15 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:10: SIVAKS_BULLSEYE_SCRIPT v2026-05-06_1455 loaded
+   90.15 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:52: Bullseye model-added listener installed
+   90.15 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:141: INIT: aircraft_Lat = 19.73239755639142aircraft_Lon = -155.0518614930844  ballon_Lat = 19.78239755639142  ballon_Lon = -155.0520329268798
+   91.26 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:513: Texture compression plugin (osg_nvtt) not available; storing uncompressed image: C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\AI\Aircraft\balloon\Textures\flightgear\balloon1t_BULLSEYE_FACE.png
+   91.32 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:513: Texture compression plugin (osg_nvtt) not available; storing uncompressed image: C:\Users\לינוי\Documents\ער FORCE\07-05-2026\data\AI\Aircraft\balloon\Textures\flightgear\bullseye_sign.png
+   95.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\PUICamera.cxx:309: Deleting PUI camera
+   95.65 [INFO]:io        C:\Jenkins\workspace\Windows-release\flightgear\src\Main\globals.cxx:893: Saving user settings to Path "C:/Users/לינוי/AppData/Roaming/flightgear.org/autosave_2020_3.xml"
+   96.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\terrain_stg.cxx:264: FGStgTerrain::shutdown - shutdown tilemgr
+   96.10 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\terrain_stg.cxx:233: FGStgTerrain::dtor
+   96.76 [INFO]:input     C:\Jenkins\workspace\Windows-release\flightgear\src\Input\FGHIDEventInput.cxx:944: HID event input shutting down
+   96.76 [INFO]:terrasync C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tsync\terrasync.cxx:1099: Shutdown
+   96.85 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\SceneryPager.cxx:42: Destroying scenery pager

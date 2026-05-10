@@ -1,0 +1,10 @@
+CorrActions Final Results
+=========================
+CSV: c:\Users\לינוי\Documents\ער FORCE\07-05-2026\sivaks_logging_version\runs\session_20260510_095756\sivaks_logging_20260510_095319.csv
+Balloons counted: 0
+Hits: 0
+Misses: 0
+Average distance to balloon center (ft): 0.0
+Score: 0/100
+Grade: F
+Breakdown: c:\Users\לינוי\Documents\ער FORCE\07-05-2026\sivaks_logging_version\runs\session_20260510_095756\score_breakdown.csv

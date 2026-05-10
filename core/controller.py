@@ -1,97 +1,236 @@
-import asyncio
+import time
+import os
+import re
+from pathlib import Path
 
-from core.reducer import reducer
-from core.state import AppState
-
-# integrations (assumed to exist)
-from integrations.eye import EyeService
-from integrations.audio import AudioService
-from integrations.game import GameService
-
-# scoring + data
-from scoring.engine import ScoringEngine
-from data.persistence import DB
+from core.subject_repository import get_subject
+from score.fatigue_scoring import compute_fatigue_score
 
 
-class AppController:
+class Controller:
 
     def __init__(self):
-        self.state = AppState.INIT
-
-        self.session = {}
+        self.subject = None
         self.features = {}
-
-        self.eye_service = EyeService()
-        self.audio_service = AudioService()
-        self.game_service = GameService()
-
-        self.scoring = ScoringEngine()
-        self.db = DB()
+        self.result = None
 
     # -------------------
-    # EVENT HANDLING
+    # DISPATCH
     # -------------------
     def dispatch(self, event, payload=None):
-        self.state = reducer(self.state, event, payload)
-
-        if payload:
-            self.session.update(payload)
+        pass
 
     # -------------------
-    # MULTIMODAL PIPELINE
+    # LOAD SUBJECT
+    # -------------------
+    def load_subject(self, subject_id):
+
+        subject = get_subject(subject_id)
+
+        if subject is None:
+            self.subject = None
+            return False
+
+        # DEEP COPY
+        import copy
+        self.subject = copy.deepcopy(subject)
+
+        self.subject["id"] = subject_id
+
+        self.features = {}
+        self.result = None
+
+        return True
+
+    # -------------------
+    # RUN MULTIMODAL GAME
     # -------------------
     def run_multimodal_game(self):
 
-        async def _run():
-            eye_task = self.eye_service.run()
-            audio_task = self.audio_service.run()
-            game_task = self.game_service.run()
+        if self.subject is None:
+            raise ValueError("No subject loaded")
 
-            eye, audio, game = await asyncio.gather(
-                eye_task,
-                audio_task,
-                game_task
+        time.sleep(0.3)
+
+        fg_score = self._try_get_latest_flightgear_score()
+
+        self.features = {
+            "voice": {
+                "dLPC": self.get_voice_dlpc(),
+                "PARCOR": self.get_voice_parcor(),
+                "LPC": self.get_voice_lpc(),
+                "Pitch": self.get_voice_pitch(),
+                "MFCC": self.get_voice_mfcc()
+            },
+
+            "eye": {
+                "fixation_duration": self.get_fixation_duration(),
+                "fixation_count": self.get_fixation_count(),
+                "saccade_count": self.get_saccade_count()
+            },
+
+            "game": {
+                "score": fg_score
+            }
+        }
+
+    # -------------------
+    # REAL DATA FUNCTIONS
+    # -------------------
+
+    # ---- Voice ----
+    def get_voice_dlpc(self):
+        return None
+
+    def get_voice_parcor(self):
+        return None
+
+    def get_voice_lpc(self):
+        return None
+
+    def get_voice_pitch(self):
+        return None
+
+    def get_voice_mfcc(self):
+        return None
+
+    # ---- Eye Tracking ----
+    def get_fixation_duration(self):
+        return None
+
+    def get_fixation_count(self):
+        return None
+
+    def get_saccade_count(self):
+        return None
+
+    # -------------------
+    # FLIGHTGEAR SCORE
+    # -------------------
+    def _try_get_latest_flightgear_score(self) -> int | None:
+
+        runs_root = os.environ.get(
+            "SIVAKS_FG_RUNS_ROOT",
+            r"C:\Users\srule\OneDrive\Desktop\yan\FlightGear_2020_3\sivaks_logging_version\runs",
+        )
+
+        root = Path(runs_root)
+
+        if not root.exists() or not root.is_dir():
+            return None
+
+        sessions = [p for p in root.glob("session_*") if p.is_dir()]
+
+        if not sessions:
+            return None
+
+        min_ts = None
+
+        try:
+            raw_min_ts = os.environ.get("SIVAKS_FG_MIN_START_TS")
+
+            if raw_min_ts:
+                min_ts = float(raw_min_ts)
+
+        except Exception:
+            min_ts = None
+
+        if min_ts is not None:
+            sessions = [
+                p for p in sessions
+                if p.stat().st_mtime >= (min_ts - 1.0)
+            ]
+
+            if not sessions:
+                return None
+
+        sessions.sort(
+            key=lambda p: p.stat().st_mtime,
+            reverse=True
+        )
+
+        for session in sessions[:10]:
+
+            report = session / "final_score.txt"
+
+            if not report.exists():
+                continue
+
+            try:
+                text = report.read_text(
+                    encoding="utf-8",
+                    errors="ignore"
+                )
+
+            except OSError:
+                continue
+
+            m = re.search(
+                r"Score:\s*(\d+)\s*/\s*100",
+                text
             )
 
-            self.features["eye"] = eye
-            self.features["audio"] = audio
-            self.features["game"] = game
+            if m:
+                score = int(m.group(1))
+                return max(0, min(100, score))
 
-        asyncio.run(_run())
+        return None
 
     # -------------------
     # SCORING
     # -------------------
-    def compute_score(self):
+    def compute_fatigue(self):
 
-        score = self.scoring.compute(
-            features=self.features,
-            baseline=self.session.get("baseline", {}),
-            config={}
-        )
+        if self.subject is None:
+            raise ValueError("No subject loaded")
 
-        self.session["score"] = score
+        if not self.features:
+            raise ValueError("No features computed (run game first)")
 
-        return score
+        b = self.subject["baseline"]
+
+        data = {
+            "baseline": b,
+            "current": self.features,
+            "subject_info": {
+                "sex": self.subject.get("sex"),
+                "age": self.subject.get("age")
+            }
+        }
+
+        raw = compute_fatigue_score(data)
+
+        self.result = {
+            "subject_id": self.subject.get("id", "UNKNOWN"),
+            "score": raw.get("score", 0),
+            "scores": raw.get("scores", {}),
+            "feature_contributions": raw.get(
+                "feature_contributions",
+                {}
+            ),
+            "features": self.features,
+            "baseline": b
+        }
+
+        return self.result
 
     # -------------------
-    # RESULT API (for UI)
+    # RESULT ACCESS
     # -------------------
     def get_result(self):
 
-        if "score" not in self.session:
-            self.compute_score()
-
-        return {
-            "score": self.session["score"],
-            "breakdown": self.features
+        return self.result or {
+            "subject_id": (
+                self.subject.get("id")
+                if self.subject
+                else "UNKNOWN"
+            ),
+            "score": None,
+            "scores": {},
+            "features": self.features,
+            "baseline": (
+                self.subject.get("baseline")
+                if self.subject
+                else {}
+            )
         }
-
-    # -------------------
-    # SAVE
-    # -------------------
-    def save_session(self):
-        self.db.save_session({
-            "session": self.session,
-            "features": self.features
-        })

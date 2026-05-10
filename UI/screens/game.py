@@ -5,7 +5,7 @@ import subprocess
 import time
 
 # Path to the FlightGear session script
-FG_SCRIPT_PATH = r"c:\Users\לינוי\Documents\ער FORCE\07-05-2026\sivaks_logging_version\logging_fg_start_ver5.py"
+FG_SCRIPT_PATH = r"game\sivaks_logging_version\logging_fg_start_ver5.py"
 
 
 def _is_pid_running(pid: int) -> bool:

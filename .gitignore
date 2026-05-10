@@ -2,3 +2,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 .venv/
+game/bin/
+game/data/
+game/sivaks_logging_version/*
+!game/sivaks_logging_version/logging_fg_start_ver5.py
+!game/sivaks_logging_version/runs/
+game/sivaks_logging_version/Aircraft/f16/*
+!game/sivaks_logging_version/Aircraft/f16/Tutorials/
