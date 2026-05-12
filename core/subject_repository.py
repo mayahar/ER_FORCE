@@ -1,6 +1,6 @@
 import unicodedata
 
-from core.database import SUBJECTS_DB, RESULTS_DB, save_database
+from core.database import SUBJECTS_DB, save_database
 
 
 EMPTY_BASELINE = {
@@ -93,6 +93,32 @@ def create_subject(subject_id, name=None, sex="unknown", age=0):
     return SUBJECTS_DB[sid]
 
 
+def create_or_update_subject_profile(subject_id, name=None, sex="unknown", age=0):
+    """
+    Creates a subject or updates only their profile fields, preserving baseline data.
+    """
+    sid = _parse_int(subject_id)
+
+    if sid not in SUBJECTS_DB:
+        return create_subject(sid, name=name, sex=sex, age=age)
+
+    clean_name = str(name).strip() if name is not None else ""
+    clean_sex = str(sex).strip().lower() if sex is not None else "unknown"
+    clean_age = _parse_int(age)
+
+    SUBJECTS_DB[sid]["id"] = sid
+    SUBJECTS_DB[sid]["name"] = clean_name or SUBJECTS_DB[sid].get("name") or f"Subject {sid}"
+    SUBJECTS_DB[sid]["sex"] = clean_sex or SUBJECTS_DB[sid].get("sex") or "unknown"
+    SUBJECTS_DB[sid]["age"] = clean_age
+    SUBJECTS_DB[sid].setdefault(
+        "baseline",
+        {k: v.copy() for k, v in EMPTY_BASELINE.items()},
+    )
+
+    save_database()
+    return SUBJECTS_DB[sid]
+
+
 def update_subject_baseline(subject_id, baseline):
     """
     Stores measured baseline features for an existing subject.
@@ -105,17 +131,6 @@ def update_subject_baseline(subject_id, baseline):
     SUBJECTS_DB[sid]["baseline"] = baseline
     save_database()
     return SUBJECTS_DB[sid]
-
-
-def save_result_object(result):
-    """
-    Persist a full result object with subject id.
-    """
-    if not result:
-        return
-
-    RESULTS_DB.append(result)
-    save_database()
 
 
 # =========================

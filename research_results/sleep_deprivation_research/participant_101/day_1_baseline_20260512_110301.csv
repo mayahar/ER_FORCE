@@ -1,0 +1,13 @@
+﻿subject_id,modality,feature,baseline,current,fatigue_score,relative_change,normalized_effect,raw_sigmoid,weight,direction,expected_change,contribution,better_than_baseline,study_id,research_day,research_condition,sleep_last,sleep_previous
+101,voice,dLPC,0.38045851482745907,0.38045851482745907,0.0,0.0,0.0,0.5,0.8,1,0.2,0.0,False,sleep_deprivation_research,1,baseline,7,7
+101,voice,PARCOR,0.5811223616020295,0.5811223616020295,0.0,0.0,0.0,0.5,0.77,1,0.1,0.0,False,sleep_deprivation_research,1,baseline,7,7
+101,voice,LPC,0.6570726986496267,0.6570726986496267,0.0,0.0,0.0,0.5,0.76,1,0.12,0.0,False,sleep_deprivation_research,1,baseline,7,7
+101,voice,Pitch,149.90777882977474,149.90777882977474,0.0,0.0,0.0,0.5,0.76,1,0.18,0.0,False,sleep_deprivation_research,1,baseline,7,7
+101,voice,MFCC,0.5215460963588233,0.5215460963588233,0.0,0.0,0.0,0.5,0.75,1,0.2,0.0,False,sleep_deprivation_research,1,baseline,7,7
+101,eye,fixation_duration,0.25738158269042016,0.25738158269042016,0.0,0.0,0.0,0.5,1.0,1,0.5,0.0,False,sleep_deprivation_research,1,baseline,7,7
+101,eye,fixation_count,128.63131170379927,128.63131170379927,0.0,0.0,0.0,0.5,0.9,1,0.45,0.0,False,sleep_deprivation_research,1,baseline,7,7
+101,eye,saccade_count,191.98445286661308,191.98445286661308,0.0,0.0,0.0,0.5,1.0,1,0.55,0.0,False,sleep_deprivation_research,1,baseline,7,7
+101,game,score,74.0,74.0,0.0,0.0,0.0,0.5,0.82,-1,0.25,0.0,False,sleep_deprivation_research,1,baseline,7,7
+101,subjective,fatigue_self,5.0,5.0,0.0,,0.0,,0.0,1,,0.0,False,sleep_deprivation_research,1,baseline,7,7
+101,subjective,sleep_last,7.0,7.0,-0.75,,-0.75,,0.0,-1,,-0.0,True,sleep_deprivation_research,1,baseline,7,7
+101,subjective,sleep_previous,7.0,7.0,-0.75,,-0.75,,0.0,-1,,-0.0,True,sleep_deprivation_research,1,baseline,7,7

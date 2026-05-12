@@ -2,10 +2,13 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 from datetime import datetime
 from pathlib import Path
 import hashlib
 import re
+
+from core.research_repository import get_research_output_dir
 
 
 REPORTS_DIR = Path("scores_reports")
@@ -16,22 +19,108 @@ def _safe_filename_part(value):
     return re.sub(r"[^A-Za-z0-9_-]+", "_", value).strip("_") or "UNKNOWN"
 
 
-def _save_report_once(subject_id, csv):
+def _get_report_dir(result):
+    research_context = (result or {}).get("research")
+
+    if research_context:
+        return get_research_output_dir(
+            research_context,
+            (result or {}).get("subject_id"),
+        )
+
+    return REPORTS_DIR
+
+
+def _get_report_filename(subject_id, result):
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    research_context = (result or {}).get("research")
+
+    if research_context:
+        day_number = research_context.get("day_number", "unknown_day")
+        condition = _safe_filename_part(research_context.get("condition", "research"))
+        return f"day_{day_number}_{condition}_{timestamp}.csv"
+
+    return f"{_safe_filename_part(subject_id)}_{timestamp}.csv"
+
+
+def _save_report_once(subject_id, csv, result=None):
     report_key = hashlib.sha256(csv.encode("utf-8-sig")).hexdigest()
-    state_key = f"saved_report_path_{subject_id}_{report_key}"
+    reports_dir = _get_report_dir(result)
+    state_key = f"saved_report_path_{subject_id}_{reports_dir}_{report_key}"
 
     if state_key in st.session_state:
         return st.session_state[state_key]
 
-    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    reports_dir.mkdir(parents=True, exist_ok=True)
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{_safe_filename_part(subject_id)}_{timestamp}.csv"
-    report_path = REPORTS_DIR / filename
+    filename = _get_report_filename(subject_id, result)
+    report_path = reports_dir / filename
 
     report_path.write_text(csv, encoding="utf-8-sig")
+
+    if result is not None:
+        json_path = report_path.with_suffix(".json")
+        json_path.write_text(
+            json.dumps(result, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
     st.session_state[state_key] = str(report_path)
     return str(report_path)
+
+
+def build_result_export_rows(result):
+    subject_id = result.get("subject_id", "UNKNOWN")
+    research_context = result.get("research") or {}
+    contributions = result.get("feature_contributions", {})
+
+    export_rows = []
+    graph_rows = []
+
+    for modality, feats in contributions.items():
+        for fname, data in feats.items():
+            contribution_value = data.get("weighted_contribution", 0)
+
+            export_row = {
+                "subject_id": subject_id,
+                "modality": modality,
+                "feature": fname,
+                "baseline": data.get("baseline"),
+                "current": data.get("current"),
+                "fatigue_score": data.get("fatigue_score"),
+                "relative_change": data.get("relative_change"),
+                "normalized_effect": data.get("normalized_effect"),
+                "raw_sigmoid": data.get("raw_sigmoid"),
+                "weight": data.get("weight"),
+                "direction": data.get("direction"),
+                "expected_change": data.get("expected_change"),
+                "contribution": contribution_value,
+                "better_than_baseline": data.get("better_than_baseline"),
+            }
+
+            if research_context:
+                export_row.update({
+                    "study_id": research_context.get("study_id"),
+                    "research_day": research_context.get("day_number"),
+                    "research_condition": research_context.get("condition"),
+                    "sleep_last": research_context.get("sleep_last"),
+                    "sleep_previous": research_context.get("sleep_previous"),
+                })
+
+            export_rows.append(export_row)
+
+            graph_rows.append({
+                "modality": modality,
+                "feature": fname,
+                "value": contribution_value,
+            })
+
+    return export_rows, graph_rows
+
+
+def export_result_csv(result):
+    export_rows, _ = build_result_export_rows(result)
+    return pd.DataFrame(export_rows).to_csv(index=False)
 
 def fix_hebrew(text):
     # הופך כל שורה בנפרד כדי לשמור על סדר השורות מלמעלה למטה
@@ -184,87 +273,7 @@ def render(result):
     # =========================
     # FEATURE CONTRIBUTIONS TABLE
     # =========================
-    export_rows = []
-    graph_rows = []
-
-    for modality, feats in contributions.items():
-
-        for fname, data in feats.items():
-
-            contribution_value = data.get(
-                "weighted_contribution",
-                0
-            )
-
-            export_rows.append({
-
-                # -------------------------
-                # identifiers
-                # -------------------------
-
-                "modality": modality,
-                "feature": fname,
-
-                # -------------------------
-                # values
-                # -------------------------
-
-                "baseline": data.get("baseline"),
-                "current": data.get("current"),
-
-                # -------------------------
-                # scoring internals
-                # -------------------------
-
-                "fatigue_score": data.get(
-                    "fatigue_score"
-                ),
-
-                "relative_change": data.get(
-                    "relative_change"
-                ),
-
-                "normalized_effect": data.get(
-                    "normalized_effect"
-                ),
-
-                "raw_sigmoid": data.get(
-                    "raw_sigmoid"
-                ),
-
-                # -------------------------
-                # config
-                # -------------------------
-
-                "weight": data.get("weight"),
-
-                "direction": data.get(
-                    "direction"
-                ),
-
-                "expected_change": data.get(
-                    "expected_change"
-                ),
-
-                # -------------------------
-                # final contribution
-                # -------------------------
-
-                "contribution": contribution_value,
-
-                "better_than_baseline": data.get(
-                    "better_than_baseline"
-                )
-            })
-
-            graph_rows.append({
-
-                "modality": modality,
-
-                "feature": fname,
-
-                "value": contribution_value
-            })
+    export_rows, graph_rows = build_result_export_rows(result)
     df_export = pd.DataFrame(export_rows)
     df_graph = pd.DataFrame(graph_rows)
 
@@ -370,7 +379,7 @@ def render(result):
             st.rerun()
     
     csv = df_export.to_csv(index=False)
-    report_path = _save_report_once(subject_id, csv)
+    report_path = _save_report_once(subject_id, csv, result=result)
     report_filename = Path(report_path).name
 
     with col2:
