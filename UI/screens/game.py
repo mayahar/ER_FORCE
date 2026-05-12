@@ -1,44 +1,114 @@
+import ctypes
 import streamlit as st
 import os
 import sys
 import subprocess
 import time
+from pathlib import Path
 
-# Path to the FlightGear session script
-FG_SCRIPT_PATH = r"game\sivaks_logging_version\logging_fg_start_ver5.py"
+# ER_FORCE repo root (this file: UI/screens/game.py)
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+_DEFAULT_FG_DIR = _REPO_ROOT / "game" / "sivaks_logging_version"
+_DEFAULT_FG_SCRIPT = _DEFAULT_FG_DIR / "logging_fg_start_ver5.py"
+
+
+def _resolve_fg_script_path() -> Path | None:
+    env = (os.environ.get("ER_FORCE_FG_SCRIPT") or os.environ.get("SIVAKS_LOGGING_FG_SCRIPT") or "").strip()
+    if env:
+        p = Path(env).expanduser()
+        # Anchor relative paths to repo root first (avoids cwd under sivaks_logging_version
+        # producing .../sivaks_logging_version/game/sivaks_logging_version/...).
+        if not p.is_absolute():
+            from_repo = (_REPO_ROOT / p).resolve()
+            if from_repo.is_file():
+                return from_repo
+            cwd_resolved = p.resolve()
+            if cwd_resolved.is_file():
+                return cwd_resolved
+            return None
+        p = p.resolve()
+        if p.is_file():
+            return p
+        return None
+    if _DEFAULT_FG_SCRIPT.is_file():
+        return _DEFAULT_FG_SCRIPT.resolve()
+    return None
+
+
+def _terminate_session_process(pid: int) -> tuple[bool, str]:
+    if pid <= 0:
+        return True, ""
+    if sys.platform == "win32":
+        r = subprocess.run(
+            ["taskkill", "/PID", str(pid), "/T", "/F"],
+            capture_output=True,
+            text=True,
+        )
+        if r.returncode == 0:
+            return True, ""
+        # 128: process not found — often the session already ended (user closed FG).
+        combined = ((r.stdout or "") + (r.stderr or "")).lower()
+        if r.returncode == 128 or "not found" in combined or "not running" in combined:
+            return True, ""
+        return False, (r.stderr or r.stdout or f"taskkill exited {r.returncode}").strip()
+    try:
+        os.kill(pid, 9)
+        return True, ""
+    except OSError:
+        return True, ""
 
 
 def _is_pid_running(pid: int) -> bool:
-    if not pid:
+    """Windows: OpenProcess is reliable; tasklist /FI can fail (locale, CSV, timing)."""
+    if pid <= 0:
         return False
-    try:
-        out = subprocess.check_output(
-            ["tasklist", "/FI", f"PID eq {pid}"],
-            text=True,
-            stderr=subprocess.STDOUT,
-        )
-        return str(pid) in out
-    except Exception:
-        return False
+    if sys.platform != "win32":
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        return True
+    PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+    h = ctypes.windll.kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid)
+    if h:
+        ctypes.windll.kernel32.CloseHandle(h)
+        return True
+    return False
 
 
 def _start_flightgear_session() -> tuple[int, str]:
-    if not os.path.exists(FG_SCRIPT_PATH):
-        return 0, f"FlightGear script not found: {FG_SCRIPT_PATH}"
+    script_path = _resolve_fg_script_path()
+    if script_path is None:
+        return 0, (
+            f"FlightGear script not found. Expected: {_DEFAULT_FG_SCRIPT} "
+            "or set ER_FORCE_FG_SCRIPT to logging_fg_start_ver5.py"
+        )
 
-    script_dir = os.path.dirname(FG_SCRIPT_PATH)
+    script_dir = str(script_path.parent)
 
     try:
         # Mark "this run" for the Streamlit process so results can read the correct session.
-        # MockController will look for the first session folder created after this timestamp.
         os.environ["SIVAKS_FG_MIN_START_TS"] = str(time.time())
+        # Session CSV / final_score.txt land under sivaks_logging_version/runs
+        runs_root = str(Path(script_dir) / "runs")
+        os.environ["SIVAKS_FG_RUNS_ROOT"] = runs_root
+        # FlightGear: start fullscreen when launched from this UI (see logging_fg_start_ver5.py).
+        os.environ["SIVAKS_FG_FULLSCREEN"] = "1"
 
         p = subprocess.Popen(
-            [sys.executable, FG_SCRIPT_PATH],
+            [sys.executable, str(script_path.resolve())],
             cwd=script_dir,
             creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
         )
-        return int(p.pid), ""
+        pid = int(p.pid)
+        time.sleep(0.4)
+        if not _is_pid_running(pid):
+            return (
+                0,
+                "המשגר נסגר מיד — הרץ בטרמינל: "
+                f'python "{script_path}" (מתוך {script_dir}) כדי לראות את השגיאה.',
+            )
+        return pid, ""
 
     except Exception as e:
         return 0, f"Failed to start FlightGear session: {e}"
@@ -185,24 +255,17 @@ def render(controller):
 
     # ===== Stop Session =====
     if stop_clicked and fg_pid:
-        try:
-            subprocess.check_call(
-                ["taskkill", "/PID", str(fg_pid), "/T", "/F"]
-            )
-
+        ok, err = _terminate_session_process(fg_pid)
+        if ok:
             st.session_state.fg_pid = 0
             st.session_state.fg_started_at = None
             st.session_state.fg_finished_handled = True
-
+            st.session_state.fg_last_error = ""
             st.session_state.result = None
             st.session_state.state["screen"] = "result"
-
             st.rerun()
-
-        except Exception as e:
-            st.session_state.fg_last_error = (
-                f"Failed to stop session: {e}"
-            )
+        else:
+            st.session_state.fg_last_error = f"Failed to stop session: {err}"
 
     # ===== Error Display =====
     if st.session_state.fg_last_error:
@@ -236,9 +299,32 @@ def render(controller):
             "fg_finished_handled",
             False
         ):
+            started_at = st.session_state.fg_started_at
+            elapsed = (time.time() - float(started_at)) if started_at else 999.0
+            # Launcher + FG can take >3s to appear; treat very fast exit as error.
+            if elapsed < 8.0:
+                st.session_state.fg_last_error = (
+                    "המשגר יצא מהר מדי — בדוק: game/sivaks_logging_version + "
+                    "Aircraft/f16, נתיב FlightGear (yan/FlightGear_2020_3 או SIVAKS_FG_ROOT), "
+                    "והרץ logging_fg_start_ver5.py מהטרמינל לראות שגיאה."
+                )
+                st.session_state.fg_pid = 0
+                st.session_state.fg_started_at = None
+            else:
+                # Normal exit (user closed FlightGear or session finished): always go to results.
+                # final_score.txt may be missing if FG was killed mid-run; result screen still runs
+                # the pipeline with a fallback game score.
+                st.session_state.result = None
+                st.session_state.state["screen"] = "result"
+                st.session_state.fg_pid = 0
+                st.session_state.fg_started_at = None
             st.session_state.fg_finished_handled = True
+            st.rerun()
+
+        # Recovery: older builds left fg_pid set with fg_finished_handled; unstick → results.
+        if st.session_state.fg_pid and st.session_state.get("fg_finished_handled"):
+            st.session_state.fg_pid = 0
+            st.session_state.fg_started_at = None
             st.session_state.result = None
             st.session_state.state["screen"] = "result"
             st.rerun()
-
-        st.warning("המשחק הסתיים")

@@ -1,0 +1,948 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+    <name>CorrActions DEFAULT</name>
+
+    <description>
+	Welcome to CorrActions Flight!
+This tutorial starts above Hilo Intl Airport (PHTO) in the northeast of Hawaii, in clear, still, weather.
+Keep north heading at around 2000 feet. Maintain speed of 350 knots. Hit balloons horizontally at target mark in north direction.
+This Scenario announces if you hit or miss.
+    </description>
+
+    <audio-dir>Tutorials/takeoff</audio-dir>
+    <timeofday>noon</timeofday>
+    <presets>
+        <airport-id>PHTO</airport-id>
+        <on-ground>0</on-ground>
+        <altitude-ft>2000</altitude-ft>
+        <latitude-deg>19.72415017471669</latitude-deg>
+        <longitude-deg>-155.0518970894882</longitude-deg>
+        <heading-deg>0</heading-deg>
+        <airspeed-kt>350</airspeed-kt>
+        <glideslope-deg>0</glideslope-deg>
+        <offset-azimuth-deg>0</offset-azimuth-deg>
+        <offset-distance-nm>0</offset-distance-nm>
+        <airport-requested>true</airport-requested>
+        <runway-requested>true</runway-requested>
+        <parking-requested>true</parking-requested>
+    </presets>
+
+	<step>
+	<message>Init CorrActions. </message>
+        <set>
+            <property>/environment/weather-scenario</property>
+			<value>Fair weather</value>
+        </set>	
+	
+		<nasal>
+            <script>
+				# Some F-16 variants don't expose f16.autostart(); keep tutorial compatible.
+				if (f16 != nil and contains(f16, "autostart"))
+					f16.autostart();
+            </script>
+        </nasal>
+
+		 <nasal>
+            <script>
+				<![CDATA[
+				# intialization script
+				setprop("/controls/gear/gear-down",0);        # remove gear				
+				setprop("/controls/gear/brake-parking",0);	  # remove parking brake	
+				]]>
+            </script>
+        </nasal>			
+	<wait>2</wait>		
+	</step>	
+	
+	
+	<step>
+	<message>Keep heading north at around 2000 feet. Maintain speed of 350 knots. Hit balloons horizontally at target mark.</message>
+	
+		 <nasal>
+            <script>
+				<![CDATA[
+				# sivaks: on starting scenario show dialog to get pilot data
+				fgcommand("dialog-show", props.Node.new({"dialog-name": "sivaks_pilot_info_dlg"}));
+			
+				]]>
+            </script>
+        </nasal>	
+	
+	<wait>5</wait>
+  </step>
+
+	<step>
+	<message> Fly into Balloons. </message>
+ 		
+<!-- RUN EACH 2 SECONDs VIA TIMER -->
+<nasal>
+	<script>
+	<![CDATA[
+	# ...
+	# update balloon gate position if aircraft passed it 
+	# ...
+	
+	# sivaks: on starting scenario show dialog to get pilot data
+	# fgcommand("dialog-show", props.Node.new({"dialog-name": "sivaks_pilot_info_dlg"}));
+
+	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-10_scoring-closest-ft loaded");
+	# Pass scoring requires a real approach (commit gate) to avoid counting a miss for the next balloon while still enroute.
+
+	# STEP 1: GLOBAL VARIABLES AND FUNCTIONS
+	# Use a single balloon model so visuals and behavior are consistent.
+	# This is your CorrActions static balloon (bullseye skin).
+	var BMODEL = "AI/Aircraft/balloon/ca_sivaks_balloon.xml";
+	# Number of balloons before updating difficulty level.
+	var BALLOON_per_level = 1;
+
+	# Total balloons required to finish the game
+	var MAX_BALLOONS = 8;
+
+	# How many balloons exist simultaneously (the script will move them forward as you pass).
+ 	var balloon_count = 1;
+	var balloonsArray = [];
+	setsize(balloonsArray, balloon_count);
+	var bullseyeArray = [];
+	setsize(bullseyeArray, balloon_count);
+	var aimDotArray = [];
+	setsize(aimDotArray, balloon_count);
+	var bullseyeCallsigns = [];
+	setsize(bullseyeCallsigns, balloon_count);
+	var bullseyeSerial = 0;
+	var bullseyePending = {}; # callsign -> heading (deg) to apply once model is added
+	var bullseyeListenerInstalled = 0;
+
+	setprop("/algorithm/game/balloons-count", 0);
+	setprop("/algorithm/game/balloon-scoring-closest-ft", 0);
+	setprop("/algorithm/game/balloon-hit", 0);
+	
+	var last_balloon_lat = 0;
+	var last_balloon_lon = 0;
+	var last_balloon_alt = 0;
+	
+	var last_balloon_geo_coord = geo.Coord.new();
+
+	# Make the (one-sided) bullseye face the pilot.
+	# We compute the course from balloon -> aircraft and use it as the sign's heading.
+	var BULLSEYE_HEADING_FLIP_DEG = 0; # set to 180 if facing is reversed
+	var facePilotHeading = func(lat, lon) {
+		var b = geo.Coord.new().set_latlon(lat, lon);
+		var ac = geo.aircraft_position();
+		return geo.normdeg(b.course_to(ac) + BULLSEYE_HEADING_FLIP_DEG);
+	};
+	
+	# Bullseye overlay sign model (flat quad). This will rotate to face the pilot.
+	var BSIGN_MODEL = "AI/Aircraft/balloon/ca_sivaks_bullseye_sign.xml";
+	# Green billboard marker (dist-scaled in XML/model). Slightly above balloon; scoring uses same offset.
+	var ADOT_MODEL = "AI/Aircraft/balloon/ca_sivaks_aim_dot.xml";
+	var AIM_DOT_UP_FT = 48;
+	# After a scored pass, ignore lat-trigger until this many sim seconds (stops double LEVEL UP when next spawn is still "south").
+	var PASS_COOLDOWN_SEC = 2.5;
+	# We only score an attempt (hit/miss) if the aircraft actually came close to the balloon.
+	# This prevents "random misses" when the player never entered the balloon's hit area.
+	# Tune: larger = more forgiving but more false misses; smaller = stricter but may miss legit attempts.
+	var PASS_SCORE_MAX_FT = 1200;
+	# Must have closed inside this range (ft) to "arm" scoring for the current balloon.
+	# Keep this equal to PASS_SCORE_MAX_FT so "armed" implies "scorable".
+	var PASS_COMMIT_FT = PASS_SCORE_MAX_FT;
+
+	# Install a one-time listener so we can grab the *real* model node path when it is created.
+	# This avoids guessing where the object lives in /ai/models.
+	var ensureBullseyeListener = func() {
+		if (bullseyeListenerInstalled) return;
+		bullseyeListenerInstalled = 1;
+		print("Bullseye model-added listener installed");
+		setlistener("/ai/models/model-added", func(v) {
+			var path = v.getValue();
+			if (path == nil) return;
+			var cs = getprop(path ~ "/callsign");
+			if (cs == nil or cs == "") return;
+			# Debug: confirm our sign shows up and where.
+			if (substr(cs, 0, 12) == "sivaks_bsign") {
+				print("Bullseye sign model-added event: callsign=", cs, " path=", path);
+			}
+			var hdg = bullseyePending[cs];
+			if (hdg == nil) return;
+			setprop(path ~ "/orientation/true-heading-deg", hdg);
+			setprop(path ~ "/orientation/pitch-deg", 0);
+			setprop(path ~ "/orientation/roll-deg", 0);
+			print("Bullseye sign heading applied via model-added: ", cs, " hdg=", hdg, " path=", path);
+			bullseyePending[cs] = nil;
+		});
+	};
+
+	var createBalloon = func(balloon_model, positionLat, positionLon, elevation_ft, heading)
+	{
+		last_balloon_geo_coord = geo.Coord.new().set_latlon(positionLat, positionLon);
+		last_balloon_geo_coord.set_alt(elevation_ft/globals.M2FT);
+		#var new_object = geo.put_model(balloon_model, m, heading); # creates object which plane hits and crashes
+		# Override heading so the bullseye side faces the aircraft.
+		var face_hdg = facePilotHeading(positionLat, positionLon);
+		new_object = props.Node.new(
+			{
+			"type": "static",
+			"model": balloon_model,	
+			"latitude": positionLat,
+			"longitude": positionLon,        
+			# Different FG models/keypaths expect different heading fields. Set both.
+			"heading": face_hdg,
+			"heading-deg": face_hdg,
+			"altitude": elevation_ft,
+			"search-order": "DATA_ONLY"
+			});
+
+		fgcommand("add-aiobject", new_object);	
+
+		return new_object;
+	}	
+
+	var createBullseyeSign = func(positionLat, positionLon, elevation_ft, cs)
+	{
+		ensureBullseyeListener();
+		var face_hdg = facePilotHeading(positionLat, positionLon);
+		bullseyePending[cs] = face_hdg;
+		var sign = props.Node.new(
+			{
+			"type": "static",
+			"model": BSIGN_MODEL,
+			"callsign": cs,
+			"latitude": positionLat,
+			"longitude": positionLon,
+			# Slightly forward so it doesn't z-fight with balloon surface
+			"altitude": elevation_ft,
+			"heading": face_hdg,
+			"heading-deg": face_hdg,
+			"search-order": "DATA_ONLY"
+			});
+		fgcommand("add-aiobject", sign);
+
+		return sign;
+	};
+
+	var createAimDot = func(positionLat, positionLon, elevation_ft)
+	{
+		var dot = props.Node.new({
+			"type": "static",
+			"model": ADOT_MODEL,
+			"latitude": positionLat,
+			"longitude": positionLon,
+			"altitude": elevation_ft + AIM_DOT_UP_FT,
+			"heading": 0,
+			"heading-deg": 0,
+			"search-order": "DATA_ONLY"
+		});
+		fgcommand("add-aiobject", dot);
+		return dot;
+	};
+
+	
+	# STEP 2: intial balloon placing in one line.
+	var position = geo.aircraft_position();
+	var elevation = geo.elevation( position.lat(), position.lon() );
+	init_shift_val = 0.05;
+	var base_balloon_altitude = 2000;
+
+	forindex (var i; balloonsArray) 
+	{
+		if (balloonsArray[i] != nil)
+			balloonsArray[i].remove();
+		if (bullseyeArray[i] != nil)
+			bullseyeArray[i].remove();
+		if (aimDotArray[i] != nil)
+			aimDotArray[i].remove();
+		last_balloon_lat = position.lat()+init_shift_val;
+		last_balloon_lon = position.lon()+((0.003)*(rand()-0.5));
+		last_balloon_alt = base_balloon_altitude;
+		balloonsArray[i] = createBalloon(BMODEL, last_balloon_lat,  last_balloon_lon, base_balloon_altitude, 0);											
+		# Set bullseye direction once at spawn time (faces pilot's approach direction).
+		bullseyeCallsigns[i] = "sivaks_bsign_" ~ i ~ "_" ~ bullseyeSerial;
+		bullseyeSerial += 1;
+		bullseyeArray[i] = createBullseyeSign(last_balloon_lat, last_balloon_lon, base_balloon_altitude, bullseyeCallsigns[i]);
+		aimDotArray[i] = createAimDot(last_balloon_lat, last_balloon_lon, base_balloon_altitude);
+		print ("INIT: aircraft_Lat = ",position.lat(), "aircraft_Lon = ",position.lon(), "  ballon_Lat = ", last_balloon_lat, "  ballon_Lon = ", last_balloon_lon);
+		init_shift_val = init_shift_val + 0.03;
+	}
+
+	# =========================================================
+	# STEP 3: balloons update timer
+	# HIGHER INTENSITY VERSION
+	# =========================================================
+
+	var last_balloon_sign = -1;
+	var balloons_counted_passed = 0;
+	var balloons_counted_hit = 0;
+	var MAX_BALLOONS = MAX_BALLOONS;
+
+	# =========================================================
+	# DIFFICULTY SYSTEM
+	# =========================================================
+
+	var hardness_lon = 0;
+
+	var hardness_lon_update_balloons_count =
+		BALLOON_per_level;
+
+	var hardness_lon_max_levels = 8;
+
+	# 0 = balloons stay fixed between spawns (no gust / drift / wave). Level-up and hit rules still use hardness_lon.
+	# Set to 1 to restore the moving-target behavior.
+	var BALLOON_DRIFT_ENABLED = 0;
+
+	# =========================================================
+	# DYNAMIC MOVEMENT ARRAYS
+	# =========================================================
+
+	var balloonDriftDirs = [];
+	var balloonVerticalDrift = [];
+	var balloonWavePhase = [];
+	var balloonWaveSpeed = [];
+
+	setsize(balloonDriftDirs, balloon_count);
+	setsize(balloonVerticalDrift, balloon_count);
+	setsize(balloonWavePhase, balloon_count);
+	setsize(balloonWaveSpeed, balloon_count);
+
+	forindex (var i; balloonDriftDirs)
+	{
+		if (BALLOON_DRIFT_ENABLED)
+		{
+			balloonDriftDirs[i] = {
+				lat: 0,
+				lon: (rand()-0.5)
+			};
+
+			balloonVerticalDrift[i] =
+				(rand()-0.5);
+
+			balloonWavePhase[i] =
+				rand()*6.28;
+
+			balloonWaveSpeed[i] =
+				0.03 + (rand()*0.05);
+		}
+		else
+		{
+			balloonDriftDirs[i] = { lat: 0, lon: 0 };
+			balloonVerticalDrift[i] = 0;
+			balloonWavePhase[i] = 0;
+			balloonWaveSpeed[i] = 0;
+		}
+	}
+
+	# =========================================================
+	# GAME STATE
+	# =========================================================
+
+	var dist_aicraft_to_balloon_ft = 10000000;
+	var min_dist_ft = 10000000;
+	var pass_cooldown_until = 0;
+	var pass_committed = 0;
+
+	var airspeed_kt = 0;
+	var vert_speed_fpm = 0;
+
+	var hit_miss_msg = "undefined";
+	var hit_miss_number = 0;
+
+	# =========================================================
+	# SOUNDS
+	# =========================================================
+
+	var sound_HIT_NODE = props.Node.new({
+		path : getprop("/sim/fg-root")~"/Sounds",
+		file : "overspeed2.wav",
+		volume : 1
+	});
+
+	var sound_MISS_NODE = props.Node.new({
+		path : getprop("/sim/fg-root")~"/Sounds",
+		file : "stall.wav",
+		volume : 1
+	});
+
+	# =========================================================
+	# UPDATE LOOP
+	# =========================================================
+
+	var updateBalloons = func()
+	{
+		var position = geo.aircraft_position();
+		var sim_elapsed = getprop("/sim/time/elapsed-sec");
+		if (sim_elapsed == nil)
+			sim_elapsed = 0;
+
+		forindex (var i; balloonsArray)
+		{
+
+			# =====================================================
+			# CURRENT DIFFICULTY
+			# =====================================================
+
+			var difficulty =
+				1 + (hardness_lon * 0.6);
+
+			var current_lat =
+				balloonsArray[i].getNode("latitude").getValue();
+
+			var current_lon =
+				balloonsArray[i].getNode("longitude").getValue();
+
+			var current_alt =
+				balloonsArray[i].getNode("altitude").getValue();
+
+			if (BALLOON_DRIFT_ENABLED)
+			{
+				var drift_strength =
+					0.000018 * difficulty;
+
+				var vertical_strength =
+					10 * difficulty;
+
+				var gust_probability =
+					0.015 +
+					(hardness_lon * 0.005);
+
+				if (rand() < gust_probability)
+				{
+					balloonDriftDirs[i].lon =
+						(rand()-0.5) *
+						5 *
+						difficulty;
+
+					balloonDriftDirs[i].lat =
+						(rand()-0.5) *
+						1.2 *
+						difficulty;
+
+					balloonVerticalDrift[i] =
+						(rand()-0.5) *
+						4;
+
+					balloonWaveSpeed[i] =
+						0.03 +
+						(rand()*0.08*difficulty);
+
+					print(
+						"GUST balloon=",
+						i,
+						" level=",
+						hardness_lon
+					);
+				}
+
+				current_lat =
+					current_lat +
+					(
+						balloonDriftDirs[i].lat *
+						drift_strength
+					);
+
+				current_lon =
+					current_lon +
+					(
+						balloonDriftDirs[i].lon *
+						drift_strength
+					);
+
+				balloonWavePhase[i] =
+					balloonWavePhase[i] +
+					balloonWaveSpeed[i];
+
+				current_lon =
+					current_lon +
+					(
+						math.sin(balloonWavePhase[i]) *
+						drift_strength *
+						12 *
+						difficulty
+					);
+
+				current_lat =
+					current_lat +
+					(
+						math.cos(balloonWavePhase[i]*1.3) *
+						drift_strength *
+						6 *
+						difficulty
+					);
+
+				current_alt =
+					current_alt +
+					(
+						balloonVerticalDrift[i] *
+						vertical_strength
+					);
+
+				current_alt =
+					current_alt +
+					(
+						math.sin(balloonWavePhase[i]*0.7) *
+						12 *
+						difficulty
+					);
+
+				if (current_alt < 1200)
+					current_alt = 1200;
+
+				if (current_alt > 4500)
+					current_alt = 4500;
+			}
+
+			# =====================================================
+			# APPLY POSITION
+			# =====================================================
+
+			balloonsArray[i].getNode("latitude")
+				.setValue(current_lat);
+
+			balloonsArray[i].getNode("longitude")
+				.setValue(current_lon);
+
+			balloonsArray[i].getNode("altitude")
+				.setValue(current_alt);
+
+			if (bullseyeArray[i] != nil)
+			{
+				bullseyeArray[i].getNode("latitude")
+					.setValue(current_lat);
+
+				bullseyeArray[i].getNode("longitude")
+					.setValue(current_lon);
+
+				bullseyeArray[i].getNode("altitude")
+					.setValue(current_alt);
+			}
+
+			if (aimDotArray[i] != nil)
+			{
+				aimDotArray[i].getNode("latitude").setValue(current_lat);
+				aimDotArray[i].getNode("longitude").setValue(current_lon);
+				aimDotArray[i].getNode("altitude").setValue(current_alt + AIM_DOT_UP_FT);
+			}
+
+			var score_alt_ft = current_alt + AIM_DOT_UP_FT;
+			setprop("/algorithm/game/balloon-lat", current_lat);
+			setprop("/algorithm/game/balloon-lon", current_lon);
+			setprop("/algorithm/game/balloon-alt", score_alt_ft);
+			# "Level" should represent the next required hit, not passes (misses shouldn't skip level 8).
+			setprop("/algorithm/game/balloon-level", balloons_counted_hit + 1);
+
+			# =====================================================
+			# DISTANCE TO BALLOON
+			# =====================================================
+
+			var balloon_pos = geo.Coord.new();
+
+			balloon_pos.set_latlon(
+				current_lat,
+				current_lon
+			);
+
+			balloon_pos.set_alt(
+				score_alt_ft/globals.M2FT
+			);
+
+			dist_aicraft_to_balloon_ft =
+				position.direct_distance_to(balloon_pos)
+				* globals.M2FT;
+
+			# =====================================================
+			# TRACK MIN DISTANCE (no 1200 ft cap — jet passes often never got inside it, so min_dist stayed huge)
+			# =====================================================
+
+			if (dist_aicraft_to_balloon_ft < min_dist_ft)
+			{
+				airspeed_kt =
+					getprop("/velocities/airspeed-kt");
+
+				vert_speed_fpm =
+					getprop("/instrumentation/vertical-speed-indicator/indicated-speed-fpm");
+
+				min_dist_ft =
+					dist_aicraft_to_balloon_ft;
+			}
+
+			# Commit gate: only allow scoring once we've actually approached this balloon.
+			if (pass_committed == 0 and min_dist_ft <= PASS_COMMIT_FT)
+				pass_committed = 1;
+
+			# =====================================================
+			# PASSED BALLOON (debounced + require real close approach on *this* target)
+			# =====================================================
+
+			if (
+				position.lat() > current_lat
+				and pass_committed
+				and sim_elapsed >= pass_cooldown_until
+				and min_dist_ft <= PASS_SCORE_MAX_FT
+			)
+			{
+
+				balloons_counted_passed =
+					balloons_counted_passed + 1;
+
+				setprop(
+					"/algorithm/game/balloons-count",
+					balloons_counted_passed
+				);
+
+				# Difficulty for *this* pass only (level-up below was tightening hit on the same balloon)
+				var hardness_for_hit = hardness_lon;
+
+				# =================================================
+				# LEVEL UP
+				# =================================================
+
+				if (
+					math.mod(
+						balloons_counted_passed,
+						hardness_lon_update_balloons_count
+					) == 0
+					and
+					hardness_lon < hardness_lon_max_levels
+				)
+				{
+					hardness_lon =
+						hardness_lon + 1;
+
+					print(
+						"LEVEL UP -> ",
+						hardness_lon
+					);
+
+					setprop(
+						"/sim/messages/copilot",
+						(hardness_lon >= hardness_lon_max_levels)
+							? "End of simulation"
+							: ("LEVEL " ~ hardness_lon)
+					);
+				}
+
+				# =================================================
+				# HIT DETECTION — wider envelope for 350 kt; no VSI gate (gauge often swings thousands fpm in a pass)
+				# =================================================
+
+				var required_hit_distance =
+					265 - (hardness_for_hit * 20);
+
+				if (required_hit_distance < 85)
+					required_hit_distance = 85;
+
+				var passed_through_balloon =
+					(min_dist_ft <= required_hit_distance);
+
+				var vs_now = getprop("/instrumentation/vertical-speed-indicator/indicated-speed-fpm");
+				if (vs_now == nil)
+					vs_now = vert_speed_fpm;
+
+				if (passed_through_balloon)
+				{
+					hit_miss_msg = "hit";
+					hit_miss_number = 1;
+					balloons_counted_hit = balloons_counted_hit + 1;
+					setprop("/algorithm/game/balloons-hit-count", balloons_counted_hit);
+
+					fgcommand(
+						"play-audio-sample",
+						sound_HIT_NODE
+					);
+				}
+				else
+				{
+					hit_miss_msg = "miss";
+					hit_miss_number = -1;
+
+					fgcommand(
+						"play-audio-sample",
+						sound_MISS_NODE
+					);
+				}
+
+				setprop(
+					"/algorithm/game/balloon-hit",
+					hit_miss_number
+				);
+				# True slant range at closest approach (for log post-process; balloon-* lat/lon update to NEXT spawn same frame)
+				setprop(
+					"/algorithm/game/balloon-scoring-closest-ft",
+					min_dist_ft
+				);
+				print("PASS scored: ", hit_miss_msg, " min_dist_ft=", min_dist_ft, " req=", required_hit_distance, " vs=", vs_now);
+
+				pass_cooldown_until = sim_elapsed + PASS_COOLDOWN_SEC;
+
+				# =================================================
+				# END GAME
+				# =================================================
+
+				# End only after the 8th HIT (not after 8 passes, since passes can be misses).
+				if (balloons_counted_hit >= MAX_BALLOONS)
+				{
+					setprop("/algorithm/game/finished", 1);
+
+					BalloonTimer.stop();
+
+					forindex (var j; balloonsArray)
+					{
+						if (balloonsArray[j] != nil)
+							balloonsArray[j].remove();
+						if (bullseyeArray[j] != nil)
+							bullseyeArray[j].remove();
+						if (aimDotArray[j] != nil)
+							aimDotArray[j].remove();
+					}
+
+					settimer(func {
+						fgcommand("exit");
+					}, 0.8);
+
+					return;
+				}
+
+				# =================================================
+				# CREATE NEXT BALLOON
+				# ALWAYS VISIBLE TO PILOT
+				# =================================================
+
+				var new_balloon_pos =
+					geo.Coord.new();
+
+				new_balloon_pos.set_latlon(
+					current_lat,
+					current_lon
+				);
+
+				var self_heading =
+					getprop("/orientation/heading-deg");
+
+				# =================================================
+				# FIELD OF VIEW
+				# =================================================
+
+				var max_visible_angle =
+					10 +
+					(hardness_lon * 4);
+
+				if (max_visible_angle > 40)
+					max_visible_angle = 40;
+
+				var side =
+					((rand() > 0.5) ? 1 : -1);
+
+				# Tell the pilot where the *next* balloon spawned (relative to heading).
+				var turn_hint = ((side > 0) ? "turn right" : "turn left");
+				setprop("/sim/messages/copilot", hit_miss_msg ~ " - " ~ turn_hint);
+
+				var visible_offset =
+					(rand() * max_visible_angle)
+					*
+					side;
+
+				var new_balloon_heading =
+					geo.normdeg(
+						self_heading +
+						visible_offset
+					);
+
+				# =================================================
+				# SHORTER DISTANCE
+				# =================================================
+
+				var new_balloon_horizontal_offset =
+					2600 +
+					(hardness_lon * 350);
+
+				new_balloon_pos.apply_course_distance(
+					new_balloon_heading,
+					new_balloon_horizontal_offset
+				);
+
+				# =================================================
+				# ALTITUDE RANDOMIZATION
+				# =================================================
+
+				var balloon_alt_rand =
+					(
+						500 +
+						(hardness_lon * 350)
+					)
+					*
+					(rand()-0.5);
+
+				var new_ballon_lat =
+					new_balloon_pos.lat();
+
+				var new_ballon_lon =
+					new_balloon_pos.lon();
+
+				var new_ballon_alt =
+					2000 +
+					balloon_alt_rand;
+
+				if (new_ballon_alt < 1200)
+					new_ballon_alt = 1200;
+
+				if (new_ballon_alt > 4500)
+					new_ballon_alt = 4500;
+
+				# =================================================
+				# REMOVE OLD
+				# =================================================
+
+				balloonsArray[i].remove();
+
+				if (bullseyeArray[i] != nil)
+					bullseyeArray[i].remove();
+				if (aimDotArray[i] != nil)
+					aimDotArray[i].remove();
+
+				# =================================================
+				# CREATE NEW
+				# =================================================
+
+				balloonsArray[i] =
+					createBalloon(
+						BMODEL,
+						new_ballon_lat,
+						new_ballon_lon,
+						new_ballon_alt,
+						new_balloon_heading
+					);
+
+				bullseyeCallsigns[i] =
+					"sivaks_bsign_" ~
+					i ~ "_" ~
+					bullseyeSerial;
+
+				bullseyeSerial += 1;
+
+				bullseyeArray[i] =
+					createBullseyeSign(
+						new_ballon_lat,
+						new_ballon_lon,
+						new_ballon_alt,
+						bullseyeCallsigns[i]
+					);
+
+				aimDotArray[i] =
+					createAimDot(
+						new_ballon_lat,
+						new_ballon_lon,
+						new_ballon_alt
+					);
+
+				# =================================================
+				# NEW DRIFT PROFILE (skipped when BALLOON_DRIFT_ENABLED = 0)
+				# =================================================
+
+				if (BALLOON_DRIFT_ENABLED)
+				{
+					balloonDriftDirs[i] = {
+						lat:
+							(rand()-0.5)
+							*
+							1.2
+							*
+							difficulty,
+
+						lon:
+							(rand()-0.5)
+							*
+							5
+							*
+							difficulty
+					};
+
+					balloonVerticalDrift[i] =
+						(rand()-0.5)
+						*
+						4;
+
+					balloonWavePhase[i] =
+						rand()*6.28;
+
+					balloonWaveSpeed[i] =
+						0.03 +
+						(rand()*0.08*difficulty);
+
+					last_balloon_sign =
+						((rand()>0.5)?1:-1);
+				}
+				else
+				{
+					balloonDriftDirs[i] = { lat: 0, lon: 0 };
+					balloonVerticalDrift[i] = 0;
+					balloonWavePhase[i] = 0;
+					balloonWaveSpeed[i] = 0;
+				}
+
+				min_dist_ft = 10000000;
+				pass_committed = 0;
+			}
+		}
+	}
+
+	# =========================================================
+	# TIMER
+	# =========================================================
+
+	var BalloonTimer =
+		maketimer(0.02, updateBalloons);
+
+	BalloonTimer.start();	
+	]]>
+	</script>
+</nasal>			
+	
+	<wait>5</wait>
+  </step>
+  
+
+   
+    <step>
+<!--	
+        <message>Hit balloons</message>
+-->     
+		<message></message>
+
+        <error>
+            <message>You are too low. Keep 2000 feet.</message>
+            <condition>
+                <less-than>
+                    <property>/instrumentation/altimeter/indicated-altitude-ft</property>
+                    <value>800</value>
+                </less-than>
+            </condition>
+				
+        </error>
+		
+        <error>
+            <message>You are too high. Keep 2000 feet.</message>
+            <condition>
+                <greater-than>
+                    <property>/instrumentation/altimeter/indicated-altitude-ft</property>
+                    <value>4000</value>
+                </greater-than>
+            </condition>
+			
+        </error>
+		
+		
+        <exit>
+            <condition>
+                    <less-than>
+                        <property>/instrumentation/altimeter/indicated-altitude-ft</property>
+                        <value>200</value>
+                    </less-than>
+            </condition>
+        </exit>
+
+    </step>
+
+    <step>
+        <message>Congratulations, you've finished CorrActions training flight.</message>
+    </step>
+
+</PropertyList>

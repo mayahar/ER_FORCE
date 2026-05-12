@@ -31,7 +31,13 @@ def resolve_f16_aircraft_paths(script_dir):
     return bundle_root, bundle_f16_dir
 
 
-def generate_xml_log_file(config_output_dir, interval_ms=1000, properties=[], csv_export_folder=None):
+def generate_xml_log_file(
+    config_output_dir,
+    interval_ms=1000,
+    properties=None,
+    csv_export_folder=None,
+    log_stamp=None,
+):
     """
     Function to generate XML log file for FlightGear logging.
 
@@ -40,13 +46,15 @@ def generate_xml_log_file(config_output_dir, interval_ms=1000, properties=[], cs
         - interval_ms: Interval in milliseconds (default is 1000).
         - properties: List of properties to include in the log.
         - csv_export_folder: Where FlightGear is allowed to write the CSV (defaults to config_output_dir).
+        - log_stamp: YYYYMMDD_HHMMSS; should match session_* folder time so XML/CSV basenames align with the run folder.
 
     Returns:
         - xml_filename: Name of the XML file generated.
     """
-    # Generate filename based on current datetime
-    now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    xml_filename = f"sivaks_logging_{now}.xml"
+    if properties is None:
+        properties = []
+    stamp = log_stamp or datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    xml_filename = f"sivaks_logging_{stamp}.xml"
 
     # Create XML structure
     logging = ET.Element("PropertyList")
@@ -58,7 +66,9 @@ def generate_xml_log_file(config_output_dir, interval_ms=1000, properties=[], cs
     interval.text = str(interval_ms)
     filename_element = ET.SubElement(log_element, "filename")
     csv_dir = csv_export_folder or config_output_dir
-    filename_element.text = os.path.join(csv_dir, xml_filename.replace(".xml", ".csv"))
+    # Absolute path with forward slashes — some Windows FG builds fail to write CSV if backslashes are embedded in the logging config.
+    _csv_abs = os.path.normpath(os.path.join(csv_dir, xml_filename.replace(".xml", ".csv")))
+    filename_element.text = _csv_abs.replace("\\", "/")
     delimiter = ET.SubElement(log_element, "delimiter")
     delimiter.text = ","
 
@@ -129,10 +139,49 @@ def _cleanup_export_folder(export_folder, keep_last=10):
     except Exception as e:
         print(f"Export cleanup skipped: {e}")
 
+def _row_to_float(row, name, default=0.0):
+    raw = (row.get(name) or "").strip()
+    if raw == "":
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        return default
+
+
+def _haversine_slant_ft(row):
+    """Aircraft /position/* vs /algorithm/game/balloon-* at one CSV instant (often wrong right after a pass)."""
+    lat1 = _row_to_float(row, "latitude-deg")
+    lon1 = _row_to_float(row, "longitude-deg")
+    alt1 = _row_to_float(row, "altitude-ft")
+    lat2 = _row_to_float(row, "balloon-lat")
+    lon2 = _row_to_float(row, "balloon-lon")
+    alt2 = _row_to_float(row, "balloon-alt")
+    r_ft = 20925524.9
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2.0) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2.0) ** 2
+    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(max(0.0, 1.0 - a)))
+    horizontal_ft = r_ft * c
+    vertical_ft = abs(alt2 - alt1)
+    dist_ft = math.sqrt((horizontal_ft * horizontal_ft) + (vertical_ft * vertical_ft))
+    return dist_ft, horizontal_ft, vertical_ft
+
+
 def evaluate_flight_score(csv_path):
     """
-    Compute weighted end score from one event per unique balloon-level.
+    Compute weighted end score from one row per scored balloon pass.
     Score uses distance quality, speed quality, and vertical speed quality.
+
+    Prefer `/algorithm/game/balloon-scoring-closest-ft` (true closest slant range at pass) plus
+    `/algorithm/game/balloons-count` to detect passes. Using balloon lat/lon on the first row where
+    `balloon-level` jumps is wrong: the sim respawns the next target immediately, so that snapshot is
+    often multi-kft away from the aircraft.
+
+    Scoring weights match the historical `logging_fg_start_ver5.py`; ER_FORCE keeps launcher/session
+    fixes in __main__ / run_flightgear.
     """
     # Scoring targets/tolerances (tune here).
     SPEED_TARGET_KT = 350.0
@@ -141,56 +190,62 @@ def evaluate_flight_score(csv_path):
 
     events = []
     prev_level = None
+    prev_count = 0
+
     with open(csv_path, newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
+        fields = set(reader.fieldnames or [])
+        use_snap = "balloons-count" in fields and "balloon-scoring-closest-ft" in fields
+
         for row in reader:
-            level_raw = (row.get("balloon-level") or "").strip()
             hit_raw = (row.get("balloon-hit") or "").strip()
-            if level_raw == "" or hit_raw == "":
+            if hit_raw == "":
                 continue
             try:
-                level_int = int(float(level_raw))
                 hit_int = int(float(hit_raw))
             except ValueError:
                 continue
-
-            # Count exactly once per balloon pass (new integer balloon-level).
-            if level_int <= 0 or level_int == prev_level:
-                continue
-
-            # If hit_int == 0 (rare transient), skip this row and wait for stable value.
             if hit_int == 0:
                 continue
 
-            def to_float(name, default=0.0):
-                raw = (row.get(name) or "").strip()
-                if raw == "":
-                    return default
+            speed_kt = _row_to_float(row, "airspeed-kt")
+            vert_fpm = _row_to_float(row, "indicated-speed-fpm")
+
+            if use_snap:
+                count_raw = (row.get("balloons-count") or "").strip()
+                if count_raw == "":
+                    continue
                 try:
-                    return float(raw)
+                    count_int = int(float(count_raw))
                 except ValueError:
-                    return default
+                    continue
+                if count_int <= prev_count:
+                    continue
 
-            lat1 = to_float("latitude-deg")
-            lon1 = to_float("longitude-deg")
-            alt1 = to_float("altitude-ft")
-            lat2 = to_float("balloon-lat")
-            lon2 = to_float("balloon-lon")
-            alt2 = to_float("balloon-alt")
-            speed_kt = to_float("airspeed-kt")
-            vert_fpm = to_float("indicated-speed-fpm")
+                dist_snap = _row_to_float(row, "balloon-scoring-closest-ft", -1.0)
+                if dist_snap < 0.0 or dist_snap > 1.0e7:
+                    dist_ft, horizontal_ft, vertical_ft = _haversine_slant_ft(row)
+                else:
+                    dist_ft = dist_snap
+                    horizontal_ft = dist_ft
+                    vertical_ft = 0.0
 
-            # Haversine horizontal distance (feet).
-            r_ft = 20925524.9
-            phi1 = math.radians(lat1)
-            phi2 = math.radians(lat2)
-            dphi = math.radians(lat2 - lat1)
-            dlambda = math.radians(lon2 - lon1)
-            a = math.sin(dphi / 2.0) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2.0) ** 2
-            c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(max(0.0, 1.0 - a)))
-            horizontal_ft = r_ft * c
-            vertical_ft = abs(alt2 - alt1)
-            dist_ft = math.sqrt((horizontal_ft * horizontal_ft) + (vertical_ft * vertical_ft))
+                balloon_level_key = count_int
+                prev_count = count_int
+            else:
+                level_raw = (row.get("balloon-level") or "").strip()
+                if level_raw == "":
+                    continue
+                try:
+                    level_int = int(float(level_raw))
+                except ValueError:
+                    continue
+                if level_int <= 0 or level_int == prev_level:
+                    continue
+
+                dist_ft, horizontal_ft, vertical_ft = _haversine_slant_ft(row)
+                balloon_level_key = level_int
+                prev_level = level_int
 
             # Quality scores (0-100 each).
             # Distance: 150ft perfect, 600ft very poor.
@@ -222,10 +277,6 @@ def evaluate_flight_score(csv_path):
                 vert_score = (7000.0 - vert_abs) / (7000.0 - 2000.0) * 100.0
 
             # Event score (bounded 0-100 without saturation):
-            # Convert sub-scores to a weighted quality score in [0, 1],
-            # then map to:
-            # - hit: base + (100-base)*quality
-            # - miss: 0 + 100*quality
             w_dist = 0.60
             w_speed = 0.30
             w_vert = 0.10
@@ -243,7 +294,7 @@ def evaluate_flight_score(csv_path):
             else:
                 event_score = 100.0 * quality
             events.append({
-                "balloon_level": level_int,
+                "balloon_level": balloon_level_key,
                 "hit": hit_int > 0,
                 "dist_ft": dist_ft,
                 "horizontal_ft": horizontal_ft,
@@ -255,7 +306,6 @@ def evaluate_flight_score(csv_path):
                 "vert_score": vert_score,
                 "score": event_score,
             })
-            prev_level = level_int
 
     hits = sum(1 for e in events if e["hit"])
     misses = sum(1 for e in events if not e["hit"])
@@ -323,7 +373,7 @@ def show_final_results(session_folder, csv_path):
             f"Balloons counted: {result['total']}\n"
             f"Hits: {result['hits']}\n"
             f"Misses: {result['misses']}\n"
-            f"Average distance to balloon center (ft): {result['avg_dist_ft']:.1f}\n"
+            f"Average closest distance at pass (ft): {result['avg_dist_ft']:.1f}\n"
             f"Score: {result['score']}/100\n"
             f"Grade: {result['grade']}\n"
             + (f"Breakdown: {breakdown_path}\n" if breakdown_path else "")
@@ -360,7 +410,7 @@ def show_final_results(session_folder, csv_path):
         stats_text = (
             f"Balloons counted: {result['total']}\n"
             f"Hits: {result['hits']}    Misses: {result['misses']}\n"
-            f"Average distance to center: {result['avg_dist_ft']:.1f} ft"
+            f"Average closest distance at pass: {result['avg_dist_ft']:.1f} ft"
         )
         stats = tk.Label(root, text=stats_text, fg="#cbd5e1", bg="#0f172a", font=("Segoe UI", 12), justify="center")
         stats.pack(pady=(4, 14))
@@ -378,7 +428,7 @@ def show_final_results(session_folder, csv_path):
             f"Final Score: {result['score']}/100\n"
             f"Grade: {result['grade']}\n"
             f"Hits: {result['hits']} | Misses: {result['misses']}\n"
-            f"Average distance: {result['avg_dist_ft']:.1f} ft\n"
+            f"Average closest at pass: {result['avg_dist_ft']:.1f} ft\n"
             f"Saved report: {report_path}"
         )
         print(text)
@@ -483,26 +533,13 @@ def run_flightgear(fg_bin_path, fg_aircraft, aircraft_dir, aircraft, airport, xm
             "No non-empty CSV was produced in the FlightGear Export folder. "
             f"Expected: {os.path.join(export_folder, os.path.basename(xml_filename).replace('.xml', '.csv'))}"
         )
-        
-    # Store every run in a dedicated session folder.
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    runs_root = os.path.join(script_dir, "runs")
-    os.makedirs(runs_root, exist_ok=True)
-    session_id = datetime.datetime.now().strftime("session_%Y%m%d_%H%M%S")
-    session_folder = os.path.join(runs_root, session_id)
-    os.makedirs(session_folder, exist_ok=True)
 
-    # Save CSV in session folder (and keep the config XML there too).
-    session_xml_path = os.path.join(session_folder, os.path.basename(xml_filename))
+    # One session = one folder (same as the XML/--log-dir). Avoids duplicate session_* dirs and CSV/XML basename mismatches.
+    session_folder = os.path.dirname(os.path.abspath(xml_filename))
+    os.makedirs(session_folder, exist_ok=True)
+    session_xml_path = os.path.abspath(xml_filename)
     session_csv_path = os.path.join(session_folder, csv_filename_local)
-    try:
-        if os.path.isfile(xml_filename) and os.path.abspath(os.path.dirname(xml_filename)) != os.path.abspath(session_folder):
-            shutil.copy(xml_filename, session_xml_path)
-        elif os.path.isfile(xml_filename):
-            session_xml_path = os.path.abspath(xml_filename)
-    except Exception:
-        pass
-    shutil.copy(csv_filename_export, session_csv_path)
+    shutil.copy2(csv_filename_export, session_csv_path)
 
     # Optional cleanup: after we have the session copy, we can delete the Export copy
     # to prevent the global Export folder from growing without bound.
@@ -540,6 +577,7 @@ def run_flightgear(fg_bin_path, fg_aircraft, aircraft_dir, aircraft, airport, xm
     # Run Zohar's analytics script with arguments
     # time.sleep(5)
 
+    script_dir = os.path.dirname(os.path.abspath(__file__))
     output_script = os.path.join(script_dir, "output.py")
     try:
         # Optional: run the analytics/dashboard script (can be disabled).
@@ -557,7 +595,22 @@ if __name__ == "__main__":
     _script_dir = os.path.dirname(os.path.abspath(__file__))
     bundle_aircraft_root, bundle_f16_dir = resolve_f16_aircraft_paths(_script_dir)
 
-    _fg_root = os.path.normpath(os.path.join(_script_dir, ".."))
+    # FlightGear install root (directory that contains bin/fgfs.exe and data/).
+    # - Env wins: SIVAKS_FG_ROOT or FG_ROOT
+    # - Repo layout: ER_FORCE/game/sivaks_logging_version/this file ->
+    #   <parent-of-ER_FORCE>/yan/FlightGear_2020_3
+    # - Legacy layout: .../FlightGear_2020_3/sivaks_logging_version/this file -> parent = FG root
+    _fg_root = (os.environ.get("SIVAKS_FG_ROOT") or os.environ.get("FG_ROOT") or "").strip()
+    _exe = lambda root: os.path.join(root, "bin", "fgfs.exe")
+
+    if not _fg_root or not os.path.isfile(_exe(_fg_root)):
+        _repo_parent = os.path.normpath(os.path.join(_script_dir, "..", "..", ".."))
+        _from_repo = os.path.join(_repo_parent, "yan", "FlightGear_2020_3")
+        if os.path.isfile(_exe(_from_repo)):
+            _fg_root = _from_repo
+        else:
+            _fg_root = os.path.normpath(os.path.join(_script_dir, ".."))
+
     fg_bin_path = os.path.join(_fg_root, "bin", "fgfs.exe")
     if not os.path.isfile(fg_bin_path):
         fg_bin_path = os.path.join(_fg_root, "bin", "fgfs")
@@ -613,20 +666,28 @@ if __name__ == "__main__":
     if os.environ.get("SIVAKS_NOTRIM", "").strip().lower() in ("1", "true", "yes", "y", "on"):
         fg_command_args.append("--notrim")
 
+    # Fullscreen: set by ER_FORCE Streamlit "Start game", or SIVAKS_FG_FULLSCREEN=1 for CLI.
+    if os.environ.get("SIVAKS_FG_FULLSCREEN", "").strip().lower() in ("1", "true", "yes", "y", "on"):
+        # 2020.3 Windows build rejects --fullscreen; --enable-fullscreen is recognized.
+        fg_command_args.append("--enable-fullscreen")
+
     # Run folder for this session (create early so config XML is not left in the script root).
-    _runs_root = os.path.join(_script_dir, "runs")
+    _env_runs = (os.environ.get("SIVAKS_FG_RUNS_ROOT") or "").strip()
+    _runs_root = os.path.normpath(_env_runs) if _env_runs else os.path.join(_script_dir, "runs")
     os.makedirs(_runs_root, exist_ok=True)
-    _session_id = datetime.datetime.now().strftime("session_%Y%m%d_%H%M%S")
+    # Single timestamp for session_* dir and sivaks_logging_*.xml — avoids mismatched names and stray empty dirs.
+    _run_stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    _session_id = f"session_{_run_stamp}"
     _session_folder = os.path.join(_runs_root, _session_id)
-    os.makedirs(_session_folder, exist_ok=True)
 
     _cleanup_old_sessions(_runs_root, keep_last=keep_last_sessions)
     _cleanup_export_folder(export_folder, keep_last=keep_last_exports)
 
-    # Generate XML log file into the session folder and run FlightGear.
+    # Generate XML log file into the session folder and run FlightGear (makedirs happens on write).
     xml_filename_only = generate_xml_log_file(
         _session_folder,
         20,
+        log_stamp=_run_stamp,
         properties=[
 #        '/input/joysticks/js/axis/binding/setting',
 #        '/input/joysticks/js/axis[1]/binding/factor',
@@ -652,9 +713,33 @@ if __name__ == "__main__":
         '/algorithm/game/balloon-lon',
         '/algorithm/game/balloon-alt',
         '/algorithm/game/balloon-level',
-        '/algorithm/game/balloon-hit'
+        '/algorithm/game/balloon-hit',
+        '/algorithm/game/balloons-count',
+        '/algorithm/game/balloon-scoring-closest-ft',
         ],
         csv_export_folder=export_folder,
     )
     xml_config_path = os.path.join(_session_folder, xml_filename_only)
-    run_flightgear(fg_bin_path, fg_aircraft, aircraft_dir, aircraft, airport, xml_config_path, export_folder, fg_command_args)
+    try:
+        run_flightgear(
+            fg_bin_path,
+            fg_aircraft,
+            aircraft_dir,
+            aircraft,
+            airport,
+            xml_config_path,
+            export_folder,
+            fg_command_args,
+        )
+    except Exception as e:
+        err_path = os.path.join(_session_folder, "session_error.txt")
+        try:
+            with open(err_path, "w", encoding="utf-8") as ef:
+                ef.write(
+                    f"{type(e).__name__}: {e}\n\n"
+                    "If FlightGear closed before logging flushed, wait for the launcher to finish "
+                    "or check the CSV path in your Export folder under %APPDATA%\\flightgear.org\\Export .\n"
+                )
+        except OSError:
+            pass
+        raise
