@@ -5,12 +5,19 @@ import sys
 import subprocess
 import time
 from pathlib import Path
+
+import numpy as np
+from eye_tracking_analysis.eye_tracker_recorder import EyeTrackerRecorder
+from eye_tracking_analysis.eye_movement_analyzer import EyeMovementAnalyzer
 from styles import apply_game_theme
 
 # ER_FORCE repo root (this file: UI/screens/game.py)
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _DEFAULT_FG_DIR = _REPO_ROOT / "game" / "sivaks_logging_version"
 _DEFAULT_FG_SCRIPT = _DEFAULT_FG_DIR / "logging_fg_start_ver5.py"
+
+_eye_recorder: EyeTrackerRecorder | None = None
+_eye_analyzer: EyeMovementAnalyzer | None = None
 
 
 def _resolve_fg_script_path() -> Path | None:
@@ -115,6 +122,99 @@ def _start_flightgear_session() -> tuple[int, str]:
         return 0, f"Failed to start FlightGear session: {e}"
 
 
+def _initialize_eye_tracking_session():
+    global _eye_recorder, _eye_analyzer
+    if _eye_recorder is None:
+        _eye_recorder = EyeTrackerRecorder()
+    if _eye_analyzer is None:
+        _eye_analyzer = EyeMovementAnalyzer()
+
+
+def _start_eye_tracking() -> tuple[bool, str]:
+    _initialize_eye_tracking_session()
+
+    if _eye_recorder is None:
+        return False, "Eye tracker recorder is unavailable."
+
+    found = _eye_recorder.find_and_select_eyetracker(auto_select_first=True)
+    if not found:
+        return False, "לא נמצא עוקב עיניים. המשחק ימשיך בלי הקלטת עיניים."
+
+    started = _eye_recorder.start_recording()
+    if not started:
+        return False, "שגיאה בהפעלה של הקלטת תנועות העיניים."
+
+    return True, ""
+
+
+def _stop_eye_tracking() -> tuple[dict | None, str]:
+    global _eye_recorder, _eye_analyzer
+    if _eye_recorder is None or not _eye_recorder.is_recording:
+        return None, ""
+
+    stopped = _eye_recorder.stop_recording()
+    if not stopped:
+        return None, "שגיאה בהפסקת הקלטת תנועות העיניים."
+
+    gaze_data = _eye_recorder.get_collected_data()
+    if not gaze_data:
+        return None, "לא נאספו נתוני עיניים."
+
+    eye_x = []
+    eye_y = []
+    timestamps = []
+
+    for sample in gaze_data:
+        x = sample.left_x if sample.left_x is not None else sample.right_x
+        y = sample.left_y if sample.left_y is not None else sample.right_y
+        eye_x.append(np.nan if x is None else x)
+        eye_y.append(np.nan if y is None else y)
+        timestamps.append(sample.timestamp)
+
+    timestamps = np.array(timestamps, dtype=float)
+    if timestamps.size == 0:
+        return None, "אין חיווי זמן תקני בנתוני העין."
+
+    if np.nanmax(timestamps) > 1e5:
+        timestamps = timestamps / 1_000_000
+    timestamps = timestamps - timestamps[0]
+
+    gaze_x = np.array(eye_x, dtype=float)
+    gaze_y = np.array(eye_y, dtype=float)
+
+    if _eye_analyzer is None:
+        st.session_state.eye_tracking_active = False
+        return None, "אנלייזר של תנועות עיניים אינו זמין."
+
+    try:
+        fixations, saccades, metrics = _eye_analyzer.analyze_gaze_data(
+            gaze_x=gaze_x,
+            gaze_y=gaze_y,
+            timestamps=timestamps,
+        )
+    except Exception as e:
+        return None, f"ניתוח תנועות העיניים נכשל: {e}"
+
+    if metrics is None:
+        return None, "לא ניתן לחשב מדדים מתנועות העיניים."
+
+    features = {
+        "fixation_duration": float(metrics.mean_fixation_duration),
+        "fixation_count": int(metrics.num_fixations),
+        "saccade_count": int(metrics.num_saccades),
+        "analysis": {
+            "total_duration": float(metrics.total_duration),
+            "fixations_per_minute": float(metrics.fixations_per_minute),
+            "saccades_per_minute": float(metrics.saccades_per_minute),
+            "mean_fixation_duration": float(metrics.mean_fixation_duration),
+            "mean_saccade_velocity": float(metrics.mean_saccade_velocity),
+        }
+    }
+
+    st.session_state.eye_tracking_active = False
+    return features, ""
+
+
 def render(controller):
 
     apply_game_theme()
@@ -166,6 +266,17 @@ def render(controller):
 
     # ===== Start Session =====
     if start_clicked:
+        st.session_state.eye_features = None
+        st.session_state.eye_recording_error = ""
+        st.session_state.eye_tracking_active = False
+
+        eye_started, eye_err = _start_eye_tracking()
+        if eye_err:
+            st.session_state.eye_recording_error = eye_err
+
+        elif eye_started:
+            st.session_state.eye_tracking_active = True
+
         pid, err = _start_flightgear_session()
 
         if err:
@@ -180,6 +291,13 @@ def render(controller):
 
     # ===== Stop Session =====
     if stop_clicked and fg_pid:
+        eye_features, eye_err = _stop_eye_tracking()
+        st.session_state.eye_tracking_active = False
+        if eye_features:
+            st.session_state.eye_features = eye_features
+        if eye_err:
+            st.session_state.eye_recording_error = eye_err
+
         ok, err = _terminate_session_process(fg_pid)
         if ok:
             st.session_state.fg_pid = 0
@@ -195,6 +313,12 @@ def render(controller):
     # ===== Error Display =====
     if st.session_state.fg_last_error:
         st.error(st.session_state.fg_last_error)
+
+    if st.session_state.get("eye_recording_error"):
+        st.warning(st.session_state.eye_recording_error)
+
+    if st.session_state.get("eye_tracking_active"):
+        st.info("הקלטת תנועות עיניים פעילה")
 
     # ===== Running Status =====
     if fg_running:
@@ -238,7 +362,13 @@ def render(controller):
             else:
                 # Normal exit (user closed FlightGear or session finished): always go to results.
                 # final_score.txt may be missing if FG was killed mid-run; result screen still runs
-                # the pipeline with a fallback game score.
+                eye_features, eye_err = _stop_eye_tracking()
+                st.session_state.eye_tracking_active = False
+                if eye_features:
+                    st.session_state.eye_features = eye_features
+                if eye_err:
+                    st.session_state.eye_recording_error = eye_err
+
                 st.session_state.result = None
                 st.session_state.state["screen"] = "result"
                 st.session_state.fg_pid = 0
