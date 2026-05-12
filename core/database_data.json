@@ -20,6 +20,11 @@
         },
         "game": {
           "score": 85
+        },
+        "questionnaire": {
+          "fatigue_self": 1,
+          "sleep_last": 7,
+          "sleep_previous": 7
         }
       }
     },
@@ -43,6 +48,11 @@
         },
         "game": {
           "score": 80
+        },
+        "questionnaire": {
+          "fatigue_self": 2,
+          "sleep_last": 7,
+          "sleep_previous": 7
         }
       }
     },
@@ -66,195 +76,44 @@
         },
         "game": {
           "score": 72
+        },
+        "questionnaire": {
+          "fatigue_self": 0,
+          "sleep_last": 7,
+          "sleep_previous": 7
         }
       }
-    }
-  },
-  "results": [
-    {
-      "subject_id": 3,
-      "subject_info": {
-        "name": "מיה הראל",
-        "sex": "female",
-        "age": 24
-      },
-      "score": 39.27880716510673,
-      "scores": {
-        "voice": 0.4910764592842452,
-        "eye": 86.77746137668197,
-        "game": 27.818547966962925
-      },
-      "feature_contributions": {
-        "voice": {
-          "dLPC": {
-            "weighted_contribution": 0.12641700024495375,
-            "fatigue_score": 0.15802125030619218,
-            "relative_change": 0.06374264974772528,
-            "normalized_effect": 0.31871323280296476,
-            "raw_sigmoid": 0.5790106251530961,
-            "better_than_baseline": false,
-            "weight": 0.8,
-            "direction": 1,
-            "expected_change": 0.2,
-            "std": null,
-            "baseline": 0.37474603247480937,
-            "current": 0.3986333382046273
-          },
-          "PARCOR": {
-            "weighted_contribution": 0.31336764117035404,
-            "fatigue_score": 0.4069709625589013,
-            "relative_change": 0.08639511406404658,
-            "normalized_effect": 0.8639510542453605,
-            "raw_sigmoid": 0.7034854812794507,
-            "better_than_baseline": false,
-            "weight": 0.77,
-            "direction": 1,
-            "expected_change": 0.1,
-            "std": null,
-            "baseline": 0.5517144600546122,
-            "current": 0.5993798946257655
-          },
-          "LPC": {
-            "weighted_contribution": 0.04622972126773174,
-            "fatigue_score": 0.0608285806154365,
-            "relative_change": 0.014616906471343005,
-            "normalized_effect": 0.12180754377722974,
-            "raw_sigmoid": 0.5304142903077183,
-            "better_than_baseline": false,
-            "weight": 0.76,
-            "direction": 1,
-            "expected_change": 0.12,
-            "std": null,
-            "baseline": 0.5676467583287299,
-            "current": 0.5759439980501511
-          },
-          "Pitch": {
-            "weighted_contribution": -0.4548698951459448,
-            "fatigue_score": -0.5985130199288747,
-            "relative_change": -0.04834725852590768,
-            "normalized_effect": -1.3816540089136602,
-            "raw_sigmoid": 0.20074349003556263,
-            "better_than_baseline": true,
-            "weight": 0.76,
-            "direction": 1,
-            "expected_change": 0.18,
-            "std": {
-              "male": 20.0,
-              "female": 30.0
-            },
-            "baseline": 154.31965105361414,
-            "current": 146.85871898801372
-          },
-          "MFCC": {
-            "weighted_contribution": -0.012287131500579751,
-            "fatigue_score": -0.016382842000773,
-            "relative_change": -0.09331755565009629,
-            "normalized_effect": -0.03276861588306164,
-            "raw_sigmoid": 0.4918085789996135,
-            "better_than_baseline": true,
-            "weight": 0.75,
-            "direction": 1,
-            "expected_change": 0.2,
-            "std": 8.0,
-            "baseline": 0.561842707244883,
-            "current": 0.5094129182117824
-          }
-        },
-        "eye": {
-          "fixation_duration": {
-            "weighted_contribution": 0.6165463799237767,
-            "fatigue_score": 0.6165463799237767,
-            "relative_change": 0.23093846588610448,
-            "normalized_effect": 1.4388286133543111,
-            "raw_sigmoid": 0.8082731899618883,
-            "better_than_baseline": false,
-            "weight": 1.0,
-            "direction": 1,
-            "expected_change": 0.5,
-            "std": 0.09,
-            "baseline": 0.28036600936790407,
-            "current": 0.3451133077673217
-          },
-          "fixation_count": {
-            "weighted_contribution": 0.9,
-            "fatigue_score": 1.0,
-            "relative_change": 0.13398209379665432,
-            "normalized_effect": 214.6673529009027,
-            "raw_sigmoid": 1.0,
-            "better_than_baseline": false,
-            "weight": 0.9,
-            "direction": 1,
-            "expected_change": 0.45,
-            "std": 0.2,
-            "baseline": 144.1988448526657,
-            "current": 163.51890801042458
-          },
-          "saccade_count": {
-            "weighted_contribution": 1.0,
-            "fatigue_score": 1.0,
-            "relative_change": 0.10299606471803477,
-            "normalized_effect": 163.02542010730716,
-            "raw_sigmoid": 1.0,
-            "better_than_baseline": false,
-            "weight": 1.0,
-            "direction": 1,
-            "expected_change": 0.55,
-            "std": 0.22,
-            "baseline": 191.52262896920035,
-            "current": 211.24870605851024
-          }
-        },
-        "game": {
-          "score": {
-            "weighted_contribution": 0.228112093329096,
-            "fatigue_score": 0.27818547966962925,
-            "relative_change": -0.06944444443479939,
-            "normalized_effect": -0.5714285483287992,
-            "raw_sigmoid": 0.6390927398348146,
-            "better_than_baseline": false,
-            "weight": 0.82,
-            "direction": -1,
-            "expected_change": 0.25,
-            "std": 35.0,
-            "baseline": 72.0,
-            "current": 67.0
-          }
-        }
-      },
-      "features": {
-        "voice": {
-          "dLPC": 0.3986333382046273,
-          "PARCOR": 0.5993798946257655,
-          "LPC": 0.5759439980501511,
-          "Pitch": 146.85871898801372,
-          "MFCC": 0.5094129182117824
-        },
-        "eye": {
-          "fixation_duration": 0.3451133077673217,
-          "fixation_count": 163.51890801042458,
-          "saccade_count": 211.24870605851024
-        },
-        "game": {
-          "score": 67
-        }
-      },
+    },
+    "101": {
+      "id": 101,
+      "name": "Participant 101",
+      "sex": "unknown",
+      "age": 18,
       "baseline": {
         "voice": {
-          "dLPC": 0.37474603247480937,
-          "PARCOR": 0.5517144600546122,
-          "LPC": 0.5676467583287299,
-          "Pitch": 154.31965105361414,
-          "MFCC": 0.561842707244883
+          "dLPC": 0.38045851482745907,
+          "PARCOR": 0.5811223616020295,
+          "LPC": 0.6570726986496267,
+          "Pitch": 149.90777882977474,
+          "MFCC": 0.5215460963588233
         },
         "eye": {
-          "fixation_duration": 0.28036600936790407,
-          "fixation_count": 144.1988448526657,
-          "saccade_count": 191.52262896920035
+          "fixation_duration": 0.25738158269042016,
+          "fixation_count": 128.63131170379927,
+          "saccade_count": 191.98445286661308
         },
         "game": {
-          "score": 72
+          "score": 74
+        },
+        "questionnaire": {
+          "fatigue_self": 5,
+          "sleep_last": 7,
+          "sleep_previous": 7,
+          "research_day": 1,
+          "research_condition": "baseline",
+          "study_id": "sleep_deprivation_research"
         }
       }
     }
-  ]
+  }
 }

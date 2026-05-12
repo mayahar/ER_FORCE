@@ -2,7 +2,7 @@ import streamlit as st
 import copy
 
 from core.mock_controller import Controller
-from core.subject_repository import save_result_object, update_subject_baseline
+from core.subject_repository import update_subject_baseline
 from screens import enter_id, questionnaire, game, results
 from screens import new_user_sleep_gate
 
@@ -105,6 +105,15 @@ elif state == "result":
 
         updated_subject = update_subject_baseline(subject_id, baseline)
         controller.subject = copy.deepcopy(updated_subject)
+        controller.compute_fatigue()
+
+        baseline_result = copy.deepcopy(controller.get_result())
+        research_context = st.session_state.state.get("research_context")
+
+        if research_context:
+            baseline_result["research"] = copy.deepcopy(research_context)
+            csv = results.export_result_csv(baseline_result)
+            results._save_report_once(subject_id, csv, result=baseline_result)
 
         st.session_state.result = None
         st.session_state.state["baseline_capture"] = False
@@ -124,7 +133,11 @@ elif state == "result":
 
         # 🔥 חשוב מאוד: freeze snapshot
         st.session_state.result = copy.deepcopy(controller.get_result())
-        save_result_object(st.session_state.result)
+
+        research_context = st.session_state.state.get("research_context")
+
+        if research_context:
+            st.session_state.result["research"] = copy.deepcopy(research_context)
 
     result = st.session_state.result
 

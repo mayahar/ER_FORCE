@@ -1,0 +1,46 @@
+{
+  "enabled": false,
+  "study_id": "sleep_deprivation_research",
+  "start_date": "2026-05-11",
+  "output_dir": "research_results/sleep_deprivation_research",
+  "participants": [
+    {
+      "id": 101,
+      "name": "Participant 101",
+      "sex": "unknown",
+      "age": 18
+    },
+    {
+      "id": 102,
+      "name": "Participant 102",
+      "sex": "unknown",
+      "age": 18
+    }
+  ],
+  "days": {
+    "1": {
+      "label": "baseline",
+      "sleep_last": 7,
+      "sleep_previous": 7,
+      "is_baseline_day": true
+    },
+    "2": {
+      "label": "no_sleep",
+      "sleep_last": 0,
+      "sleep_previous": 7,
+      "is_baseline_day": false
+    },
+    "3": {
+      "label": "three_hours_sleep",
+      "sleep_last": 3,
+      "sleep_previous": 0,
+      "is_baseline_day": false
+    },
+    "4": {
+      "label": "recovered_sleep",
+      "sleep_last": 7,
+      "sleep_previous": 3,
+      "is_baseline_day": false
+    }
+  }
+}
