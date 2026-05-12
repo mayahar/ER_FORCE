@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<PropertyList>
+  <description>CorrActions bullseye sign (faces pilot)</description>
+  <author>Sivaks (overlay sign)</author>
+  <path>Models/bullseye_quad.ac</path>
+  <texture-path>Textures/flightgear</texture-path>
+</PropertyList>
