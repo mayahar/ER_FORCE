@@ -1,8 +1,8 @@
-# Force – Flight Fatigue & Eye Tracking Research Platform
+# ER Force – Flight Fatigue & Eye Tracking Research Platform
 
 ## Overview
 
-Force is a research-oriented flight simulation platform focused on:
+ER Force is a research-oriented flight simulation platform focused on:
 
 * Fatigue estimation
 * Eye tracking integration
@@ -419,7 +419,7 @@ Still worth documenting later:
 
 # Summary
 
-Force is a Python + Streamlit research platform for fatigue estimation and eye tracking experiments using an interactive flight/game environment.
+ER Force is a Python + Streamlit research platform for fatigue estimation and eye tracking experiments using an interactive flight/game environment.
 
 The project combines:
 
@@ -444,7 +444,7 @@ making it suitable for both rapid experimentation and future hardware integratio
 
 ---
 
-Force is a multidisciplinary flight simulation research platform combining:
+ER Force is a multidisciplinary flight simulation research platform combining:
 
 * Cognitive neuroscience
 * Human factors research
