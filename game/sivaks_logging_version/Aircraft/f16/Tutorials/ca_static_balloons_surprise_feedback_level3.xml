@@ -39,7 +39,7 @@ This Scenario announces if you hit or miss.
 		<nasal>
             <script>
 				# Some F-16 variants don't expose f16.autostart(); keep tutorial compatible.
-				if (f16 != nil and f16.autostart != nil)
+				if (f16 != nil and contains(f16, "autostart"))
 					f16.autostart();
             </script>
         </nasal>
@@ -87,7 +87,8 @@ This Scenario announces if you hit or miss.
 	# sivaks: on starting scenario show dialog to get pilot data
 	# fgcommand("dialog-show", props.Node.new({"dialog-name": "sivaks_pilot_info_dlg"}));
 
-	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-06_1455 loaded");
+	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-10_scoring-closest-ft loaded");
+	# Pass scoring requires a real approach (commit gate) to avoid counting a miss for the next balloon while still enroute.
 
 	# STEP 1: GLOBAL VARIABLES AND FUNCTIONS
 	# Use a single balloon model so visuals and behavior are consistent.
@@ -105,11 +106,17 @@ This Scenario announces if you hit or miss.
 	setsize(balloonsArray, balloon_count);
 	var bullseyeArray = [];
 	setsize(bullseyeArray, balloon_count);
+	var aimDotArray = [];
+	setsize(aimDotArray, balloon_count);
 	var bullseyeCallsigns = [];
 	setsize(bullseyeCallsigns, balloon_count);
 	var bullseyeSerial = 0;
 	var bullseyePending = {}; # callsign -> heading (deg) to apply once model is added
 	var bullseyeListenerInstalled = 0;
+
+	setprop("/algorithm/game/balloons-count", 0);
+	setprop("/algorithm/game/balloon-scoring-closest-ft", 0);
+	setprop("/algorithm/game/balloon-hit", 0);
 	
 	var last_balloon_lat = 0;
 	var last_balloon_lon = 0;
@@ -128,6 +135,18 @@ This Scenario announces if you hit or miss.
 	
 	# Bullseye overlay sign model (flat quad). This will rotate to face the pilot.
 	var BSIGN_MODEL = "AI/Aircraft/balloon/ca_sivaks_bullseye_sign.xml";
+	# Green billboard marker (dist-scaled in XML/model). Slightly above balloon; scoring uses same offset.
+	var ADOT_MODEL = "AI/Aircraft/balloon/ca_sivaks_aim_dot.xml";
+	var AIM_DOT_UP_FT = 48;
+	# After a scored pass, ignore lat-trigger until this many sim seconds (stops double LEVEL UP when next spawn is still "south").
+	var PASS_COOLDOWN_SEC = 2.5;
+	# We only score an attempt (hit/miss) if the aircraft actually came close to the balloon.
+	# This prevents "random misses" when the player never entered the balloon's hit area.
+	# Tune: larger = more forgiving but more false misses; smaller = stricter but may miss legit attempts.
+	var PASS_SCORE_MAX_FT = 1200;
+	# Must have closed inside this range (ft) to "arm" scoring for the current balloon.
+	# Keep this equal to PASS_SCORE_MAX_FT so "armed" implies "scorable".
+	var PASS_COMMIT_FT = PASS_SCORE_MAX_FT;
 
 	# Install a one-time listener so we can grab the *real* model node path when it is created.
 	# This avoids guessing where the object lives in /ai/models.
@@ -202,6 +221,22 @@ This Scenario announces if you hit or miss.
 		return sign;
 	};
 
+	var createAimDot = func(positionLat, positionLon, elevation_ft)
+	{
+		var dot = props.Node.new({
+			"type": "static",
+			"model": ADOT_MODEL,
+			"latitude": positionLat,
+			"longitude": positionLon,
+			"altitude": elevation_ft + AIM_DOT_UP_FT,
+			"heading": 0,
+			"heading-deg": 0,
+			"search-order": "DATA_ONLY"
+		});
+		fgcommand("add-aiobject", dot);
+		return dot;
+	};
+
 	
 	# STEP 2: intial balloon placing in one line.
 	var position = geo.aircraft_position();
@@ -215,6 +250,8 @@ This Scenario announces if you hit or miss.
 			balloonsArray[i].remove();
 		if (bullseyeArray[i] != nil)
 			bullseyeArray[i].remove();
+		if (aimDotArray[i] != nil)
+			aimDotArray[i].remove();
 		last_balloon_lat = position.lat()+init_shift_val;
 		last_balloon_lon = position.lon()+((0.003)*(rand()-0.5));
 		last_balloon_alt = base_balloon_altitude;
@@ -223,6 +260,7 @@ This Scenario announces if you hit or miss.
 		bullseyeCallsigns[i] = "sivaks_bsign_" ~ i ~ "_" ~ bullseyeSerial;
 		bullseyeSerial += 1;
 		bullseyeArray[i] = createBullseyeSign(last_balloon_lat, last_balloon_lon, base_balloon_altitude, bullseyeCallsigns[i]);
+		aimDotArray[i] = createAimDot(last_balloon_lat, last_balloon_lon, base_balloon_altitude);
 		print ("INIT: aircraft_Lat = ",position.lat(), "aircraft_Lon = ",position.lon(), "  ballon_Lat = ", last_balloon_lat, "  ballon_Lon = ", last_balloon_lon);
 		init_shift_val = init_shift_val + 0.03;
 	}
@@ -234,6 +272,7 @@ This Scenario announces if you hit or miss.
 
 	var last_balloon_sign = -1;
 	var balloons_counted_passed = 0;
+	var balloons_counted_hit = 0;
 	var MAX_BALLOONS = MAX_BALLOONS;
 
 	# =========================================================
@@ -246,6 +285,10 @@ This Scenario announces if you hit or miss.
 		BALLOON_per_level;
 
 	var hardness_lon_max_levels = 8;
+
+	# 0 = balloons stay fixed between spawns (no gust / drift / wave). Level-up and hit rules still use hardness_lon.
+	# Set to 1 to restore the moving-target behavior.
+	var BALLOON_DRIFT_ENABLED = 0;
 
 	# =========================================================
 	# DYNAMIC MOVEMENT ARRAYS
@@ -263,19 +306,29 @@ This Scenario announces if you hit or miss.
 
 	forindex (var i; balloonDriftDirs)
 	{
-		balloonDriftDirs[i] = {
-			lat: 0,
-			lon: (rand()-0.5)
-		};
+		if (BALLOON_DRIFT_ENABLED)
+		{
+			balloonDriftDirs[i] = {
+				lat: 0,
+				lon: (rand()-0.5)
+			};
 
-		balloonVerticalDrift[i] =
-			(rand()-0.5);
+			balloonVerticalDrift[i] =
+				(rand()-0.5);
 
-		balloonWavePhase[i] =
-			rand()*6.28;
+			balloonWavePhase[i] =
+				rand()*6.28;
 
-		balloonWaveSpeed[i] =
-			0.03 + (rand()*0.05);
+			balloonWaveSpeed[i] =
+				0.03 + (rand()*0.05);
+		}
+		else
+		{
+			balloonDriftDirs[i] = { lat: 0, lon: 0 };
+			balloonVerticalDrift[i] = 0;
+			balloonWavePhase[i] = 0;
+			balloonWaveSpeed[i] = 0;
+		}
 	}
 
 	# =========================================================
@@ -284,6 +337,8 @@ This Scenario announces if you hit or miss.
 
 	var dist_aicraft_to_balloon_ft = 10000000;
 	var min_dist_ft = 10000000;
+	var pass_cooldown_until = 0;
+	var pass_committed = 0;
 
 	var airspeed_kt = 0;
 	var vert_speed_fpm = 0;
@@ -314,6 +369,9 @@ This Scenario announces if you hit or miss.
 	var updateBalloons = func()
 	{
 		var position = geo.aircraft_position();
+		var sim_elapsed = getprop("/sim/time/elapsed-sec");
+		if (sim_elapsed == nil)
+			sim_elapsed = 0;
 
 		forindex (var i; balloonsArray)
 		{
@@ -325,20 +383,6 @@ This Scenario announces if you hit or miss.
 			var difficulty =
 				1 + (hardness_lon * 0.6);
 
-			# =====================================================
-			# MUCH STRONGER DRIFT
-			# =====================================================
-
-			var drift_strength =
-				0.000018 * difficulty;
-
-			var vertical_strength =
-				10 * difficulty;
-
-			# =====================================================
-			# GET CURRENT POSITION
-			# =====================================================
-
 			var current_lat =
 				balloonsArray[i].getNode("latitude").getValue();
 
@@ -348,114 +392,103 @@ This Scenario announces if you hit or miss.
 			var current_alt =
 				balloonsArray[i].getNode("altitude").getValue();
 
-			# =====================================================
-			# GUST SYSTEM
-			# =====================================================
-
-			var gust_probability =
-				0.015 +
-				(hardness_lon * 0.005);
-
-			if (rand() < gust_probability)
+			if (BALLOON_DRIFT_ENABLED)
 			{
-				balloonDriftDirs[i].lon =
-					(rand()-0.5) *
-					5 *
-					difficulty;
+				var drift_strength =
+					0.000018 * difficulty;
 
-				balloonDriftDirs[i].lat =
-					(rand()-0.5) *
-					1.2 *
-					difficulty;
+				var vertical_strength =
+					10 * difficulty;
 
-				balloonVerticalDrift[i] =
-					(rand()-0.5) *
-					4;
+				var gust_probability =
+					0.015 +
+					(hardness_lon * 0.005);
 
-				balloonWaveSpeed[i] =
-					0.03 +
-					(rand()*0.08*difficulty);
+				if (rand() < gust_probability)
+				{
+					balloonDriftDirs[i].lon =
+						(rand()-0.5) *
+						5 *
+						difficulty;
 
-				print(
-					"GUST balloon=",
-					i,
-					" level=",
-					hardness_lon
-				);
+					balloonDriftDirs[i].lat =
+						(rand()-0.5) *
+						1.2 *
+						difficulty;
+
+					balloonVerticalDrift[i] =
+						(rand()-0.5) *
+						4;
+
+					balloonWaveSpeed[i] =
+						0.03 +
+						(rand()*0.08*difficulty);
+
+					print(
+						"GUST balloon=",
+						i,
+						" level=",
+						hardness_lon
+					);
+				}
+
+				current_lat =
+					current_lat +
+					(
+						balloonDriftDirs[i].lat *
+						drift_strength
+					);
+
+				current_lon =
+					current_lon +
+					(
+						balloonDriftDirs[i].lon *
+						drift_strength
+					);
+
+				balloonWavePhase[i] =
+					balloonWavePhase[i] +
+					balloonWaveSpeed[i];
+
+				current_lon =
+					current_lon +
+					(
+						math.sin(balloonWavePhase[i]) *
+						drift_strength *
+						12 *
+						difficulty
+					);
+
+				current_lat =
+					current_lat +
+					(
+						math.cos(balloonWavePhase[i]*1.3) *
+						drift_strength *
+						6 *
+						difficulty
+					);
+
+				current_alt =
+					current_alt +
+					(
+						balloonVerticalDrift[i] *
+						vertical_strength
+					);
+
+				current_alt =
+					current_alt +
+					(
+						math.sin(balloonWavePhase[i]*0.7) *
+						12 *
+						difficulty
+					);
+
+				if (current_alt < 1200)
+					current_alt = 1200;
+
+				if (current_alt > 4500)
+					current_alt = 4500;
 			}
-
-			# =====================================================
-			# STABLE DRIFT
-			# =====================================================
-
-			current_lat =
-				current_lat +
-				(
-					balloonDriftDirs[i].lat *
-					drift_strength
-				);
-
-			current_lon =
-				current_lon +
-				(
-					balloonDriftDirs[i].lon *
-					drift_strength
-				);
-
-			# =====================================================
-			# HORIZONTAL WAVE
-			# =====================================================
-
-			balloonWavePhase[i] =
-				balloonWavePhase[i] +
-				balloonWaveSpeed[i];
-
-			current_lon =
-				current_lon +
-				(
-					math.sin(balloonWavePhase[i]) *
-					drift_strength *
-					12 *
-					difficulty
-				);
-
-			current_lat =
-				current_lat +
-				(
-					math.cos(balloonWavePhase[i]*1.3) *
-					drift_strength *
-					6 *
-					difficulty
-				);
-
-			# =====================================================
-			# VERTICAL MOTION
-			# =====================================================
-
-			current_alt =
-				current_alt +
-				(
-					balloonVerticalDrift[i] *
-					vertical_strength
-				);
-
-			current_alt =
-				current_alt +
-				(
-					math.sin(balloonWavePhase[i]*0.7) *
-					12 *
-					difficulty
-				);
-
-			# =====================================================
-			# ALTITUDE LIMITS
-			# =====================================================
-
-			if (current_alt < 1200)
-				current_alt = 1200;
-
-			if (current_alt > 4500)
-				current_alt = 4500;
 
 			# =====================================================
 			# APPLY POSITION
@@ -482,6 +515,20 @@ This Scenario announces if you hit or miss.
 					.setValue(current_alt);
 			}
 
+			if (aimDotArray[i] != nil)
+			{
+				aimDotArray[i].getNode("latitude").setValue(current_lat);
+				aimDotArray[i].getNode("longitude").setValue(current_lon);
+				aimDotArray[i].getNode("altitude").setValue(current_alt + AIM_DOT_UP_FT);
+			}
+
+			var score_alt_ft = current_alt + AIM_DOT_UP_FT;
+			setprop("/algorithm/game/balloon-lat", current_lat);
+			setprop("/algorithm/game/balloon-lon", current_lon);
+			setprop("/algorithm/game/balloon-alt", score_alt_ft);
+			# "Level" should represent the next required hit, not passes (misses shouldn't skip level 8).
+			setprop("/algorithm/game/balloon-level", balloons_counted_hit + 1);
+
 			# =====================================================
 			# DISTANCE TO BALLOON
 			# =====================================================
@@ -494,7 +541,7 @@ This Scenario announces if you hit or miss.
 			);
 
 			balloon_pos.set_alt(
-				current_alt/globals.M2FT
+				score_alt_ft/globals.M2FT
 			);
 
 			dist_aicraft_to_balloon_ft =
@@ -502,29 +549,35 @@ This Scenario announces if you hit or miss.
 				* globals.M2FT;
 
 			# =====================================================
-			# TRACK MIN DISTANCE
+			# TRACK MIN DISTANCE (no 1200 ft cap — jet passes often never got inside it, so min_dist stayed huge)
 			# =====================================================
 
-			if (dist_aicraft_to_balloon_ft < 1200)
+			if (dist_aicraft_to_balloon_ft < min_dist_ft)
 			{
-				if (dist_aicraft_to_balloon_ft < min_dist_ft)
-				{
-					airspeed_kt =
-						getprop("/velocities/airspeed-kt");
+				airspeed_kt =
+					getprop("/velocities/airspeed-kt");
 
-					vert_speed_fpm =
-						getprop("/instrumentation/vertical-speed-indicator/indicated-speed-fpm");
+				vert_speed_fpm =
+					getprop("/instrumentation/vertical-speed-indicator/indicated-speed-fpm");
 
-					min_dist_ft =
-						dist_aicraft_to_balloon_ft;
-				}
+				min_dist_ft =
+					dist_aicraft_to_balloon_ft;
 			}
 
+			# Commit gate: only allow scoring once we've actually approached this balloon.
+			if (pass_committed == 0 and min_dist_ft <= PASS_COMMIT_FT)
+				pass_committed = 1;
+
 			# =====================================================
-			# PASSED BALLOON
+			# PASSED BALLOON (debounced + require real close approach on *this* target)
 			# =====================================================
 
-			if (position.lat() > current_lat)
+			if (
+				position.lat() > current_lat
+				and pass_committed
+				and sim_elapsed >= pass_cooldown_until
+				and min_dist_ft <= PASS_SCORE_MAX_FT
+			)
 			{
 
 				balloons_counted_passed =
@@ -534,6 +587,9 @@ This Scenario announces if you hit or miss.
 					"/algorithm/game/balloons-count",
 					balloons_counted_passed
 				);
+
+				# Difficulty for *this* pass only (level-up below was tightening hit on the same balloon)
+				var hardness_for_hit = hardness_lon;
 
 				# =================================================
 				# LEVEL UP
@@ -558,36 +614,35 @@ This Scenario announces if you hit or miss.
 
 					setprop(
 						"/sim/messages/copilot",
-						"LEVEL " ~ hardness_lon
+						(hardness_lon >= hardness_lon_max_levels)
+							? "End of simulation"
+							: ("LEVEL " ~ hardness_lon)
 					);
 				}
 
 				# =================================================
-				# HIT DETECTION
+				# HIT DETECTION — wider envelope for 350 kt; no VSI gate (gauge often swings thousands fpm in a pass)
 				# =================================================
 
 				var required_hit_distance =
-					180 - (hardness_lon * 12);
+					265 - (hardness_for_hit * 20);
 
-				if (required_hit_distance < 70)
-					required_hit_distance = 70;
+				if (required_hit_distance < 85)
+					required_hit_distance = 85;
 
 				var passed_through_balloon =
-					(
-						min_dist_ft <=
-						required_hit_distance
-					);
+					(min_dist_ft <= required_hit_distance);
 
-				if (
-					passed_through_balloon
-					and
-					math.abs(vert_speed_fpm)
-					<
-					(2200 - (hardness_lon*120))
-				)
+				var vs_now = getprop("/instrumentation/vertical-speed-indicator/indicated-speed-fpm");
+				if (vs_now == nil)
+					vs_now = vert_speed_fpm;
+
+				if (passed_through_balloon)
 				{
 					hit_miss_msg = "hit";
 					hit_miss_number = 1;
+					balloons_counted_hit = balloons_counted_hit + 1;
+					setprop("/algorithm/game/balloons-hit-count", balloons_counted_hit);
 
 					fgcommand(
 						"play-audio-sample",
@@ -609,12 +664,21 @@ This Scenario announces if you hit or miss.
 					"/algorithm/game/balloon-hit",
 					hit_miss_number
 				);
+				# True slant range at closest approach (for log post-process; balloon-* lat/lon update to NEXT spawn same frame)
+				setprop(
+					"/algorithm/game/balloon-scoring-closest-ft",
+					min_dist_ft
+				);
+				print("PASS scored: ", hit_miss_msg, " min_dist_ft=", min_dist_ft, " req=", required_hit_distance, " vs=", vs_now);
+
+				pass_cooldown_until = sim_elapsed + PASS_COOLDOWN_SEC;
 
 				# =================================================
 				# END GAME
 				# =================================================
 
-				if (balloons_counted_passed >= MAX_BALLOONS)
+				# End only after the 8th HIT (not after 8 passes, since passes can be misses).
+				if (balloons_counted_hit >= MAX_BALLOONS)
 				{
 					setprop("/algorithm/game/finished", 1);
 
@@ -624,6 +688,10 @@ This Scenario announces if you hit or miss.
 					{
 						if (balloonsArray[j] != nil)
 							balloonsArray[j].remove();
+						if (bullseyeArray[j] != nil)
+							bullseyeArray[j].remove();
+						if (aimDotArray[j] != nil)
+							aimDotArray[j].remove();
 					}
 
 					settimer(func {
@@ -662,6 +730,10 @@ This Scenario announces if you hit or miss.
 
 				var side =
 					((rand() > 0.5) ? 1 : -1);
+
+				# Tell the pilot where the *next* balloon spawned (relative to heading).
+				var turn_hint = ((side > 0) ? "turn right" : "turn left");
+				setprop("/sim/messages/copilot", hit_miss_msg ~ " - " ~ turn_hint);
 
 				var visible_offset =
 					(rand() * max_visible_angle)
@@ -723,6 +795,8 @@ This Scenario announces if you hit or miss.
 
 				if (bullseyeArray[i] != nil)
 					bullseyeArray[i].remove();
+				if (aimDotArray[i] != nil)
+					aimDotArray[i].remove();
 
 				# =================================================
 				# CREATE NEW
@@ -752,42 +826,60 @@ This Scenario announces if you hit or miss.
 						bullseyeCallsigns[i]
 					);
 
+				aimDotArray[i] =
+					createAimDot(
+						new_ballon_lat,
+						new_ballon_lon,
+						new_ballon_alt
+					);
+
 				# =================================================
-				# NEW DRIFT PROFILE
+				# NEW DRIFT PROFILE (skipped when BALLOON_DRIFT_ENABLED = 0)
 				# =================================================
 
-				balloonDriftDirs[i] = {
-					lat:
+				if (BALLOON_DRIFT_ENABLED)
+				{
+					balloonDriftDirs[i] = {
+						lat:
+							(rand()-0.5)
+							*
+							1.2
+							*
+							difficulty,
+
+						lon:
+							(rand()-0.5)
+							*
+							5
+							*
+							difficulty
+					};
+
+					balloonVerticalDrift[i] =
 						(rand()-0.5)
 						*
-						1.2
-						*
-						difficulty,
+						4;
 
-					lon:
-						(rand()-0.5)
-						*
-						5
-						*
-						difficulty
-				};
+					balloonWavePhase[i] =
+						rand()*6.28;
 
-				balloonVerticalDrift[i] =
-					(rand()-0.5)
-					*
-					4;
+					balloonWaveSpeed[i] =
+						0.03 +
+						(rand()*0.08*difficulty);
 
-				balloonWavePhase[i] =
-					rand()*6.28;
-
-				balloonWaveSpeed[i] =
-					0.03 +
-					(rand()*0.08*difficulty);
-
-				last_balloon_sign =
-					((rand()>0.5)?1:-1);
+					last_balloon_sign =
+						((rand()>0.5)?1:-1);
+				}
+				else
+				{
+					balloonDriftDirs[i] = { lat: 0, lon: 0 };
+					balloonVerticalDrift[i] = 0;
+					balloonWavePhase[i] = 0;
+					balloonWaveSpeed[i] = 0;
+				}
 
 				min_dist_ft = 10000000;
+				pass_committed = 0;
 			}
 		}
 	}
@@ -797,7 +889,7 @@ This Scenario announces if you hit or miss.
 	# =========================================================
 
 	var BalloonTimer =
-		maketimer(0.05, updateBalloons);
+		maketimer(0.02, updateBalloons);
 
 	BalloonTimer.start();	
 	]]>

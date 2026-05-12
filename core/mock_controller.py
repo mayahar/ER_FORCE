@@ -80,11 +80,11 @@ class Controller:
         }
 
     def _try_get_latest_flightgear_score(self) -> int | None:
-        
-        runs_root = os.environ.get(
-            "SIVAKS_FG_RUNS_ROOT",
-            r"C:\Users\srule\OneDrive\Desktop\yan\FlightGear_2020_3\sivaks_logging_version\runs",
-        )
+        # Default: bundled launcher under ER_FORCE/game/sivaks_logging_version/runs
+        _repo = Path(__file__).resolve().parent.parent
+        _default_runs = _repo / "game" / "sivaks_logging_version" / "runs"
+
+        runs_root = os.environ.get("SIVAKS_FG_RUNS_ROOT", str(_default_runs))
 
         root = Path(runs_root)
         if not root.exists() or not root.is_dir():
