@@ -1,0 +1,187 @@
+{
+  "subject_id": "1",
+  "score": 47.84620468956003,
+  "scores": {
+    "voice": 6.438706368496925,
+    "eye": 86.90811681609945,
+    "game": 47.327767136122766,
+    "subjective": null
+  },
+  "feature_contributions": {
+    "voice": {
+      "dLPC": {
+        "weighted_contribution": 0.10235815754367668,
+        "fatigue_score": 0.12794769692959584,
+        "relative_change": 0.05146113463650025,
+        "normalized_effect": 0.2573056603172182,
+        "raw_sigmoid": 0.5639738484647979,
+        "better_than_baseline": false,
+        "weight": 0.8,
+        "direction": 1,
+        "expected_change": 0.2,
+        "std": null,
+        "baseline": 0.42,
+        "current": 0.44161367706194143
+      },
+      "PARCOR": {
+        "weighted_contribution": 0.07545797172638948,
+        "fatigue_score": 0.09799736587842789,
+        "relative_change": 0.019662580234082728,
+        "normalized_effect": 0.196625782678249,
+        "raw_sigmoid": 0.5489986829392139,
+        "better_than_baseline": false,
+        "weight": 0.77,
+        "direction": 1,
+        "expected_change": 0.1,
+        "std": null,
+        "baseline": 0.55,
+        "current": 0.5608144193253713
+      },
+      "LPC": {
+        "weighted_contribution": -0.23515962843234475,
+        "fatigue_score": -0.3094205637267694,
+        "relative_change": -0.07677708551912765,
+        "normalized_effect": -0.6398089926753144,
+        "raw_sigmoid": 0.3452897181366153,
+        "better_than_baseline": true,
+        "weight": 0.76,
+        "direction": 1,
+        "expected_change": 0.12,
+        "std": null,
+        "baseline": 0.61,
+        "current": 0.5631659770655613
+      },
+      "Pitch": {
+        "weighted_contribution": 0.30322975258039797,
+        "fatigue_score": 0.3989865165531552,
+        "relative_change": 0.02534658044275938,
+        "normalized_effect": 0.8448859673980936,
+        "raw_sigmoid": 0.6994932582765776,
+        "better_than_baseline": false,
+        "weight": 0.76,
+        "direction": 1,
+        "expected_change": 0.18,
+        "std": {
+          "male": 20.0,
+          "female": 30.0
+        },
+        "baseline": 120.0,
+        "current": 123.04158965338459
+      },
+      "MFCC": {
+        "weighted_contribution": 0.001360071132162577,
+        "fatigue_score": 0.0018134281762167692,
+        "relative_change": 0.011605953644746286,
+        "normalized_effect": 0.003626860328106622,
+        "raw_sigmoid": 0.5009067140881084,
+        "better_than_baseline": false,
+        "weight": 0.75,
+        "direction": 1,
+        "expected_change": 0.2,
+        "std": 8.0,
+        "baseline": 0.5,
+        "current": 0.5058029769384327
+      }
+    },
+    "eye": {
+      "fixation_duration": {
+        "weighted_contribution": 0.6203353876668842,
+        "fatigue_score": 0.6203353876668842,
+        "relative_change": 0.29681598325930364,
+        "normalized_effect": 1.451100172345681,
+        "raw_sigmoid": 0.8101676938334421,
+        "better_than_baseline": false,
+        "weight": 1.0,
+        "direction": 1,
+        "expected_change": 0.5,
+        "std": 0.09,
+        "baseline": 0.22,
+        "current": 0.28529951928520664
+      },
+      "fixation_count": {
+        "weighted_contribution": 0.9,
+        "fatigue_score": 1.0,
+        "relative_change": 0.18481494167414972,
+        "normalized_effect": 246.41990443520623,
+        "raw_sigmoid": 1.0,
+        "better_than_baseline": false,
+        "weight": 0.9,
+        "direction": 1,
+        "expected_change": 0.45,
+        "std": 0.2,
+        "baseline": 120.0,
+        "current": 142.1777930027461
+      },
+      "saccade_count": {
+        "weighted_contribution": 1.0,
+        "fatigue_score": 1.0,
+        "relative_change": 0.08592962647476235,
+        "normalized_effect": 106.52432356179378,
+        "raw_sigmoid": 1.0,
+        "better_than_baseline": false,
+        "weight": 1.0,
+        "direction": 1,
+        "expected_change": 0.55,
+        "std": 0.22,
+        "baseline": 150.0,
+        "current": 162.88944397207365
+      }
+    },
+    "game": {
+      "score": {
+        "weighted_contribution": 0.3880876905162067,
+        "fatigue_score": 0.47327767136122767,
+        "relative_change": -0.10588235292871973,
+        "normalized_effect": -1.0285713870136872,
+        "raw_sigmoid": 0.7366388356806138,
+        "better_than_baseline": false,
+        "weight": 0.82,
+        "direction": -1,
+        "expected_change": 0.25,
+        "std": 35.0,
+        "baseline": 85.0,
+        "current": 76.0
+      }
+    },
+    "subjective": {}
+  },
+  "features": {
+    "voice": {
+      "dLPC": 0.44161367706194143,
+      "PARCOR": 0.5608144193253713,
+      "LPC": 0.5631659770655613,
+      "Pitch": 123.04158965338459,
+      "MFCC": 0.5058029769384327
+    },
+    "eye": {
+      "fixation_duration": 0.28529951928520664,
+      "fixation_count": 142.1777930027461,
+      "saccade_count": 162.88944397207365
+    },
+    "game": {
+      "score": 76
+    }
+  },
+  "baseline": {
+    "voice": {
+      "dLPC": 0.42,
+      "PARCOR": 0.55,
+      "LPC": 0.61,
+      "Pitch": 120.0,
+      "MFCC": 0.5
+    },
+    "eye": {
+      "fixation_duration": 0.22,
+      "fixation_count": 120,
+      "saccade_count": 150
+    },
+    "game": {
+      "score": 85
+    },
+    "questionnaire": {
+      "fatigue_self": 1,
+      "sleep_last": 7,
+      "sleep_previous": 7
+    }
+  }
+}
