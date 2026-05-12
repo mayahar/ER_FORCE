@@ -103,6 +103,31 @@ def compute_feature_score(
     }
 
 
+def compute_absolute_feature_score(current, feature_cfg):
+
+    if current is None:
+        return None
+
+    minimum = feature_cfg["min"]
+    maximum = feature_cfg["max"]
+
+    if maximum == minimum:
+        return None
+
+    normalized = (current - minimum) / (maximum - minimum)
+    normalized = min(1.0, max(0.0, normalized))
+
+    fatigue_score = feature_cfg["direction"] * ((2 * normalized) - 1)
+
+    return {
+        "fatigue_score": fatigue_score,
+        "raw_sigmoid": None,
+        "better_than_baseline": fatigue_score < 0,
+        "relative_change": None,
+        "normalized_effect": fatigue_score
+    }
+
+
 # =====================================================
 # MODALITY SCORE
 # =====================================================
@@ -127,13 +152,19 @@ def compute_modality_score(
         current = safe_get(current_data, feature_name)
         baseline = safe_get(baseline_data, feature_name)
 
-        result = compute_feature_score(
-            current=current,
-            baseline=baseline,
-            feature_name=feature_name,
-            feature_cfg=cfg,
-            sex=sex
-        )
+        if cfg.get("scoring") == "absolute":
+            result = compute_absolute_feature_score(
+                current=current,
+                feature_cfg=cfg
+            )
+        else:
+            result = compute_feature_score(
+                current=current,
+                baseline=baseline,
+                feature_name=feature_name,
+                feature_cfg=cfg,
+                sex=sex
+            )
 
         if result is None:
             continue
@@ -168,16 +199,22 @@ def compute_modality_score(
             # internal debug info
             # -----------------------------------
 
-            "relative_change": float(
-                result["relative_change"]
+            "relative_change": (
+                float(result["relative_change"])
+                if result["relative_change"] is not None
+                else None
             ),
 
-            "normalized_effect": float(
-                result["normalized_effect"]
+            "normalized_effect": (
+                float(result["normalized_effect"])
+                if result["normalized_effect"] is not None
+                else None
             ),
 
-            "raw_sigmoid": float(
-                result["raw_sigmoid"]
+            "raw_sigmoid": (
+                float(result["raw_sigmoid"])
+                if result["raw_sigmoid"] is not None
+                else None
             ),
 
             "better_than_baseline": bool(
@@ -194,13 +231,19 @@ def compute_modality_score(
                 cfg["direction"]
             ),
 
-            "expected_change": float(
-                cfg["expected_change"]
+            "expected_change": (
+                float(cfg["expected_change"])
+                if cfg["expected_change"] is not None
+                else None
             ),
 
             "std": cfg["std"],
 
-            "baseline": float(baseline),
+            "baseline": (
+                float(baseline)
+                if baseline is not None
+                else None
+            ),
 
             "current": float(current)
         }
@@ -208,10 +251,15 @@ def compute_modality_score(
         total += weighted_contribution
         wsum += weight
 
-    modality_score = (
-        total / wsum
-        if wsum else None
-    )
+    if wsum:
+        modality_score = total / wsum
+    elif contributions:
+        modality_score = sum(
+            item["fatigue_score"]
+            for item in contributions.values()
+        ) / len(contributions)
+    else:
+        modality_score = None
 
     return modality_score, contributions
 
@@ -238,8 +286,8 @@ def compute_fatigue_score(data):
     voice_score, voice_contrib = (
         compute_modality_score(
             modality_name="voice",
-            current_data=current["voice"],
-            baseline_data=baseline["voice"],
+            current_data=current.get("voice", {}),
+            baseline_data=baseline.get("voice", {}),
             sex=sex
         )
     )
@@ -251,8 +299,8 @@ def compute_fatigue_score(data):
     eye_score, eye_contrib = (
         compute_modality_score(
             modality_name="eye",
-            current_data=current["eye"],
-            baseline_data=baseline["eye"]
+            current_data=current.get("eye", {}),
+            baseline_data=baseline.get("eye", {})
         )
     )
 
@@ -263,21 +311,35 @@ def compute_fatigue_score(data):
     game_score, game_contrib = (
         compute_modality_score(
             modality_name="game",
-            current_data=current["game"],
-            baseline_data=baseline["game"]
+            current_data=current.get("game", {}),
+            baseline_data=baseline.get("game", {})
+        )
+    )
+
+    # =================================================
+    # SUBJECTIVE QUESTIONNAIRE
+    # =================================================
+
+    subjective_score, subjective_contrib = (
+        compute_modality_score(
+            modality_name="subjective",
+            current_data=current.get("questionnaire", {}),
+            baseline_data=baseline.get("questionnaire", {})
         )
     )
 
     modality_scores = {
         "voice": voice_score,
         "eye": eye_score,
-        "game": game_score
+        "game": game_score,
+        "subjective": subjective_score
     }
 
     modality_contributions = {
         "voice": voice_contrib,
         "eye": eye_contrib,
-        "game": game_contrib
+        "game": game_contrib,
+        "subjective": subjective_contrib
     }
 
     # =================================================

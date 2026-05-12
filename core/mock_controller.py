@@ -13,13 +13,15 @@ class Controller:
     def __init__(self):
         self.subject = None
         self.features = {}
+        self.questionnaire = {}
         self.result = None
 
     # -------------------
     # DISPATCH (mock)
     # -------------------
     def dispatch(self, event, payload=None):
-        pass
+        if event == "QUESTIONNAIRE_DONE":
+            self.questionnaire = payload or {}
 
     # -------------------
     # LOAD SUBJECT
@@ -40,6 +42,7 @@ class Controller:
         self.subject["id"] = subject.get("id", subject_id)
 
         self.features = {}
+        self.questionnaire = {}
         self.result = None
 
         return True
@@ -93,7 +96,9 @@ class Controller:
                 # Prefer the real FlightGear score (from logging_fg_start_ver5.py final_score.txt).
                 # Fallback to the prior mock behavior if we can't find a recent run.
                 "score": int(fg_score) if fg_score is not None else int(b["game"]["score"] * random.uniform(0.7, 0.95)),
-            }
+            },
+
+            "questionnaire": self.questionnaire.copy()
         }
 
     def _try_get_latest_flightgear_score(self) -> int | None:

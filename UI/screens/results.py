@@ -279,8 +279,13 @@ def render(result):
         fig, ax = plt.subplots(figsize=(14, 7))
         
         # הגדרת סדר הקטגוריות
-        modalities = ["game", "eye", "voice"]
-        modality_labels = {"game": "משחק", "eye": "עיניים", "voice": "קול"}
+        modalities = ["game", "eye", "voice", "subjective"]
+        modality_labels = {
+            "game": "משחק",
+            "eye": "עיניים",
+            "voice": "קול",
+            "subjective": "שאלון"
+        }
         
         x_positions = []
         labels = []

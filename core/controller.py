@@ -12,13 +12,15 @@ class Controller:
     def __init__(self):
         self.subject = None
         self.features = {}
+        self.questionnaire = {}
         self.result = None
 
     # -------------------
     # DISPATCH
     # -------------------
     def dispatch(self, event, payload=None):
-        pass
+        if event == "QUESTIONNAIRE_DONE":
+            self.questionnaire = payload or {}
 
     # -------------------
     # LOAD SUBJECT
@@ -38,6 +40,7 @@ class Controller:
         self.subject["id"] = subject.get("id", subject_id)
 
         self.features = {}
+        self.questionnaire = {}
         self.result = None
 
         return True
@@ -71,7 +74,9 @@ class Controller:
 
             "game": {
                 "score": fg_score
-            }
+            },
+
+            "questionnaire": self.questionnaire.copy()
         }
 
     # -------------------

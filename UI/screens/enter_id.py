@@ -127,6 +127,7 @@ def render(controller):
 
         if controller.load_subject(subject_id):
             controller.dispatch("ID_SUBMITTED", {"subject_id": subject_id})
+            st.session_state.result = None
             st.session_state.state["session_id"] = subject_id
             st.session_state.state["baseline_capture"] = mode == NEW_USER_MODE
             st.session_state.state["screen"] = (
