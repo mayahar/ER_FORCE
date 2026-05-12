@@ -35,7 +35,7 @@ class Controller:
         import copy
         self.subject = copy.deepcopy(subject)
 
-        self.subject["id"] = subject_id
+        self.subject["id"] = subject.get("id", subject_id)
 
         self.features = {}
         self.result = None
@@ -202,6 +202,11 @@ class Controller:
 
         self.result = {
             "subject_id": self.subject.get("id", "UNKNOWN"),
+            "subject_info": {
+                "name": self.subject.get("name"),
+                "sex": self.subject.get("sex"),
+                "age": self.subject.get("age"),
+            },
             "score": raw.get("score", 0),
             "scores": raw.get("scores", {}),
             "feature_contributions": raw.get(
@@ -225,6 +230,23 @@ class Controller:
                 if self.subject
                 else "UNKNOWN"
             ),
+            "subject_info": {
+                "name": (
+                    self.subject.get("name")
+                    if self.subject
+                    else None
+                ),
+                "sex": (
+                    self.subject.get("sex")
+                    if self.subject
+                    else None
+                ),
+                "age": (
+                    self.subject.get("age")
+                    if self.subject
+                    else None
+                ),
+            },
             "score": None,
             "scores": {},
             "features": self.features,

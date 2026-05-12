@@ -84,9 +84,9 @@ def render(controller):
     with col2:
         fatigue = st.slider("רמת עייפות", 0, 10, 5)
         st.write("")  # Spacing
-        sleep_last = st.slider("שעות שינה אתמול", 0, 8, 4)
+        sleep_last = st.slider("שעות שינה אתמול", 0, 8, 6)
         st.write("")  # Spacing
-        sleep_previous = st.slider("שעות שינה שלשום", 0, 8, 4)
+        sleep_previous = st.slider("שעות שינה שלשום", 0, 8, 6)
 
     # Position button at bottom left
     if st.button("המשך"):

@@ -1,6 +1,17 @@
 import streamlit as st
 from core.subject_repository import subject_exists, get_all_subject_ids, create_subject
 
+
+EXISTING_USER_MODE = "בדיקת עייפות למשתמש קיים"
+NEW_USER_MODE = "הזן משתמש חדש"
+
+SEX_OPTIONS = {
+    "זכר": "male",
+    "נקבה": "female",
+    "אחר": "other",
+}
+
+
 def render(controller):
     # Add Air Force inspired styling with dark blue theme
     st.markdown("""
@@ -13,12 +24,17 @@ def render(controller):
     }
     .stTextInput label,
     .stTextInput label p,
-    div[data-testid="stTextInput"] label {
+    .stNumberInput label,
+    .stNumberInput label p,
+    div[data-testid="stTextInput"] label,
+    div[data-testid="stNumberInput"] label,
+    div[data-testid="stSelectbox"] label {
         color: white !important;
         font-size: 2em !important;
         font-weight: bold !important;
     }
-    .stTextInput > div > div > input {
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input {
         background-color: #002244;
         color: white;
         border: 2px solid #004466;
@@ -63,44 +79,57 @@ def render(controller):
     """, unsafe_allow_html=True)
 
     st.title("התחלת משחק")
-    
-    # Display available subject IDs
+
     available_ids = get_all_subject_ids()
 
     mode = st.radio(
         "בחר פעולה",
-        ["ניסיון חדש", "הזן משתמש חדש"],
+        [EXISTING_USER_MODE, NEW_USER_MODE],
         horizontal=True,
     )
 
     subject_id = st.text_input("הזן מס' אישי")
 
+    name = None
+    sex = "unknown"
+    age = 0
+
+    if mode == NEW_USER_MODE:
+        name = st.text_input("שם מלא")
+        sex_label = st.selectbox("מין", list(SEX_OPTIONS.keys()))
+        sex = SEX_OPTIONS[sex_label]
+        age = st.number_input("גיל", min_value=1, max_value=120, value=18, step=1)
+
     if st.button("המשך"):
-        # Validate subject exists
         if not subject_id or not subject_id.strip():
-            st.error("❌ אנא הזן מזהה תקני")
-            return
-        
-        if mode == "ניסיון חדש" and not subject_exists(subject_id):
-            st.error(f"❌ שגיאה: מזהה {subject_id} לא קיים במסד הנתונים")
-            st.error(f"📋 מזהים זמינים: {', '.join(map(str, available_ids))}")
+            st.error("אנא הזן מזהה תקני")
             return
 
-        if mode == "הזן משתמש חדש":
+        if mode == EXISTING_USER_MODE and not subject_exists(subject_id):
+            st.error(f"שגיאה: מזהה {subject_id} לא קיים במסד הנתונים")
+            st.error(f"מזהים זמינים: {', '.join(map(str, available_ids))}")
+            return
+
+        if mode == NEW_USER_MODE:
             if subject_exists(subject_id):
-                st.error("❌ המשתמש כבר קיים. בחר 'ניסיון חדש' כדי להמשיך.")
+                st.error("המשתמש כבר קיים. בחר 'בדיקת עייפות למשתמש קיים' כדי להמשיך.")
                 return
+
+            if not name or not name.strip():
+                st.error("אנא הזן שם מלא")
+                return
+
             try:
-                create_subject(subject_id)
+                create_subject(subject_id, name=name, sex=sex, age=age)
             except (ValueError, TypeError):
-                st.error("❌ מס' אישי חייב להיות מספרי")
+                st.error("מס' אישי וגיל חייבים להיות מספריים תקינים")
                 return
-        
-        # Load subject and proceed
+
         if controller.load_subject(subject_id):
             controller.dispatch("ID_SUBMITTED", {"subject_id": subject_id})
             st.session_state.state["session_id"] = subject_id
+            st.session_state.state["baseline_capture"] = mode == NEW_USER_MODE
             st.session_state.state["screen"] = (
-                "new_user_sleep_gate" if mode == "הזן משתמש חדש" else "questionnaire"
+                "new_user_sleep_gate" if mode == NEW_USER_MODE else "questionnaire"
             )
             st.rerun()
