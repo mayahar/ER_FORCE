@@ -5,6 +5,7 @@ import sys
 import subprocess
 import time
 from pathlib import Path
+from styles import apply_game_theme
 
 # ER_FORCE repo root (this file: UI/screens/game.py)
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -116,83 +117,7 @@ def _start_flightgear_session() -> tuple[int, str]:
 
 def render(controller):
 
-    # ===== Styling =====
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: #001122;
-        color: white;
-        direction: rtl;
-        font-family: 'Courier New', monospace;
-    }
-
-    h1 {
-        color: #66aaff;
-        text-shadow: 0 0 10px #66aaff;
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .game-box {
-        background-color: #002244;
-        border: 2px solid #004466;
-        border-radius: 12px;
-        padding: 30px;
-        margin-top: 20px;
-        box-shadow: 0 0 15px rgba(0, 102, 204, 0.4);
-    }
-
-    .warning-text {
-        color: #ffcc66;
-        font-size: 1.2em;
-        font-weight: bold;
-        margin-bottom: 20px;
-        text-align: center;
-        line-height: 1.8;
-    }
-
-    .info-text {
-        color: white;
-        font-size: 1.1em;
-        text-align: center;
-        line-height: 1.8;
-    }
-
-    .stButton > button {
-        background-color: #0066cc;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        padding: 12px 24px;
-        font-size: 1.1em;
-        width: 100%;
-        box-shadow: 0 0 10px #0066cc;
-        transition: 0.3s;
-    }
-
-    .stButton > button:hover {
-        background-color: #004499;
-        box-shadow: 0 0 20px #0066cc;
-    }
-
-    div[data-testid="stInfo"] {
-        background-color: #002244;
-        color: white;
-        border: 1px solid #0066cc;
-    }
-
-    div[data-testid="stWarning"] {
-        background-color: #332200;
-        color: #ffcc66;
-    }
-
-    div[data-testid="stError"] {
-        background-color: #441111;
-        color: #ff6666;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    apply_game_theme()
 
     # ===== Title =====
     st.title("הרצת משחק")
@@ -203,10 +128,11 @@ def render(controller):
 
     <div class="warning-text">
     שימו לב! המטוס יתחיל במצב אף מטה,<br>
-    צריך למשוך מייד את הסטיק כדי לא להתרסק
+    צריך למשוך מיד את הסטיק כדי לא להתרסק
     </div>
 
     <div class="info-text">
+    למשחק יקח כחצי דקה להטען, בהתחלה יופיע מסלול המראה, ואז הוא יתחיל אוטומטית.<br>
     במהלך המשחק ימדדו תנועות העיניים שלכם<br>
     ובנוסף תתבקשו להשמיע קולות מסוימים
     </div>
@@ -226,6 +152,7 @@ def render(controller):
 
     # ===== Buttons =====
     col1, col2 = st.columns(2)
+    stop_clicked = False
 
     with col1:
         start_clicked = st.button(
@@ -233,11 +160,9 @@ def render(controller):
             disabled=fg_running
         )
 
-    with col2:
-        stop_clicked = st.button(
-            "סיום הרצת משחק",
-            disabled=not fg_running
-        )
+    if fg_running:
+        with col2:
+            stop_clicked = st.button("סיום הרצת משחק")
 
     # ===== Start Session =====
     if start_clicked:

@@ -1,4 +1,5 @@
 import streamlit as st
+from styles import apply_enter_id_theme
 from core.research_repository import (
     get_current_research_day,
     get_research_participant,
@@ -24,88 +25,7 @@ SEX_OPTIONS = {
 
 
 def render(controller):
-    # Add Air Force inspired styling with dark blue theme
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: #001122;
-        color: white;
-        direction: rtl;
-        font-family: 'Courier New', monospace;
-    }
-    .stTextInput label,
-    .stTextInput label p,
-    .stNumberInput label,
-    .stNumberInput label p,
-    div[data-testid="stTextInput"] label,
-    div[data-testid="stNumberInput"] label,
-    div[data-testid="stSelectbox"] label {
-        color: white !important;
-        font-size: 2em !important;
-        font-weight: bold !important;
-    }
-    .stTextInput > div > div > input,
-    .stNumberInput > div > div > input {
-        background-color: #002244;
-        color: white;
-        border: 2px solid #004466;
-        border-radius: 5px;
-    }
-    .stButton {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        z-index: 100;
-        width: auto;
-        display: inline-flex;
-    }
-    .stButton > button {
-        background-color: #0066cc;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-weight: bold;
-        box-shadow: 0 0 10px #0066cc;
-    }
-    .stButton > button:hover {
-        background-color: #004499;
-        box-shadow: 0 0 20px #0066cc;
-    }
-    h1 {
-        color: #66aaff;
-        text-shadow: 0 0 10px #66aaff;
-        text-align: center;
-    }
-    .error-box {
-        background-color: #441111;
-        border: 2px solid #ff3333;
-        color: #ff6666;
-        padding: 20px;
-        border-radius: 5px;
-        font-weight: bold;
-        text-align: center;
-        margin: 20px 0;
-    }
-    .research-brand {
-        display: flex;
-        direction: ltr;
-        justify-content: flex-end;
-        width: 100%;
-        margin: 8px 0 28px;
-    }
-    .research-brand__text {
-        direction: rtl;
-        color: #66aaff;
-        border-right: 4px solid #66aaff;
-        padding: 10px 18px 10px 0;
-        font-size: clamp(2rem, 4vw, 3.4rem);
-        font-weight: 800;
-        line-height: 1.05;
-        text-align: right;
-        text-shadow: 0 0 10px #66aaff;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    apply_enter_id_theme()
 
     st.title("התחלת משחק")
 

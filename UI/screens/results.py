@@ -9,6 +9,14 @@ import hashlib
 import re
 
 from core.research_repository import get_research_output_dir
+from styles import (
+    BACKGROUND,
+    NEGATIVE,
+    POSITIVE,
+    TEXT,
+    apply_results_theme,
+    score_card_html,
+)
 
 
 REPORTS_DIR = Path("scores_reports")
@@ -192,67 +200,7 @@ def get_score_color(score):
 # MAIN RENDER
 # =========================
 def render(result):
-
-    # =========================
-    # THEME (unchanged)
-    # =========================
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: #001122;
-        color: white;
-        direction: rtl;
-        font-family: 'Courier New', monospace;
-    }
-
-    h1, h2, h3 {
-        color: #66aaff;
-        text-shadow: 0 0 10px #66aaff;
-        text-align: center;
-    }
-
-    .block-box {
-        background-color: #002244;
-        border: 1px solid #004466;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-    }
-
-    .metric-box {
-        background-color: #001a33;
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-
-    .stButton > button {
-        background-color: #0066cc;
-        color: white;
-        border-radius: 6px;
-        font-weight: bold;
-    }
-
-    .stButton > button:hover {
-        background-color: #004499;
-    }
-
-    .stDownloadButton > button {
-        background-color: #0066cc;
-        color: white;
-        border-radius: 6px;
-        font-weight: bold;
-    }
-    
-    .stDownloadButton > button:hover {
-        background-color: #004499;
-    }           
-    
-    </style>
-    """, unsafe_allow_html=True)
-
-    
+    apply_results_theme()
 
     # =========================
     # VALIDATION
@@ -286,22 +234,7 @@ def render(result):
     if isinstance(score, (int, float)):
 
         color = get_score_color(score)
-
-        st.markdown(f"""
-        <div style="
-            text-align:center;
-            padding:25px;
-            border-radius:20px;
-            box-shadow: 0 0 30px {color};
-            border: 2px solid {color};
-            margin-bottom:20px;
-        ">
-            <h2>רמת עייפות</h2>
-            <h1 style="color:{color}; font-size:60px;">
-                {score:.2f}
-            </h1>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(score_card_html(score, color), unsafe_allow_html=True)
 
     else:
         st.error("שגיאה בחישוב ציון עייפות")
@@ -350,19 +283,19 @@ def render(result):
                 clean_label = row['feature'].replace('_', '\n').title()
                 labels.append(clean_label)
                 values.append(row["value"])
-                colors.append("#ef4444" if row["value"] > 0 else "#84cc16")
+                colors.append(NEGATIVE if row["value"] > 0 else POSITIVE)
                 current_x += 1
             group_boundaries.append(current_x)
 
         # ציור הגרף
         ax.bar(x_positions, values, color=colors, width=0.6, zorder=3)
-        ax.axhline(0, color="white", linewidth=1, zorder=4)
+        ax.axhline(0, color=TEXT, linewidth=1, zorder=4)
 
         # --- ציר X: שמות פיצ'רים וקטגוריות ---
         ax.set_xticks([]) 
         
         for x, label in zip(x_positions, labels):
-            ax.text(x, -0.1, label, ha='center', va='top', fontsize=9, color="white", transform=ax.get_xaxis_transform())
+            ax.text(x, -0.1, label, ha='center', va='top', fontsize=9, color=TEXT, transform=ax.get_xaxis_transform())
 
         for i in range(len(modalities)):
             start = group_boundaries[i]
@@ -371,30 +304,30 @@ def render(result):
             
             mid = (start + end - 1) / 2
             ax.text(mid, -0.04, fix_hebrew(modality_labels[modalities[i]]), 
-                    ha='center', va='top', fontsize=12, fontweight='bold', color="white", transform=ax.get_xaxis_transform())
+                    ha='center', va='top', fontsize=12, fontweight='bold', color=TEXT, transform=ax.get_xaxis_transform())
             
             # קווי הפרדה דקים בין קבוצות
             if i > 0:
-                ax.axvline(start - 0.5, color="white", linewidth=0.5, alpha=0.3, zorder=1)
+                ax.axvline(start - 0.5, color=TEXT, linewidth=0.5, alpha=0.3, zorder=1)
 
         # --- תוויות צד (Y) ללא חצים ---
         # הזזנו את ה-x ל- -0.12 כדי שיהיה מחוץ לציר
         ax.text(-0.12, 0.85, fix_hebrew("עלייה ברמת\nהעייפות"), transform=ax.transAxes, 
-                ha='center', va='center', color="white", fontsize=10, 
-                bbox=dict(facecolor='none', edgecolor='white', alpha=0.5, pad=5))
+                ha='center', va='center', color=TEXT, fontsize=10,
+                bbox=dict(facecolor='none', edgecolor=TEXT, alpha=0.5, pad=5))
 
         ax.text(-0.12, 0.15, fix_hebrew("שיפור בביצועים"), transform=ax.transAxes, 
-                ha='center', va='center', color="white", fontsize=10, 
-                bbox=dict(facecolor='none', edgecolor='white', alpha=0.5, pad=5))
+                ha='center', va='center', color=TEXT, fontsize=10,
+                bbox=dict(facecolor='none', edgecolor=TEXT, alpha=0.5, pad=5))
 
         # עיצוב אסתטי
-        ax.set_facecolor("#001122")
-        fig.patch.set_facecolor("#001122")
+        ax.set_facecolor(BACKGROUND)
+        fig.patch.set_facecolor(BACKGROUND)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
-        ax.spines['left'].set_color('white')
-        ax.tick_params(axis='y', colors="white", labelsize=9)
+        ax.spines['left'].set_color(TEXT)
+        ax.tick_params(axis='y', colors=TEXT, labelsize=9)
 
         # מתיחת הגבולות כדי שהטקסט בצד ובאמצע לא ייחתך
         plt.subplots_adjust(left=0.15, bottom=0.2)

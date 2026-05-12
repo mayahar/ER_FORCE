@@ -5,6 +5,7 @@ from core.mock_controller import Controller
 from core.subject_repository import update_subject_baseline
 from screens import enter_id, questionnaire, game, results
 from screens import new_user_sleep_gate
+from styles import apply_baseline_saved_theme
 
 st.set_page_config(page_title="Fatigue App", layout="wide")
 
@@ -25,36 +26,7 @@ state = st.session_state.state["screen"]
 
 
 def render_baseline_saved():
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: #001122;
-        color: white;
-        direction: rtl;
-        font-family: 'Courier New', monospace;
-    }
-    h1 {
-        color: #66aaff;
-        text-shadow: 0 0 10px #66aaff;
-        text-align: center;
-    }
-    .baseline-box {
-        background-color: #002244;
-        border: 2px solid #0066cc;
-        border-radius: 8px;
-        padding: 28px;
-        text-align: center;
-        margin-top: 30px;
-        font-size: 1.2em;
-    }
-    .stButton > button {
-        background-color: #0066cc;
-        color: white;
-        border-radius: 6px;
-        font-weight: bold;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    apply_baseline_saved_theme()
 
     st.title("שמירת בייסליין")
     st.markdown(

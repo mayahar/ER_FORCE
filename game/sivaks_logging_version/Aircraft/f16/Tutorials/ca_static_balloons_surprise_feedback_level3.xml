@@ -95,7 +95,7 @@ This Scenario announces if you hit or miss.
 	# This is your CorrActions static balloon (bullseye skin).
 	var BMODEL = "AI/Aircraft/balloon/ca_sivaks_balloon.xml";
 	# Number of balloons before updating difficulty level.
-	var BALLOON_per_level = 1;
+	var BALLOON_per_level = 1; 
 
 	# Total balloons required to finish the game
 	var MAX_BALLOONS = 8;
@@ -698,6 +698,7 @@ This Scenario announces if you hit or miss.
 						fgcommand("exit");
 					}, 0.8);
 
+
 					return;
 				}
 
@@ -936,6 +937,15 @@ This Scenario announces if you hit or miss.
                         <property>/instrumentation/altimeter/indicated-altitude-ft</property>
                         <value>200</value>
                     </less-than>
+            </condition>
+        </exit>
+
+        <exit>
+            <condition>
+                <equals>
+                    <property>/algorithm/game/finished</property>
+                    <value>1</value>
+                </equals>
             </condition>
         </exit>
 
