@@ -1,11 +1,56 @@
-from core.database import SUBJECTS_DB, RESULTS_DB
+import unicodedata
+
+from core.database import SUBJECTS_DB, RESULTS_DB, save_database
+
+
+EMPTY_BASELINE = {
+    "voice": {},
+    "eye": {},
+    "game": {},
+}
+
+
+def _parse_int(value):
+    """
+    Parses numeric UI input while ignoring invisible RTL formatting marks.
+    """
+    if isinstance(value, bool):
+        raise ValueError("Boolean values are not valid numeric identifiers")
+
+    if isinstance(value, int):
+        return value
+
+    if isinstance(value, float):
+        if value.is_integer():
+            return int(value)
+        raise ValueError("Expected an integer value")
+
+    text = str(value).strip()
+    normalized_chars = []
+
+    for char in text:
+        if char.isspace() or unicodedata.category(char) == "Cf":
+            continue
+
+        try:
+            normalized_chars.append(str(unicodedata.decimal(char)))
+        except (TypeError, ValueError):
+            normalized_chars.append(char)
+
+    normalized = "".join(normalized_chars)
+
+    if not normalized:
+        raise ValueError("Expected a numeric value")
+
+    return int(normalized)
+
 
 def get_subject(subject_id):
     """
     Returns subject dict or None
     """
     try:
-        sid = int(subject_id)
+        sid = _parse_int(subject_id)
         return SUBJECTS_DB.get(sid)
     except (ValueError, TypeError):
         return None
@@ -23,37 +68,42 @@ def get_all_subject_ids():
     return sorted(SUBJECTS_DB.keys())
 
 
-def create_subject(subject_id):
+def create_subject(subject_id, name=None, sex="unknown", age=0):
     """
-    Creates a new subject with default baseline.
+    Creates a new subject without measured baseline data.
     """
-    sid = int(subject_id)
+    sid = _parse_int(subject_id)
 
     if sid in SUBJECTS_DB:
         return SUBJECTS_DB[sid]
 
+    clean_name = str(name).strip() if name is not None else ""
+    clean_sex = str(sex).strip().lower() if sex is not None else "unknown"
+    clean_age = _parse_int(age)
+
     SUBJECTS_DB[sid] = {
         "id": sid,
-        "name": f"נושא {sid}",
-        "sex": "unknown",
-        "age": 0,
-        "baseline": {
-            "voice": {
-                "dLPC": 0.41,
-                "PARCOR": 0.54,
-                "LPC": 0.60,
-                "Pitch": 150.0,
-                "MFCC": 0.52,
-            },
-            "eye": {
-                "fixation_duration": 0.21,
-                "fixation_count": 122,
-                "saccade_count": 155,
-            },
-            "game": {"score": 82},
-        },
+        "name": clean_name or f"Subject {sid}",
+        "sex": clean_sex or "unknown",
+        "age": clean_age,
+        "baseline": {k: v.copy() for k, v in EMPTY_BASELINE.items()},
     }
 
+    save_database()
+    return SUBJECTS_DB[sid]
+
+
+def update_subject_baseline(subject_id, baseline):
+    """
+    Stores measured baseline features for an existing subject.
+    """
+    sid = _parse_int(subject_id)
+
+    if sid not in SUBJECTS_DB:
+        raise KeyError(f"Subject {sid} does not exist")
+
+    SUBJECTS_DB[sid]["baseline"] = baseline
+    save_database()
     return SUBJECTS_DB[sid]
 
 
@@ -65,6 +115,7 @@ def save_result_object(result):
         return
 
     RESULTS_DB.append(result)
+    save_database()
 
 
 # =========================

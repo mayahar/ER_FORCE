@@ -2,6 +2,36 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime
+from pathlib import Path
+import hashlib
+import re
+
+
+REPORTS_DIR = Path("scores_reports")
+
+
+def _safe_filename_part(value):
+    value = str(value or "UNKNOWN")
+    return re.sub(r"[^A-Za-z0-9_-]+", "_", value).strip("_") or "UNKNOWN"
+
+
+def _save_report_once(subject_id, csv):
+    report_key = hashlib.sha256(csv.encode("utf-8-sig")).hexdigest()
+    state_key = f"saved_report_path_{subject_id}_{report_key}"
+
+    if state_key in st.session_state:
+        return st.session_state[state_key]
+
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{_safe_filename_part(subject_id)}_{timestamp}.csv"
+    report_path = REPORTS_DIR / filename
+
+    report_path.write_text(csv, encoding="utf-8-sig")
+    st.session_state[state_key] = str(report_path)
+    return str(report_path)
 
 def fix_hebrew(text):
     # הופך כל שורה בנפרד כדי לשמור על סדר השורות מלמעלה למטה
@@ -16,19 +46,19 @@ def fix_hebrew(text):
 def get_score_color(score):
 
     if score <= 15:
-        return "#00ff00"  # green
+        return "#00ff3c"  # green
 
     elif score <= 35:
-        return "#7CFC00"  # yellow-green
+        return "#A4FC00"  # yellow-green
 
     elif score <= 60:
         return "#ffd700"  # yellow
 
     elif score <= 80:
-        return "#ff8c00"  # orange
+        return "#ea8101"  # orange
 
     else:
-        return "#ff0000"  # red
+        return "#ab0000"  # red
 
 
 # =========================
@@ -249,8 +279,13 @@ def render(result):
         fig, ax = plt.subplots(figsize=(14, 7))
         
         # הגדרת סדר הקטגוריות
-        modalities = ["game", "eye", "voice"]
-        modality_labels = {"game": "משחק", "eye": "עיניים", "voice": "קול"}
+        modalities = ["game", "eye", "voice", "subjective"]
+        modality_labels = {
+            "game": "משחק",
+            "eye": "עיניים",
+            "voice": "קול",
+            "subjective": "שאלון"
+        }
         
         x_positions = []
         labels = []
@@ -335,11 +370,13 @@ def render(result):
             st.rerun()
     
     csv = df_export.to_csv(index=False)
+    report_path = _save_report_once(subject_id, csv)
+    report_filename = Path(report_path).name
 
     with col2:
         st.download_button(
             "יצוא תוצאות",
             data=csv,
-            file_name="fatigue_full_report.csv",
+            file_name=report_filename,
             mime="text/csv"
         )

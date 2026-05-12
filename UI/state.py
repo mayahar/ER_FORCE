@@ -2,6 +2,7 @@ def init_state():
     return {
         "screen": "enter_id",
         "session_id": None,
+        "baseline_capture": False,
         "features": {}
     }
 

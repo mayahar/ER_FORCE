@@ -89,6 +89,43 @@ FEATURES = {
         "direction": -1,
         "std": 35.0,
         "expected_change": 0.25
+    },
+
+    # =====================================================
+    # SUBJECTIVE QUESTIONNAIRE
+    # =====================================================
+
+    "fatigue_self": {
+        "modality": "subjective",
+        "weight": 0.0,
+        "direction": 1,
+        "std": None,
+        "expected_change": None,
+        "scoring": "absolute",
+        "min": 0.0,
+        "max": 10.0
+    },
+
+    "sleep_last": {
+        "modality": "subjective",
+        "weight": 0.0,
+        "direction": -1,
+        "std": None,
+        "expected_change": None,
+        "scoring": "absolute",
+        "min": 0.0,
+        "max": 8.0
+    },
+
+    "sleep_previous": {
+        "modality": "subjective",
+        "weight": 0.0,
+        "direction": -1,
+        "std": None,
+        "expected_change": None,
+        "scoring": "absolute",
+        "min": 0.0,
+        "max": 8.0
     }
 }
 
@@ -100,5 +137,6 @@ FEATURES = {
 MODALITY_WEIGHTS = {
     "voice": 0.768,
     "eye": 0.825,
-    "game": 0.82
+    "game": 0.82,
+    "subjective": 0.0
 }

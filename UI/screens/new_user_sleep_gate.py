@@ -81,6 +81,7 @@ def render(controller):
 
     if st.button("המשך"):
         if sleep_last >= 7 and sleep_previous >= 7:
+            st.session_state.state["baseline_capture"] = True
             st.session_state.state["screen"] = "game"
             st.rerun()
 
