@@ -42,8 +42,8 @@ def main() -> int:
             display = tracker.get_display_area()
             print(
                 "    display area: "
-                f"width={display.width} height={display.height} "
-                f"offset=({display.x}, {display.y})"
+                f"width_mm={display.width:.1f} height_mm={display.height:.1f} "
+                f"top_left={display.top_left} top_right={display.top_right}"
             )
         except Exception as exc:
             print(f"    display area unavailable: {exc}")

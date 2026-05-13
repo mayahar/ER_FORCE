@@ -3,24 +3,24 @@ $RepoRoot = Split-Path -Parent $PSScriptRoot
 $VenvDir = Join-Path $RepoRoot ".venv-eye-tracking"
 $PythonExe = Join-Path $VenvDir "Scripts\python.exe"
 
-function Ensure-Python311 {
-    $py311 = & py -3.11 -c "import sys; print(sys.executable)" 2>$null
-    if (-not $py311) {
-        Write-Host "Installing Python 3.11..."
-        winget install --id Python.Python.3.11 --accept-package-agreements --accept-source-agreements
-        $py311 = & py -3.11 -c "import sys; print(sys.executable)" 2>$null
+function Ensure-Python310 {
+    $py310 = & py -3.10 -c "import sys; print(sys.executable)" 2>$null
+    if (-not $py310) {
+        Write-Host "Installing Python 3.10..."
+        winget install --id Python.Python.3.10 --accept-package-agreements --accept-source-agreements
+        $py310 = & py -3.10 -c "import sys; print(sys.executable)" 2>$null
     }
-    if (-not $py311) {
-        throw "Python 3.11 is required for Tobii Pro SDK bindings."
+    if (-not $py310) {
+        throw "Python 3.10 is required for Tobii Pro SDK bindings."
     }
-    return $py311.Trim()
+    return $py310.Trim()
 }
 
 function Ensure-Venv {
-    param([string]$Py311)
+    param([string]$Py310)
     if (-not (Test-Path $PythonExe)) {
         Write-Host "Creating virtual environment at $VenvDir"
-        & $Py311 -m venv $VenvDir
+        & $Py310 -m venv $VenvDir
     }
     & $PythonExe -m pip install --upgrade pip
     & $PythonExe -m pip install -r (Join-Path $PSScriptRoot "requirements.txt")
@@ -41,10 +41,10 @@ Write-Host "2/4 Tobii Pro SDK (native runtime + Python bindings)"
 Write-Host "   Open the SDK download page, install the Windows SDK, then run sync_sdk_native.ps1."
 Start-Process "https://connect.tobii.com/s/sdk-downloads"
 
-$py311 = Ensure-Python311
-Ensure-Venv $py311
+$py310 = Ensure-Python310
+Ensure-Venv $py310
 
-Write-Host "3/4 Python 3.11 environment ready at $VenvDir"
+Write-Host "3/4 Python 3.10 environment ready at $VenvDir"
 
 Write-Host "4/4 Display mapping"
 & $PythonExe (Join-Path $PSScriptRoot "list_displays.py")

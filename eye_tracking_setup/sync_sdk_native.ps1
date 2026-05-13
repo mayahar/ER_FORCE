@@ -1,35 +1,21 @@
-$ErrorActionPreference = "Stop"
-$RepoRoot = Split-Path -Parent $PSScriptRoot
-$TargetDir = Join-Path $RepoRoot "TobiiPro_SDK\tobiiresearch\interop\python3"
-$SearchRoots = @(
-    "$env:LOCALAPPDATA\Programs",
-    "$env:ProgramFiles",
-    "${env:ProgramFiles(x86)}"
+param(
+    [string]$SourceRoot = (Join-Path ([Environment]::GetFolderPath("Desktop")) "TobiiProSDKPython\64")
 )
 
-New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
+$ErrorActionPreference = "Stop"
+$RepoRoot = Split-Path -Parent $PSScriptRoot
+$TargetRoot = Join-Path $RepoRoot "TobiiPro_SDK"
 
-$matches = @()
-foreach ($root in $SearchRoots) {
-    if (-not (Test-Path $root)) { continue }
-    $matches += Get-ChildItem -Path $root -Recurse -Filter "tobii_research_interop*.pyd" -ErrorAction SilentlyContinue
+if (-not (Test-Path $SourceRoot)) {
+    throw "Tobii SDK source folder not found: $SourceRoot"
 }
 
-if ($matches.Count -eq 0) {
-    throw "No tobii_research_interop*.pyd found. Install Tobii Pro SDK for Windows first."
+$pydSource = Join-Path $SourceRoot "tobiiresearch\interop\python3\tobii_research_interop.pyd"
+if (-not (Test-Path $pydSource)) {
+    throw "Missing tobii_research_interop.pyd under $SourceRoot"
 }
 
-$source = $matches | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-Copy-Item -Force $source.FullName (Join-Path $TargetDir $source.Name)
+New-Item -ItemType Directory -Force -Path $TargetRoot | Out-Null
+Copy-Item -Path (Join-Path $SourceRoot "*") -Destination $TargetRoot -Recurse -Force
 
-$dllMatches = @()
-foreach ($root in $SearchRoots) {
-    if (-not (Test-Path $root)) { continue }
-    $dllMatches += Get-ChildItem -Path $root -Recurse -Filter "tobii_research.dll" -ErrorAction SilentlyContinue
-}
-if ($dllMatches.Count -gt 0) {
-    $dll = $dllMatches | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    Copy-Item -Force $dll.FullName (Join-Path $TargetDir $dll.Name)
-}
-
-Write-Host "Copied native Tobii SDK files from $($source.FullName) to $TargetDir"
+Write-Host "Synced Tobii Pro SDK Python bindings from $SourceRoot to $TargetRoot"
