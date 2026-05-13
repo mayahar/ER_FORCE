@@ -653,8 +653,6 @@ if __name__ == "__main__":
         '--metar=XXXX 012345Z 15003KT 19SM FEW072 FEW350 25/07 Q1028 NOSIG',
         '--prop:/environment/weather-scenario=Core high pressure region',
         '--prop:/sim/rendering/texture-cache/cache-enabled=true',
-        # Redout off through tutorial intro; balloon step turns it back on for gameplay.
-        '--prop:/sim/rendering/redout/enabled=false',
         # TerraSync needs working DNS for terrasync.flightgear.org; disable to avoid ALRT spam when offline/DNS fails.
         '--disable-terrasync',
         '--disable-sentry',
