@@ -1,3 +1,12 @@
+import sys
+from pathlib import Path
+
+UI_DIR = Path(__file__).resolve().parent
+REPO_ROOT = UI_DIR.parent
+for path in (str(REPO_ROOT), str(UI_DIR)):
+    if path not in sys.path:
+        sys.path.insert(0, path)
+
 import streamlit as st
 import copy
 
