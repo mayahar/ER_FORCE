@@ -7,7 +7,7 @@
     <description>
 	Welcome to CorrActions Flight!
 This tutorial starts above Hilo Intl Airport (PHTO) in the northeast of Hawaii, in clear, still, weather.
-Keep north heading at around 2000 feet. Maintain speed of 350 knots. Hit balloons horizontally at target mark in north direction.
+Keep north heading at around 2000 feet. Maintain speed of 500 knots. Hit balloons horizontally at target mark in north direction.
 This Scenario announces if you hit or miss.
     </description>
 
@@ -20,7 +20,7 @@ This Scenario announces if you hit or miss.
         <latitude-deg>19.72415017471669</latitude-deg>
         <longitude-deg>-155.0518970894882</longitude-deg>
         <heading-deg>0</heading-deg>
-        <airspeed-kt>350</airspeed-kt>
+        <airspeed-kt>500</airspeed-kt>
         <glideslope-deg>0</glideslope-deg>
         <offset-azimuth-deg>0</offset-azimuth-deg>
         <offset-distance-nm>0</offset-distance-nm>
@@ -58,7 +58,7 @@ This Scenario announces if you hit or miss.
 	
 	
 	<step>
-	<message>Keep heading north at around 2000 feet. Maintain speed of 350 knots. Hit balloons horizontally at target mark.</message>
+	<message>Keep heading north at around 2000 feet. Maintain speed of 500 knots. Hit balloons horizontally at target mark.</message>
 	
 		 <nasal>
             <script>
@@ -621,11 +621,11 @@ This Scenario announces if you hit or miss.
 				}
 
 				# =================================================
-				# HIT DETECTION — wider envelope for 350 kt; no VSI gate (gauge often swings thousands fpm in a pass)
+				# HIT DETECTION — wider envelope for 500 kt; no VSI gate (gauge often swings thousands fpm in a pass)
 				# =================================================
 
 				var required_hit_distance =
-					265 - (hardness_for_hit * 20);
+					180 - (hardness_for_hit * 20);
 
 				if (required_hit_distance < 85)
 					required_hit_distance = 85;

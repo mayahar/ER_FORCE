@@ -184,8 +184,8 @@ def evaluate_flight_score(csv_path):
     fixes in __main__ / run_flightgear.
     """
     # Scoring targets/tolerances (tune here).
-    SPEED_TARGET_KT = 350.0
-    SPEED_FULL_TOL_KT = 20.0     # full score if within ±20kt
+    SPEED_TARGET_KT = 500.0
+    SPEED_FULL_TOL_KT = 10.0     # full score if within ±10kt
     SPEED_ZERO_TOL_KT = 120.0    # reaches 0 by ±120kt (linear from full tol)
 
     events = []
@@ -256,8 +256,8 @@ def evaluate_flight_score(csv_path):
             else:
                 dist_score = (600.0 - dist_ft) / (600.0 - 150.0) * 100.0
 
-            # Speed target 350kt:
-            # - Full score within ±20kt
+            # Speed target 500kt:
+            # - Full score within ±10kt
             # - Then linearly degrades to 0 by ±120kt
             speed_err = abs(speed_kt - SPEED_TARGET_KT)
             if speed_err <= SPEED_FULL_TOL_KT:
