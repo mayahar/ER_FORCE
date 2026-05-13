@@ -71,10 +71,6 @@ elif state == "result":
         st.stop()
 
     if st.session_state.state.get("baseline_capture"):
-        eye_features = st.session_state.get("eye_features")
-        if eye_features and hasattr(controller, "set_eye_features"):
-            controller.set_eye_features(eye_features)
-
         controller.run_multimodal_game()
         baseline = copy.deepcopy(controller.features)
         subject_id = controller.subject.get("id")
@@ -103,10 +99,6 @@ elif state == "result":
     # RUN PIPELINE ONCE בלבד
     # ------------------------
     if not st.session_state.result:
-
-        eye_features = st.session_state.get("eye_features")
-        if eye_features and hasattr(controller, "set_eye_features"):
-            controller.set_eye_features(eye_features)
 
         controller.run_multimodal_game()
         controller.compute_fatigue()

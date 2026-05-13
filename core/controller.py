@@ -14,8 +14,6 @@ class Controller:
         self.features = {}
         self.questionnaire = {}
         self.result = None
-        self.recorded_eye_features = None
-        self.recorded_game_score = None
 
     # -------------------
     # DISPATCH
@@ -44,20 +42,12 @@ class Controller:
         self.features = {}
         self.questionnaire = {}
         self.result = None
-        self.recorded_eye_features = None
-        self.recorded_game_score = None
 
         return True
 
     # -------------------
     # RUN MULTIMODAL GAME
     # -------------------
-    def set_eye_features(self, eye_features: dict | None):
-        self.recorded_eye_features = eye_features
-
-    def set_game_score(self, score: int | None):
-        self.recorded_game_score = score
-
     def run_multimodal_game(self):
 
         if self.subject is None:
@@ -65,17 +55,7 @@ class Controller:
 
         time.sleep(0.3)
 
-        fg_score = self.recorded_game_score
-        if fg_score is None:
-            fg_score = self._try_get_latest_flightgear_score()
-
-        eye_features = self.recorded_eye_features
-        if eye_features is None:
-            eye_features = {
-                "fixation_duration": self.get_fixation_duration(),
-                "fixation_count": self.get_fixation_count(),
-                "saccade_count": self.get_saccade_count()
-            }
+        fg_score = self._try_get_latest_flightgear_score()
 
         self.features = {
             "voice": {
@@ -86,7 +66,11 @@ class Controller:
                 "MFCC": self.get_voice_mfcc()
             },
 
-            "eye": eye_features,
+            "eye": {
+                "fixation_duration": self.get_fixation_duration(),
+                "fixation_count": self.get_fixation_count(),
+                "saccade_count": self.get_saccade_count()
+            },
 
             "game": {
                 "score": fg_score

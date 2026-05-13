@@ -15,8 +15,6 @@ class Controller:
         self.features = {}
         self.questionnaire = {}
         self.result = None
-        self.recorded_eye_features = None
-        self.recorded_game_score = None
 
     # -------------------
     # DISPATCH (mock)
@@ -46,19 +44,11 @@ class Controller:
         self.features = {}
         self.questionnaire = {}
         self.result = None
-        self.recorded_eye_features = None
-        self.recorded_game_score = None
 
         return True
     # -------------------
     # RUN SIMULATION
     # -------------------
-    def set_eye_features(self, eye_features: dict | None):
-        self.recorded_eye_features = eye_features
-
-    def set_game_score(self, score: int | None):
-        self.recorded_game_score = score
-
     def run_multimodal_game(self):
 
         if self.subject is None:
@@ -85,17 +75,7 @@ class Controller:
                 "game": {"score": 82},
             }
 
-        fg_score = self.recorded_game_score
-        if fg_score is None:
-            fg_score = self._try_get_latest_flightgear_score()
-
-        eye_features = self.recorded_eye_features
-        if eye_features is None:
-            eye_features = {
-                "fixation_duration": b["eye"]["fixation_duration"] * random.uniform(1.0, 1.4),
-                "fixation_count": b["eye"]["fixation_count"] * random.uniform(0.8, 1.2),
-                "saccade_count": b["eye"]["saccade_count"] * random.uniform(0.9, 1.3)
-            }
+        fg_score = self._try_get_latest_flightgear_score()
 
         self.features = {
             "voice": {
@@ -106,7 +86,11 @@ class Controller:
                 "MFCC": b["voice"]["MFCC"] * random.uniform(0.9, 1.1)
             },
 
-            "eye": eye_features,
+            "eye": {
+                "fixation_duration": b["eye"]["fixation_duration"] * random.uniform(1.0, 1.4),
+                "fixation_count": b["eye"]["fixation_count"] * random.uniform(0.8, 1.2),
+                "saccade_count": b["eye"]["saccade_count"] * random.uniform(0.9, 1.3)
+            },
 
             "game": {
                 # Prefer the real FlightGear score (from logging_fg_start_ver5.py final_score.txt).
