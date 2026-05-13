@@ -658,16 +658,15 @@ if __name__ == "__main__":
         # TerraSync needs working DNS for terrasync.flightgear.org; disable to avoid ALRT spam when offline/DNS fails.
         '--disable-terrasync',
         '--disable-sentry',
-        '--state=cruise',
-        '--notrim',
+        '--state=take-off',
         '--prop:/sim/sivaks/autostart-tutorial-enabled=true',
         '--prop:/sim/sivaks/autostart-tutorial=' + autostart_tutorial_name,
     ]
 
-    # Optional: re-enable JSBSim trim at startup (off by default for CorrActions).
-    # Set SIVAKS_TRIM=1 if you want to try it again.
-    if os.environ.get("SIVAKS_TRIM", "").strip().lower() in ("1", "true", "yes", "y", "on"):
-        fg_command_args = [arg for arg in fg_command_args if arg != "--notrim"]
+    # Optional: skip JSBSim trim at startup (can be unstable for some aircraft/states).
+    # Set SIVAKS_NOTRIM=1 if you want to try it again.
+    if os.environ.get("SIVAKS_NOTRIM", "").strip().lower() in ("1", "true", "yes", "y", "on"):
+        fg_command_args.append("--notrim")
 
     # Fullscreen: set by ER_FORCE Streamlit "Start game", or SIVAKS_FG_FULLSCREEN=1 for CLI.
     if os.environ.get("SIVAKS_FG_FULLSCREEN", "").strip().lower() in ("1", "true", "yes", "y", "on"):
