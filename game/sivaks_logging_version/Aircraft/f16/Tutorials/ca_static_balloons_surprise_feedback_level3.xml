@@ -20,7 +20,7 @@ This Scenario announces if you hit or miss.
         <latitude-deg>19.72415017471669</latitude-deg>
         <longitude-deg>-155.0518970894882</longitude-deg>
         <heading-deg>0</heading-deg>
-        <airspeed-kt>500</airspeed-kt>
+        <airspeed-kt>350</airspeed-kt>
         <glideslope-deg>0</glideslope-deg>
         <offset-azimuth-deg>0</offset-azimuth-deg>
         <offset-distance-nm>0</offset-distance-nm>
