@@ -38,14 +38,6 @@ This Scenario announces if you hit or miss.
 	
 		<nasal>
             <script>
-				# Some F-16 variants don't expose f16.autostart(); keep tutorial compatible.
-				if (f16 != nil and contains(f16, "autostart"))
-					f16.autostart();
-            </script>
-        </nasal>
-
-		 <nasal>
-            <script>
 				<![CDATA[
 				# intialization script
 				setprop("/controls/gear/gear-down",0);        # remove gear				
@@ -54,15 +46,18 @@ This Scenario announces if you hit or miss.
 				setprop("/sim/rendering/redout/enabled", 0);
 				setprop("/sim/rendering/redout/internal/redout", 0);
 
-				var finalize_corractions_startup = func {
+				var apply_corractions_startup = func {
 					controls.gearDown(-1);
 					setprop("/controls/gear/brake-parking", 0);
+					setprop("/controls/engines/throttle-all", 0.85);
+					setprop("/controls/engines/engine[0]/throttle", 0.85);
 					setprop("/orientation/pitch-deg", 0.0);
 					setprop("/orientation/roll-deg", 0.0);
 					setprop("/sim/freeze/master", 0);
 				};
-				# Let JSBSim trim finish, then start wings-level and straight before handing over control.
-				settimer(finalize_corractions_startup, 24.0);
+				# Tutorial reposition lands near 500 kt; re-apply power before the jet bleeds speed.
+				settimer(apply_corractions_startup, 5.5);
+				settimer(apply_corractions_startup, 12.0);
 				]]>
             </script>
         </nasal>			
