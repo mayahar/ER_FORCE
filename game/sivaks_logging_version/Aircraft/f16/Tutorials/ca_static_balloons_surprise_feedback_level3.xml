@@ -55,14 +55,14 @@ This Scenario announces if you hit or miss.
 				setprop("/sim/rendering/redout/internal/redout", 0);
 
 				var finalize_corractions_startup = func {
-					setprop("/controls/gear/gear-down", 0);
+					controls.gearDown(-1);
 					setprop("/controls/gear/brake-parking", 0);
-					setprop("/orientation/pitch-deg", -8.0);
+					setprop("/orientation/pitch-deg", 0.0);
 					setprop("/orientation/roll-deg", 0.0);
 					setprop("/sim/freeze/master", 0);
 				};
-				# Tutorial preset trim can take several seconds at 500 kt; apply nose-down after it settles.
-				settimer(finalize_corractions_startup, 8.5);
+				# Let JSBSim trim finish, then start wings-level and straight before handing over control.
+				settimer(finalize_corractions_startup, 24.0);
 				]]>
             </script>
         </nasal>			
