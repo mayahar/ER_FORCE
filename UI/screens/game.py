@@ -1,4 +1,5 @@
 import ctypes
+import hashlib
 import streamlit as st
 import os
 import sys
@@ -41,6 +42,29 @@ def _resolve_fg_script_path() -> Path | None:
     if _DEFAULT_FG_SCRIPT.is_file():
         return _DEFAULT_FG_SCRIPT.resolve()
     return None
+
+
+def _launcher_fingerprint(path: Path) -> str:
+    if not path.is_file():
+        return ""
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:12]
+
+
+def _duplicate_game_warning(launcher_path: Path) -> str:
+    sibling_launcher = (
+        _REPO_ROOT.parent / "game" / "sivaks_logging_version" / "logging_fg_start_ver5.py"
+    ).resolve()
+    if not sibling_launcher.is_file() or sibling_launcher.resolve() == launcher_path.resolve():
+        return ""
+    if _launcher_fingerprint(launcher_path) == _launcher_fingerprint(sibling_launcher):
+        return ""
+    return (
+        "נמצא עותק נוסף של המשחק ב־"
+        f"{sibling_launcher.parent}. "
+        "ממסך זה נטען רק "
+        f"{launcher_path}. "
+        "עריכות בתיקיית game מחוץ ל־ER_FORCE לא ישפיעו על ההרצה מכאן."
+    )
 
 
 def _terminate_session_process(pid: int) -> tuple[bool, str]:
@@ -222,6 +246,13 @@ def render(controller):
     # ===== Title =====
     st.title("הרצת משחק")
 
+    launcher_path = _resolve_fg_script_path()
+    if launcher_path:
+        st.caption(f"משגר: {launcher_path}")
+        duplicate_warning = _duplicate_game_warning(launcher_path)
+        if duplicate_warning:
+            st.warning(duplicate_warning)
+
     # ===== Content Box =====
     st.markdown("""
     <div class="game-box">
@@ -353,7 +384,7 @@ def render(controller):
             # Launcher + FG can take >3s to appear; treat very fast exit as error.
             if elapsed < 8.0:
                 st.session_state.fg_last_error = (
-                    "המשגר יצא מהר מדי — בדוק: game/sivaks_logging_version + "
+                    "המשגר יצא מהר מדי — בדוק: ER_FORCE/game/sivaks_logging_version + "
                     "Aircraft/f16, נתיב FlightGear (yan/FlightGear_2020_3 או SIVAKS_FG_ROOT), "
                     "והרץ logging_fg_start_ver5.py מהטרמינל לראות שגיאה."
                 )
