@@ -50,9 +50,6 @@ This Scenario announces if you hit or miss.
 				# intialization script
 				setprop("/controls/gear/gear-down",0);        # remove gear				
 				setprop("/controls/gear/brake-parking",0);	  # remove parking brake	
-				# Startup trim can pull negative G; keep redout off until balloon pass begins.
-				setprop("/sim/rendering/redout/enabled", 0);
-				setprop("/sim/rendering/redout/internal/redout", 0);
 				]]>
             </script>
         </nasal>			
@@ -89,8 +86,6 @@ This Scenario announces if you hit or miss.
 	
 	# sivaks: on starting scenario show dialog to get pilot data
 	# fgcommand("dialog-show", props.Node.new({"dialog-name": "sivaks_pilot_info_dlg"}));
-
-	setprop("/sim/rendering/redout/enabled", 1);
 
 	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-10_scoring-closest-ft loaded");
 	# Pass scoring requires a real approach (commit gate) to avoid counting a miss for the next balloon while still enroute.
@@ -242,6 +237,7 @@ This Scenario announces if you hit or miss.
 		return dot;
 	};
 
+	
 	# STEP 2: intial balloon placing in one line.
 	var position = geo.aircraft_position();
 	var elevation = geo.elevation( position.lat(), position.lon() );
