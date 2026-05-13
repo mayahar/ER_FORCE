@@ -53,6 +53,16 @@ This Scenario announces if you hit or miss.
 				# Startup trim can pull negative G; keep redout off until balloon pass begins.
 				setprop("/sim/rendering/redout/enabled", 0);
 				setprop("/sim/rendering/redout/internal/redout", 0);
+
+				var finalize_corractions_startup = func {
+					setprop("/controls/gear/gear-down", 0);
+					setprop("/controls/gear/brake-parking", 0);
+					setprop("/orientation/pitch-deg", -8.0);
+					setprop("/orientation/roll-deg", 0.0);
+					setprop("/sim/freeze/master", 0);
+				};
+				# Tutorial preset trim can take several seconds at 500 kt; apply nose-down after it settles.
+				settimer(finalize_corractions_startup, 8.5);
 				]]>
             </script>
         </nasal>			
