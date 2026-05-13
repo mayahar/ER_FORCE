@@ -24,9 +24,9 @@ This Scenario announces if you hit or miss.
         <glideslope-deg>0</glideslope-deg>
         <offset-azimuth-deg>0</offset-azimuth-deg>
         <offset-distance-nm>0</offset-distance-nm>
-        <airport-requested>true</airport-requested>
-        <runway-requested>true</runway-requested>
-        <parking-requested>true</parking-requested>
+        <airport-requested>false</airport-requested>
+        <runway-requested>false</runway-requested>
+        <parking-requested>false</parking-requested>
     </presets>
 
 	<step>
@@ -38,14 +38,6 @@ This Scenario announces if you hit or miss.
 	
 		<nasal>
             <script>
-				# Some F-16 variants don't expose f16.autostart(); keep tutorial compatible.
-				if (f16 != nil and contains(f16, "autostart"))
-					f16.autostart();
-            </script>
-        </nasal>
-
-		 <nasal>
-            <script>
 				<![CDATA[
 				# intialization script
 				setprop("/controls/gear/gear-down",0);        # remove gear				
@@ -53,6 +45,19 @@ This Scenario announces if you hit or miss.
 				# Startup trim can pull negative G; keep redout off until balloon pass begins.
 				setprop("/sim/rendering/redout/enabled", 0);
 				setprop("/sim/rendering/redout/internal/redout", 0);
+
+				var apply_corractions_startup = func {
+					controls.gearDown(-1);
+					setprop("/controls/gear/brake-parking", 0);
+					setprop("/controls/engines/throttle-all", 0.85);
+					setprop("/controls/engines/engine[0]/throttle", 0.85);
+					setprop("/orientation/pitch-deg", 0.0);
+					setprop("/orientation/roll-deg", 0.0);
+					setprop("/sim/freeze/master", 0);
+				};
+				# Tutorial reposition lands near 500 kt; keep wings level and power on.
+				settimer(apply_corractions_startup, 5.5);
+				settimer(apply_corractions_startup, 12.0);
 				]]>
             </script>
         </nasal>			
