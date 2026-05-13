@@ -6,6 +6,7 @@ import subprocess
 import time
 from pathlib import Path
 from styles import apply_game_theme
+from core.voice.session import VoiceSessionManager, VoiceSessionError
 
 # ER_FORCE repo root (this file: UI/screens/game.py)
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -115,6 +116,44 @@ def _start_flightgear_session() -> tuple[int, str]:
         return 0, f"Failed to start FlightGear session: {e}"
 
 
+def _create_voice_session(controller):
+    subject_id = None
+    if controller is not None and getattr(controller, "subject", None) is not None:
+        subject_id = controller.subject.get("id")
+
+    manager = VoiceSessionManager(subject_id=subject_id)
+    manager.start_session()
+    return manager
+
+
+def _finalize_voice_session(controller):
+    manager = st.session_state.pop("voice_session", None)
+    if manager is None:
+        return
+
+    try:
+        voice_data = manager.finalize_session()
+        if controller is not None:
+            controller.attach_voice_session_result(voice_data)
+    except VoiceSessionError as exc:
+        if controller is not None:
+            controller.attach_voice_session_result({
+                "session_id": manager.session_id,
+                "subject_id": manager.subject_id,
+                "started_at": manager.start_timestamp,
+                "finished_at": manager.finish_timestamp,
+                "events": [],
+                "summary": {
+                    "dLPC": 0.0,
+                    "PARCOR": 0.0,
+                    "LPC": 0.0,
+                    "Pitch": 0.0,
+                    "MFCC": 0.0,
+                },
+                "error": str(exc),
+            })
+
+
 def render(controller):
 
     apply_game_theme()
@@ -146,58 +185,90 @@ def render(controller):
         st.session_state.fg_started_at = None
         st.session_state.fg_finished_handled = False
         st.session_state.fg_last_error = ""
+        st.session_state.voice_only_running = False
 
     fg_pid = int(st.session_state.fg_pid or 0)
     fg_running = _is_pid_running(fg_pid)
+    voice_only_running = bool(st.session_state.voice_only_running)
 
     # ===== Buttons =====
+    audio_only_mode = st.checkbox(
+        "הרצה עם אודיו בלבד (ללא פתיחת המשחק)",
+        value=True,
+    )
+
     col1, col2 = st.columns(2)
     stop_clicked = False
 
     with col1:
         start_clicked = st.button(
-            "התחלת משחק",
-            disabled=fg_running
+            "התחלת אודיו בלבד" if audio_only_mode else "התחלת משחק",
+            disabled=fg_running or voice_only_running,
         )
 
-    if fg_running:
+    if fg_running or voice_only_running:
         with col2:
-            stop_clicked = st.button("סיום הרצת משחק")
+            stop_clicked = st.button(
+                "סיום הרצת משחק" if fg_running else "סיום הפעלת אודיו",
+            )
 
     # ===== Start Session =====
     if start_clicked:
-        pid, err = _start_flightgear_session()
-
-        if err:
-            st.session_state.fg_last_error = err
-
-        else:
-            st.session_state.fg_pid = pid
+        if audio_only_mode:
+            st.session_state.voice_session = _create_voice_session(controller)
+            st.session_state.voice_only_running = True
             st.session_state.fg_started_at = time.time()
-            st.session_state.fg_finished_handled = False
             st.session_state.fg_last_error = ""
             st.rerun()
+        else:
+            pid, err = _start_flightgear_session()
+
+            if err:
+                st.session_state.fg_last_error = err
+
+            else:
+                st.session_state.fg_pid = pid
+                st.session_state.fg_started_at = time.time()
+                st.session_state.fg_finished_handled = False
+                st.session_state.fg_last_error = ""
+                st.session_state.voice_session = _create_voice_session(controller)
+                st.rerun()
 
     # ===== Stop Session =====
-    if stop_clicked and fg_pid:
-        ok, err = _terminate_session_process(fg_pid)
-        if ok:
-            st.session_state.fg_pid = 0
-            st.session_state.fg_started_at = None
-            st.session_state.fg_finished_handled = True
-            st.session_state.fg_last_error = ""
+    if stop_clicked:
+        if fg_pid:
+            ok, err = _terminate_session_process(fg_pid)
+            if ok:
+                st.session_state.fg_pid = 0
+                st.session_state.fg_started_at = None
+                st.session_state.fg_finished_handled = True
+                st.session_state.fg_last_error = ""
+                _finalize_voice_session(controller)
+                st.session_state.voice_only_running = False
+                st.session_state.result = None
+                st.session_state.state["screen"] = "result"
+                st.rerun()
+            else:
+                st.session_state.fg_last_error = f"Failed to stop session: {err}"
+        elif voice_only_running:
+            st.session_state.voice_only_running = False
+            _finalize_voice_session(controller)
             st.session_state.result = None
             st.session_state.state["screen"] = "result"
             st.rerun()
-        else:
-            st.session_state.fg_last_error = f"Failed to stop session: {err}"
 
     # ===== Error Display =====
     if st.session_state.fg_last_error:
         st.error(st.session_state.fg_last_error)
 
     # ===== Running Status =====
-    if fg_running:
+    if fg_running or voice_only_running:
+        if st.session_state.get("voice_session") is not None:
+            elapsed = time.time() - float(st.session_state.fg_started_at or time.time())
+            try:
+                st.session_state.voice_session.update(elapsed)
+            except Exception as exc:
+                st.session_state.fg_last_error = f"Voice session update failed: {exc}"
 
         started_at = st.session_state.fg_started_at
 
@@ -206,13 +277,41 @@ def render(controller):
             if started_at else None
         )
 
+        session_text = (
+            "הרצת אודיו בלבד פעילה" if voice_only_running else "המשחק רץ כעת"
+        )
+
         st.info(
-            f"המשחק רץ כעת"
+            f"{session_text}"
             + (
                 f" • {runtime_s} שניות"
                 if runtime_s is not None else ""
             )
         )
+
+        voice_session = st.session_state.get("voice_session")
+        if voice_session is not None:
+            prompt_text = voice_session.current_prompt
+            completed_count = len(voice_session.completed_events)
+            pending_count = len(voice_session.pending_events)
+            failed_events = voice_session.failed_events
+            st.markdown(
+                f"**Voice recording status:** {prompt_text or 'No scheduled prompt yet.'}"
+            )
+            st.markdown(
+                f"Completed voice events: {completed_count} • Pending: {pending_count}"
+            )
+            if failed_events:
+                st.warning(
+                    f"Failed voice events: {len(failed_events)}. "
+                    f"Last error: {failed_events[-1].error or 'unknown'}"
+                )
+            else:
+                active = voice_session.active_event
+                if active is not None:
+                    tts_error = active.metadata.get("tts_error")
+                    if tts_error:
+                        st.warning(f"TTS warning: {tts_error}")
 
         # Live refresh
         time.sleep(1)
@@ -239,6 +338,7 @@ def render(controller):
                 # Normal exit (user closed FlightGear or session finished): always go to results.
                 # final_score.txt may be missing if FG was killed mid-run; result screen still runs
                 # the pipeline with a fallback game score.
+                _finalize_voice_session(controller)
                 st.session_state.result = None
                 st.session_state.state["screen"] = "result"
                 st.session_state.fg_pid = 0
@@ -248,6 +348,7 @@ def render(controller):
 
         # Recovery: older builds left fg_pid set with fg_finished_handled; unstick → results.
         if st.session_state.fg_pid and st.session_state.get("fg_finished_handled"):
+            _finalize_voice_session(controller)
             st.session_state.fg_pid = 0
             st.session_state.fg_started_at = None
             st.session_state.result = None
