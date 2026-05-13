@@ -2,9 +2,16 @@
 Tobii Pro Eye Tracker Recording and Real-Time Gaze Data Collection
 Automatically starts recording, collects gaze data, and returns extracted data to the application.
 """
+import os
+import sys
 
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+from TobiiPro_SDK import tobii_research as tr
 import time
-import tobii_research as tr
+import TobiiPro_SDK.tobiiresearch.interop as tr
 from dataclasses import dataclass
 from typing import List, Optional, Callable
 from datetime import datetime
