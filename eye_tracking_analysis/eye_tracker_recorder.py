@@ -6,12 +6,13 @@ import os
 import sys
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if ROOT_DIR not in sys.path:
-    sys.path.insert(0, ROOT_DIR)
+SDK_DIR = os.path.join(ROOT_DIR, "TobiiPro_SDK")
+for path in (ROOT_DIR, SDK_DIR):
+    if path not in sys.path:
+        sys.path.insert(0, path)
 
-from TobiiPro_SDK import tobii_research as tr
+import tobii_research as tr
 import time
-import TobiiPro_SDK.tobiiresearch.interop as tr
 from dataclasses import dataclass
 from typing import List, Optional, Callable
 from datetime import datetime
