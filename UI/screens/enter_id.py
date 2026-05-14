@@ -27,6 +27,18 @@ SEX_OPTIONS = {
 def render(controller):
     apply_enter_id_theme()
 
+    # Inject custom CSS to make radio button labels and options white
+    st.markdown(
+        """
+        <style>
+        div[data-testid='stRadio'] label, div[data-testid='stRadio'] p {
+            color: white !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     st.title("התחלת משחק")
 
     if is_research_enabled():

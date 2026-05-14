@@ -333,6 +333,80 @@ def render(result):
         plt.subplots_adjust(left=0.15, bottom=0.2)
         
         st.pyplot(fig)
+
+        # Prepare data for the new table structure
+        feature_lookup = {}
+        for r in export_rows:
+            # Use the same cleaning logic as for graph labels to ensure keys match
+            clean_feat_name_for_lookup = r["feature"].replace("_", "\n").title()
+            feature_lookup[clean_feat_name_for_lookup] = r
+
+        # The 'labels' list from the graph generation already holds the cleaned and ordered feature names.
+        # This will be used for the column headers.
+        
+
+
+        # --- טבלת פירוט מדדים מעוצבת ---
+        st.subheader("📋 פירוט ערכי המדדים")
+        
+        table_html = """
+        <div style="direction: ltr; font-family: sans-serif;">
+        <style>
+            .results-table {
+                width: 100%;
+                border-collapse: collapse;
+                color: white;
+                margin: 20px 0;
+                table-layout: fixed;
+            }
+            .results-table th, .results-table td {
+                border: 2px solid #00d4ff;
+                padding: 6px 2px;
+                text-align: center;
+                box-shadow: inset 0 0 5px rgba(0, 212, 255, 0.2), 0 0 10px rgba(0, 212, 255, 0.3);
+            }
+            .results-table th {
+                background-color: rgba(0, 212, 255, 0.15);
+                font-weight: bold;
+                text-shadow: 0 0 5px #00d4ff;
+                font-size: 10px;
+            }
+            .results-table th:first-child, .results-table td:first-child {
+                width: 15%; /* תואם ל-left=0.15 של הגרף */
+                direction: rtl;
+                font-size: 14px;
+            }
+        </style>
+        <table class="results-table">
+            <tbody>
+        """
+        
+        # Add feature names as column headers using the 'labels' from the graph
+        table_html += "<tr><th></th>" 
+        for clean_label in labels: # 'labels' is already populated with ordered, cleaned feature names
+            # המרת ירידות שורה מ-Matplotlib ל-HTML
+            display_label = clean_label.replace('\n', '<br>')
+            table_html += f"<th>{display_label}</th>"
+        table_html += "</tr>"
+        
+        # Add Baseline row
+        table_html += "<tr><td>בייסליין</td>"
+        for clean_label in labels:
+            r = feature_lookup.get(clean_label, {})
+            b_val = f"{r['baseline']:.2f}" if isinstance(r.get('baseline'), (int, float)) else "-"
+            table_html += f"<td>{b_val}</td>"
+        table_html += "</tr>"
+        
+        # Add Current row
+        table_html += "<tr><td>ציון נוכחי</td>"
+        for clean_label in labels:
+            r = feature_lookup.get(clean_label, {})
+            c_val = f"{r['current']:.2f}" if isinstance(r.get('current'), (int, float)) else (str(r.get('current')) if r.get('current') is not None else "-")
+            table_html += f"<td>{c_val}</td>"
+        table_html += "</tr>"
+        
+        table_html += "</tbody></table></div>"
+        st.markdown(table_html, unsafe_allow_html=True)
     else:
         st.info("אין נתונים לגרף")
 
@@ -360,63 +434,3 @@ def render(result):
             file_name=report_filename,
             mime="text/csv"
         )
-
-    # =========================
-    # VOICE FEATURE DETAILS
-    # =========================
-    voice_events = (features.get("voice") or {}).get("events") or []
-    if voice_events:
-        st.divider()
-        st.subheader("🔊 פרטי אירועי קול וחילוץ תכונות")
-
-        for event in voice_events:
-            event_id = event.get("event_id", "unknown")
-            prompt_text = event.get("prompt_text", "-")
-            duration = event.get("duration")
-            timestamp = event.get("timestamp")
-            error = event.get("error")
-
-            st.markdown(f"**{event_id}** - {prompt_text}")
-            st.markdown(
-                f"- משך: {duration}s | זמן התחלה: {timestamp} | נתיב: {event.get('audio_path', 'N/A')}"
-            )
-            if error:
-                st.error(f"שגיאה באירוע זה: {error}")
-
-            def _render_matrix(matrix, label):
-                if not matrix:
-                    st.write(f"{label}: אין נתונים")
-                    return
-                try:
-                    df = pd.DataFrame(matrix)
-                    st.write(f"{label} (shape: {df.shape})")
-                    st.dataframe(df.head(5), width=800)
-                except Exception:
-                    st.write(f"{label}: {matrix}")
-
-            def _render_vector(vector, label):
-                if vector is None:
-                    st.write(f"{label}: אין נתונים")
-                    return
-                arr = list(vector)
-                st.write(f"{label} (length: {len(arr)})")
-                st.write(arr[:20])
-
-            _render_matrix(event.get("mfcc"), "MFCC")
-            _render_vector(event.get("pitch"), "Pitch")
-            _render_matrix(event.get("lpc"), "LPC")
-            _render_matrix(event.get("parcor"), "PARCOR")
-            _render_matrix(event.get("delta_lpc"), "delta-LPC")
-
-        failed_events = result.get("failed_events", [])
-        if failed_events:
-            st.warning(f"נמצאו {len(failed_events)} אירועי קול שנכשלו:")
-            for fe in failed_events:
-                st.error(f"אירוע {fe.get('event_id')}: {fe.get('error')}")
-
-    else:
-        st.divider()
-        if not (features.get("voice") or {}).get("dLPC"):
-            st.warning("לא נמצאו נתוני קול כלל. ייתכן שספריית העיבוד (pysptk) חסרה או שהמיקרופון לא זוהה.")
-        else:
-            st.info("לא נמצאו אירועי קול מפורטים לעיבוד.")
