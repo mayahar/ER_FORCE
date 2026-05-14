@@ -185,8 +185,9 @@ def evaluate_flight_score(csv_path):
     """
     # Scoring targets/tolerances (tune here).
     SPEED_TARGET_KT = 500.0
-    SPEED_FULL_TOL_KT = 10.0     # full score if within ±10kt
-    SPEED_ZERO_TOL_KT = 120.0    # reaches 0 by ±120kt (linear from full tol)
+    SPEED_FULL_TOL_KT = 8.0      # full score if within ±8kt
+    SPEED_ZERO_TOL_KT = 80.0    # reaches 0 by ±80kt (linear from full tol)
+    MISS_MAX_SCORE = 20.0        # cap per-balloon score on a miss (quality scales below this)
 
     events = []
     prev_level = None
@@ -257,8 +258,8 @@ def evaluate_flight_score(csv_path):
                 dist_score = (600.0 - dist_ft) / (600.0 - 150.0) * 100.0
 
             # Speed target 500kt:
-            # - Full score within ±10kt
-            # - Then linearly degrades to 0 by ±120kt
+            # - Full score within ±8kt
+            # - Then linearly degrades to 0 by ±80kt
             speed_err = abs(speed_kt - SPEED_TARGET_KT)
             if speed_err <= SPEED_FULL_TOL_KT:
                 speed_score = 100.0
@@ -277,8 +278,8 @@ def evaluate_flight_score(csv_path):
                 vert_score = (7000.0 - vert_abs) / (7000.0 - 2000.0) * 100.0
 
             # Event score (bounded 0-100 without saturation):
-            w_dist = 0.60
-            w_speed = 0.30
+            w_dist = 0.40
+            w_speed = 0.50
             w_vert = 0.10
             w_sum = w_dist + w_speed + w_vert
             quality = (
@@ -292,7 +293,7 @@ def evaluate_flight_score(csv_path):
                 base = 40.0
                 event_score = base + ((100.0 - base) * quality)
             else:
-                event_score = 100.0 * quality
+                event_score = min(MISS_MAX_SCORE, MISS_MAX_SCORE * quality)
             events.append({
                 "balloon_level": balloon_level_key,
                 "hit": hit_int > 0,
