@@ -6,7 +6,7 @@ import subprocess
 import time
 from pathlib import Path
 from styles import apply_game_theme
-from core.voice.session import VoiceSessionManager, VoiceSessionError
+from voice.session import VoiceSessionManager, VoiceSessionError
 
 # ER_FORCE repo root (this file: UI/screens/game.py)
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -133,6 +133,10 @@ def _finalize_voice_session(controller):
 
     try:
         voice_data = manager.finalize_session()
+        # Ensure we always have a summary dict to prevent NoneType errors in the controller
+        if voice_data and "summary" not in voice_data:
+            voice_data["summary"] = manager._aggregate_summary()
+            
         if controller is not None:
             controller.attach_voice_session_result(voice_data)
     except VoiceSessionError as exc:
@@ -171,9 +175,9 @@ def render(controller):
     </div>
 
     <div class="info-text">
-    למשחק יקח כחצי דקה להטען, בהתחלה יופיע מסלול המראה, ואז הוא יתחיל אוטומטית.<br>
+    למשחק יקח כחצי דקה להטען, בזמן הזה תתבקשו להפיק את הצליל "אאה" לעשר שניות", <br>
+    בהתחלה יופיע מסלול המראה, ואז המשחק יתחיל אוטומטית.<br>
     במהלך המשחק ימדדו תנועות העיניים שלכם<br>
-    ובנוסף תתבקשו להשמיע קולות מסוימים
     </div>
 
     </div>
@@ -194,7 +198,7 @@ def render(controller):
     # ===== Buttons =====
     audio_only_mode = st.checkbox(
         "הרצה עם אודיו בלבד (ללא פתיחת המשחק)",
-        value=True,
+        value=False,
     )
 
     col1, col2 = st.columns(2)

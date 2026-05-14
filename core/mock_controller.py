@@ -82,17 +82,8 @@ class Controller:
         voice_events = []
 
         if self.voice_session_data:
-            voice_summary = self.voice_session_data.get("summary")
+            voice_summary = self.voice_session_data.get("summary", {})
             voice_events = self.voice_session_data.get("events", [])
-
-        if not voice_summary or not isinstance(voice_summary, dict):
-            voice_summary = {
-                "dLPC": b["voice"]["dLPC"] * random.uniform(0.9, 1.1),
-                "PARCOR": b["voice"]["PARCOR"] * random.uniform(0.9, 1.1),
-                "LPC": b["voice"]["LPC"] * random.uniform(0.9, 1.1),
-                "Pitch": b["voice"]["Pitch"] * random.uniform(0.95, 1.05),
-                "MFCC": b["voice"]["MFCC"] * random.uniform(0.9, 1.1),
-            }
 
         self.features = {
             "voice": {
