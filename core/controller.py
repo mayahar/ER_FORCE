@@ -1,9 +1,15 @@
 import time
 import os
-import re
-from pathlib import Path
 
 from core.subject_repository import get_subject
+from core.fg_run_score import find_latest_flightgear_score
+from core.modality_features import (
+    compact_eye_features,
+    has_eye_features,
+    strip_absent_eye_from_result,
+    unused_voice_features,
+    voice_features_unused,
+)
 from score.fatigue_scoring import compute_fatigue_score
 
 
@@ -14,6 +20,7 @@ class Controller:
         self.features = {}
         self.questionnaire = {}
         self.result = None
+        self.recorded_voice_features = None
         self.recorded_eye_features = None
         self.recorded_game_score = None
 
@@ -44,6 +51,7 @@ class Controller:
         self.features = {}
         self.questionnaire = {}
         self.result = None
+        self.recorded_voice_features = None
         self.recorded_eye_features = None
         self.recorded_game_score = None
 
@@ -52,6 +60,9 @@ class Controller:
     # -------------------
     # RUN MULTIMODAL GAME
     # -------------------
+    def set_voice_features(self, voice_features: dict | None):
+        self.recorded_voice_features = voice_features
+
     def set_eye_features(self, eye_features: dict | None):
         self.recorded_eye_features = eye_features
 
@@ -69,31 +80,20 @@ class Controller:
         if fg_score is None:
             fg_score = self._try_get_latest_flightgear_score()
 
-        eye_features = self.recorded_eye_features
-        if eye_features is None:
-            eye_features = {
-                "fixation_duration": self.get_fixation_duration(),
-                "fixation_count": self.get_fixation_count(),
-                "saccade_count": self.get_saccade_count()
-            }
+        voice_features = self.recorded_voice_features
+        if voice_features is None or voice_features_unused(voice_features):
+            voice_features = unused_voice_features()
 
         self.features = {
-            "voice": {
-                "dLPC": self.get_voice_dlpc(),
-                "PARCOR": self.get_voice_parcor(),
-                "LPC": self.get_voice_lpc(),
-                "Pitch": self.get_voice_pitch(),
-                "MFCC": self.get_voice_mfcc()
-            },
-
-            "eye": eye_features,
-
+            "voice": voice_features,
             "game": {
                 "score": fg_score
             },
-
             "questionnaire": self.questionnaire.copy()
         }
+
+        if has_eye_features(self.recorded_eye_features):
+            self.features["eye"] = compact_eye_features(self.recorded_eye_features)
 
     # -------------------
     # REAL DATA FUNCTIONS
@@ -101,19 +101,25 @@ class Controller:
 
     # ---- Voice ----
     def get_voice_dlpc(self):
-        return None
+        return self._voice_feature_value("dLPC")
 
     def get_voice_parcor(self):
-        return None
+        return self._voice_feature_value("PARCOR")
 
     def get_voice_lpc(self):
-        return None
+        return self._voice_feature_value("LPC")
 
     def get_voice_pitch(self):
-        return None
+        return self._voice_feature_value("Pitch")
 
     def get_voice_mfcc(self):
-        return None
+        return self._voice_feature_value("MFCC")
+
+    def _voice_feature_value(self, key: str):
+        voice_features = self.features.get("voice") or self.recorded_voice_features
+        if isinstance(voice_features, dict) and key in voice_features:
+            return voice_features.get(key)
+        return "none"
 
     # ---- Eye Tracking ----
     def get_fixation_duration(self):
@@ -129,73 +135,7 @@ class Controller:
     # FLIGHTGEAR SCORE
     # -------------------
     def _try_get_latest_flightgear_score(self) -> int | None:
-
-        runs_root = os.environ.get(
-            "SIVAKS_FG_RUNS_ROOT",
-            r"C:\Users\srule\OneDrive\Desktop\yan\FlightGear_2020_3\sivaks_logging_version\runs",
-        )
-
-        root = Path(runs_root)
-
-        if not root.exists() or not root.is_dir():
-            return None
-
-        sessions = [p for p in root.glob("session_*") if p.is_dir()]
-
-        if not sessions:
-            return None
-
-        min_ts = None
-
-        try:
-            raw_min_ts = os.environ.get("SIVAKS_FG_MIN_START_TS")
-
-            if raw_min_ts:
-                min_ts = float(raw_min_ts)
-
-        except Exception:
-            min_ts = None
-
-        if min_ts is not None:
-            sessions = [
-                p for p in sessions
-                if p.stat().st_mtime >= (min_ts - 1.0)
-            ]
-
-            if not sessions:
-                return None
-
-        sessions.sort(
-            key=lambda p: p.stat().st_mtime,
-            reverse=True
-        )
-
-        for session in sessions[:10]:
-
-            report = session / "final_score.txt"
-
-            if not report.exists():
-                continue
-
-            try:
-                text = report.read_text(
-                    encoding="utf-8",
-                    errors="ignore"
-                )
-
-            except OSError:
-                continue
-
-            m = re.search(
-                r"Score:\s*(\d+)\s*/\s*100",
-                text
-            )
-
-            if m:
-                score = int(m.group(1))
-                return max(0, min(100, score))
-
-        return None
+        return find_latest_flightgear_score()
 
     # -------------------
     # SCORING
@@ -221,7 +161,7 @@ class Controller:
 
         raw = compute_fatigue_score(data)
 
-        self.result = {
+        self.result = strip_absent_eye_from_result({
             "subject_id": self.subject.get("id", "UNKNOWN"),
             "subject_info": {
                 "name": self.subject.get("name"),
@@ -236,7 +176,7 @@ class Controller:
             ),
             "features": self.features,
             "baseline": b
-        }
+        })
 
         return self.result
 

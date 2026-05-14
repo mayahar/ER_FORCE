@@ -9,7 +9,10 @@ from pathlib import Path
 
 import numpy as np
 from eye_tracking_analysis.eye_tracker_recorder import EyeTrackerRecorder
+import eye_tracking_analysis.eye_tracker_recorder as eye_tracker_recorder_module
 from eye_tracking_analysis.eye_movement_analyzer import EyeMovementAnalyzer
+from core.fg_run_score import wait_for_latest_flightgear_score
+from score.eye_features import apply_controller_eye_features, has_eye_features
 from styles import apply_game_theme
 
 # ER_FORCE repo root (this file: UI/screens/game.py)
@@ -19,6 +22,38 @@ _DEFAULT_FG_SCRIPT = _DEFAULT_FG_DIR / "logging_fg_start_ver5.py"
 
 _eye_recorder: EyeTrackerRecorder | None = None
 _eye_analyzer: EyeMovementAnalyzer | None = None
+
+
+def _store_eye_features_for_result(eye_features: dict | None) -> None:
+    if has_eye_features(eye_features):
+        st.session_state.eye_features = eye_features
+    else:
+        st.session_state.eye_features = None
+
+
+def _capture_flightgear_score_for_result(controller) -> None:
+    if not hasattr(controller, "set_game_score"):
+        return
+    if controller.recorded_game_score is not None:
+        return
+
+    runs_root = os.environ.get("SIVAKS_FG_RUNS_ROOT")
+    min_ts = None
+    try:
+        raw_min_ts = os.environ.get("SIVAKS_FG_MIN_START_TS")
+        if raw_min_ts:
+            min_ts = float(raw_min_ts)
+    except (TypeError, ValueError):
+        min_ts = None
+
+    score = wait_for_latest_flightgear_score(
+        timeout_seconds=90.0,
+        poll_seconds=1.0,
+        runs_root=runs_root,
+        min_ts=min_ts,
+    )
+    if score is not None:
+        controller.set_game_score(score)
 
 
 def _resolve_fg_script_path() -> Path | None:
@@ -127,9 +162,15 @@ def _start_flightgear_session() -> tuple[int, str]:
         # FlightGear: start fullscreen when launched from this UI (see logging_fg_start_ver5.py).
         os.environ["SIVAKS_FG_FULLSCREEN"] = "1"
 
+        launcher_env = os.environ.copy()
+        launcher_env.setdefault("PYTHONIOENCODING", "utf-8")
+        launcher_env.setdefault("PYTHONUTF8", "1")
+        launcher_env.setdefault("SIVAKS_RUN_DASHBOARD", "0")
+
         p = subprocess.Popen(
             [sys.executable, str(script_path.resolve())],
             cwd=script_dir,
+            env=launcher_env,
             creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
         )
         pid = int(p.pid)
@@ -253,6 +294,12 @@ def render(controller):
         if duplicate_warning:
             st.warning(duplicate_warning)
 
+    with st.expander("Runtime paths"):
+        st.text(f"Python: {sys.executable}")
+        st.text(f"Repo: {_REPO_ROOT}")
+        st.text(f"Game screen: {Path(__file__).resolve()}")
+        st.text(f"Eye recorder: {Path(eye_tracker_recorder_module.__file__).resolve()}")
+
     # ===== Content Box =====
     st.markdown("""
     <div class="game-box">
@@ -300,10 +347,12 @@ def render(controller):
         st.session_state.eye_features = None
         st.session_state.eye_recording_error = ""
         st.session_state.eye_tracking_active = False
+        apply_controller_eye_features(controller, None)
 
         eye_started, eye_err = _start_eye_tracking()
         if eye_err:
             st.session_state.eye_recording_error = eye_err
+            st.session_state.eye_features = None
 
         elif eye_started:
             st.session_state.eye_tracking_active = True
@@ -324,13 +373,13 @@ def render(controller):
     if stop_clicked and fg_pid:
         eye_features, eye_err = _stop_eye_tracking()
         st.session_state.eye_tracking_active = False
-        if eye_features:
-            st.session_state.eye_features = eye_features
+        _store_eye_features_for_result(eye_features)
         if eye_err:
             st.session_state.eye_recording_error = eye_err
 
         ok, err = _terminate_session_process(fg_pid)
         if ok:
+            _capture_flightgear_score_for_result(controller)
             st.session_state.fg_pid = 0
             st.session_state.fg_started_at = None
             st.session_state.fg_finished_handled = True
@@ -395,10 +444,11 @@ def render(controller):
                 # final_score.txt may be missing if FG was killed mid-run; result screen still runs
                 eye_features, eye_err = _stop_eye_tracking()
                 st.session_state.eye_tracking_active = False
-                if eye_features:
-                    st.session_state.eye_features = eye_features
+                _store_eye_features_for_result(eye_features)
                 if eye_err:
                     st.session_state.eye_recording_error = eye_err
+
+                _capture_flightgear_score_for_result(controller)
 
                 st.session_state.result = None
                 st.session_state.state["screen"] = "result"

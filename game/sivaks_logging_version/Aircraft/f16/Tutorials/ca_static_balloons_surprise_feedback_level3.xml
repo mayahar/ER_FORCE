@@ -49,7 +49,17 @@ This Scenario announces if you hit or miss.
 				<![CDATA[
 				# intialization script
 				setprop("/controls/gear/gear-down",0);        # remove gear				
-				setprop("/controls/gear/brake-parking",0);	  # remove parking brake	
+				setprop("/controls/gear/brake-parking",0);	  # remove parking brake
+				setprop("/sim/rendering/redout/enabled", 0);
+				setprop("/sim/rendering/redout/internal/redout", 0);
+
+				var apply_intro_cruise_power = func() {
+					setprop("/controls/engines/throttle-all", 0.85);
+					setprop("/controls/engines/engine[0]/throttle", 0.85);
+				};
+				# Tutorial reposition spawns near 350 kt with idle power; re-apply cruise throttle.
+				settimer(apply_intro_cruise_power, 5.5);
+				settimer(apply_intro_cruise_power, 12.0);
 				]]>
             </script>
         </nasal>			
@@ -89,6 +99,17 @@ This Scenario announces if you hit or miss.
 
 	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-14_pass-south-gate loaded");
 	# Score a pass only after the aircraft was south of the balloon, then crossed north of it.
+	setprop("/sim/rendering/redout/enabled", 0);
+	setprop("/sim/rendering/redout/internal/redout", 0);
+
+	var apply_cruise_power = func() {
+		setprop("/controls/engines/throttle-all", 0.85);
+		setprop("/controls/engines/engine[0]/throttle", 0.85);
+	};
+	# Tutorial reposition spawns near 350 kt with idle power; re-apply cruise throttle.
+	apply_cruise_power();
+	settimer(apply_cruise_power, 2.0);
+	settimer(apply_cruise_power, 8.0);
 
 	# STEP 1: GLOBAL VARIABLES AND FUNCTIONS
 	# Use a single balloon model so visuals and behavior are consistent.
@@ -702,9 +723,14 @@ This Scenario announces if you hit or miss.
 							aimDotArray[j].remove();
 					}
 
+					setprop("/sim/rendering/redout/enabled", 0);
+					setprop("/sim/rendering/redout/internal/redout", 0);
+
 					settimer(func {
+						setprop("/sim/rendering/redout/enabled", 0);
+						setprop("/sim/rendering/redout/internal/redout", 0);
 						fgcommand("exit");
-					}, 0.8);
+					}, 0.2);
 
 					return;
 				}

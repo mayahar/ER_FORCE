@@ -9,6 +9,7 @@ import hashlib
 import re
 
 from core.research_repository import get_research_output_dir
+from score.eye_features import has_eye_features
 from styles import (
     BACKGROUND,
     NEGATIVE,
@@ -80,8 +81,16 @@ def _save_report_once(subject_id, csv, result=None):
 def build_result_export_rows(result):
     subject_id = result.get("subject_id", "UNKNOWN")
     research_context = result.get("research") or {}
-    contributions = result.get("feature_contributions", {})
-    current_questionnaire = (result.get("features", {}) or {}).get("questionnaire", {}) or {}
+    contributions = result.get("feature_contributions", {}) or {}
+    features = result.get("features", {}) or {}
+    current_questionnaire = features.get("questionnaire", {}) or {}
+
+    if not has_eye_features(features.get("eye")):
+        contributions = {
+            modality: feats
+            for modality, feats in contributions.items()
+            if modality != "eye"
+        }
 
     export_rows = []
     graph_rows = []
@@ -259,7 +268,11 @@ def render(result):
         fig, ax = plt.subplots(figsize=(14, 7))
         
         # הגדרת סדר הקטגוריות
-        modalities = ["game", "eye", "voice", "subjective"]
+        modalities = [
+            modality
+            for modality in ("game", "eye", "voice", "subjective")
+            if modality in set(df_graph["modality"])
+        ]
         modality_labels = {
             "game": "משחק",
             "eye": "עיניים",

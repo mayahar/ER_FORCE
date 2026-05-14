@@ -5,6 +5,10 @@ Automatically starts recording, collects gaze data, and returns extracted data t
 import os
 import sys
 
+from eye_tracking_analysis.stdout_safe import install_safe_stdio
+
+install_safe_stdio()
+
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SDK_DIR = os.path.join(ROOT_DIR, "TobiiPro_SDK")
 for path in (ROOT_DIR, SDK_DIR):
@@ -18,6 +22,18 @@ from typing import List, Optional, Callable
 from datetime import datetime
 from threading import Lock
 import json
+
+
+def _safe_print(*args, sep=" ", end="\n", flush=False):
+    message = sep.join(str(arg) for arg in args) + end
+    stream = sys.stdout
+    encoding = getattr(stream, "encoding", None) or "utf-8"
+    if hasattr(stream, "buffer"):
+        stream.buffer.write(message.encode(encoding, errors="replace"))
+    else:
+        stream.write(message.encode(encoding, errors="replace").decode(encoding, errors="replace"))
+    if flush:
+        stream.flush()
 
 
 @dataclass
@@ -54,11 +70,11 @@ class EyeTrackerRecorder:
         
     def find_and_select_eyetracker(self, auto_select_first: bool = True) -> bool:
         """Find and select an eye tracker"""
-        print("Looking for eye trackers...")
+        _safe_print("Looking for eye trackers...")
         found_eyetrackers = tr.find_all_eyetrackers()
         
         if not found_eyetrackers:
-            print("No eye trackers found.")
+            _safe_print("No eye trackers found.")
             return False
         
         self._print_eyetrackers(found_eyetrackers)
@@ -69,16 +85,16 @@ class EyeTrackerRecorder:
             self.eyetracker = self._select_eyetracker(found_eyetrackers)
         
         if self.eyetracker:
-            print(f"\n✓ Selected: {self.eyetracker.model} ({self.eyetracker.serial_number})")
-            print(f"  Address: {self.eyetracker.address}")
+            _safe_print(f"\nSelected: {self.eyetracker.model} ({self.eyetracker.serial_number})")
+            _safe_print(f"  Address: {self.eyetracker.address}")
             return True
         return False
     
     def _print_eyetrackers(self, eyetrackers):
         """Print available eye trackers"""
-        print("\nAvailable Eye Trackers:")
+        _safe_print("\nAvailable Eye Trackers:")
         for i, eyetracker in enumerate(eyetrackers):
-            print(f"  [{i}] {eyetracker.model} - Serial: {eyetracker.serial_number}")
+            _safe_print(f"  [{i}] {eyetracker.model} - Serial: {eyetracker.serial_number}")
     
     def _select_eyetracker(self, eyetrackers):
         """Let user select an eye tracker"""
@@ -87,9 +103,9 @@ class EyeTrackerRecorder:
                 index = int(input("\nSelect eye tracker by index: "))
                 if 0 <= index < len(eyetrackers):
                     return eyetrackers[index]
-                print("Invalid index. Please try again.")
+                _safe_print("Invalid index. Please try again.")
             except ValueError:
-                print("Please enter a valid integer.")
+                _safe_print("Please enter a valid integer.")
     
     def _gaze_data_callback(self, gaze_data):
         """Callback function for incoming gaze data"""
@@ -129,11 +145,11 @@ class EyeTrackerRecorder:
     def start_recording(self) -> bool:
         """Start eye tracking recording"""
         if not self.eyetracker:
-            print("No eye tracker selected.")
+            _safe_print("No eye tracker selected.")
             return False
         
         try:
-            print("\n→ Starting recording...")
+            _safe_print("\nStarting recording...")
             self.is_recording = True
             self.gaze_data_buffer = []
             self.start_time = datetime.now()
@@ -145,10 +161,10 @@ class EyeTrackerRecorder:
                 as_dictionary=True
             )
             
-            print(f"✓ Recording started. Duration: {self.recording_duration}s")
+            _safe_print(f"Recording started. Duration: {self.recording_duration}s")
             return True
         except Exception as e:
-            print(f"Error starting recording: {e}")
+            _safe_print(f"Error starting recording: {e}")
             self.is_recording = False
             return False
     
@@ -158,7 +174,7 @@ class EyeTrackerRecorder:
             return False
         
         try:
-            print("\n→ Stopping recording...")
+            _safe_print("\nStopping recording...")
             self.is_recording = False
             self.end_time = datetime.now()
             
@@ -168,10 +184,10 @@ class EyeTrackerRecorder:
                 self._gaze_data_callback
             )
             
-            print(f"✓ Recording stopped. Samples collected: {len(self.gaze_data_buffer)}")
+            _safe_print(f"Recording stopped. Samples collected: {len(self.gaze_data_buffer)}")
             return True
         except Exception as e:
-            print(f"Error stopping recording: {e}")
+            _safe_print(f"Error stopping recording: {e}")
             return False
     
     def record_for_duration(self) -> List[GazeData]:
@@ -191,9 +207,9 @@ class EyeTrackerRecorder:
                 elapsed += 0.1
                 remaining = self.recording_duration - elapsed
                 if int(remaining) % 5 == 0 and remaining < self.recording_duration:
-                    print(f"  Recording... {remaining:.1f}s remaining", end='\r')
+                    _safe_print(f"  Recording... {remaining:.1f}s remaining", end='\r')
         except KeyboardInterrupt:
-            print("\n✗ Recording interrupted by user.")
+            _safe_print("\nRecording interrupted by user.")
         finally:
             self.stop_recording()
         
@@ -232,10 +248,10 @@ class EyeTrackerRecorder:
                     "gaze_data": data
                 }, f, indent=2)
             
-            print(f"✓ Data exported to {filename}")
+            _safe_print(f"Data exported to {filename}")
             return True
         except Exception as e:
-            print(f"Error exporting data: {e}")
+            _safe_print(f"Error exporting data: {e}")
             return False
     
     def export_to_csv(self, filename: str) -> bool:
@@ -263,10 +279,10 @@ class EyeTrackerRecorder:
                             sample.validity
                         ])
             
-            print(f"✓ Data exported to {filename}")
+            _safe_print(f"Data exported to {filename}")
             return True
         except Exception as e:
-            print(f"Error exporting data: {e}")
+            _safe_print(f"Error exporting data: {e}")
             return False
 
 
@@ -287,10 +303,10 @@ def main():
         recorder.export_to_csv("gaze_data.csv")
         recorder.export_to_json("gaze_data.json")
         
-        print(f"\n✓ Successfully collected {len(gaze_data)} gaze samples")
-        print(f"  First sample: L({gaze_data[0].left_x:.3f}, {gaze_data[0].left_y:.3f})")
+        _safe_print(f"\nSuccessfully collected {len(gaze_data)} gaze samples")
+        _safe_print(f"  First sample: L({gaze_data[0].left_x:.3f}, {gaze_data[0].left_y:.3f})")
     else:
-        print("No gaze data collected.")
+        _safe_print("No gaze data collected.")
 
 
 if __name__ == "__main__":

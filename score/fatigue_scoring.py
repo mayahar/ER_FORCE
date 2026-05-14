@@ -1,5 +1,7 @@
 import numpy as np
 
+from score.eye_features import has_eye_features
+from score.feature_values import coerce_feature_number
 from score.fatigue_features import (
     FEATURES,
     MODALITY_WEIGHTS
@@ -11,6 +13,13 @@ from score.fatigue_features import (
 
 def safe_get(d, k):
     return d.get(k, None)
+
+
+def _export_feature_value(value):
+    number = coerce_feature_number(value)
+    if number is None:
+        return None
+    return float(number)
 
 
 def sigmoid(x):
@@ -29,8 +38,14 @@ def compute_feature_score(
     sex=None
 ):
 
-    if current is None or baseline is None:
+    current_value = coerce_feature_number(current)
+    baseline_value = coerce_feature_number(baseline)
+
+    if current_value is None or baseline_value is None:
         return None
+
+    current = current_value
+    baseline = baseline_value
 
     direction = feature_cfg["direction"]
     std = feature_cfg["std"]
@@ -105,8 +120,11 @@ def compute_feature_score(
 
 def compute_absolute_feature_score(current, feature_cfg):
 
-    if current is None:
+    current_value = coerce_feature_number(current)
+    if current_value is None:
         return None
+
+    current = current_value
 
     minimum = feature_cfg["min"]
     maximum = feature_cfg["max"]
@@ -151,16 +169,22 @@ def compute_modality_score(
 
         current = safe_get(current_data, feature_name)
         baseline = safe_get(baseline_data, feature_name)
+        current_num = coerce_feature_number(current)
+        baseline_num = coerce_feature_number(baseline)
 
         if cfg.get("scoring") == "absolute":
+            if current_num is None:
+                continue
             result = compute_absolute_feature_score(
-                current=current,
+                current=current_num,
                 feature_cfg=cfg
             )
         else:
+            if current_num is None or baseline_num is None:
+                continue
             result = compute_feature_score(
-                current=current,
-                baseline=baseline,
+                current=current_num,
+                baseline=baseline_num,
                 feature_name=feature_name,
                 feature_cfg=cfg,
                 sex=sex
@@ -239,13 +263,9 @@ def compute_modality_score(
 
             "std": cfg["std"],
 
-            "baseline": (
-                float(baseline)
-                if baseline is not None
-                else None
-            ),
+            "baseline": _export_feature_value(baseline),
 
-            "current": float(current)
+            "current": _export_feature_value(current)
         }
 
         total += weighted_contribution
@@ -253,13 +273,16 @@ def compute_modality_score(
 
     if wsum:
         modality_score = total / wsum
-    elif contributions:
-        modality_score = sum(
+    else:
+        scored = [
             item["fatigue_score"]
             for item in contributions.values()
-        ) / len(contributions)
-    else:
-        modality_score = None
+            if item.get("fatigue_score") is not None
+        ]
+        if scored:
+            modality_score = sum(scored) / len(scored)
+        else:
+            modality_score = None
 
     return modality_score, contributions
 
@@ -296,13 +319,16 @@ def compute_fatigue_score(data):
     # EYE
     # =================================================
 
-    eye_score, eye_contrib = (
-        compute_modality_score(
-            modality_name="eye",
-            current_data=current.get("eye", {}),
-            baseline_data=baseline.get("eye", {})
+    if has_eye_features(current.get("eye")):
+        eye_score, eye_contrib = (
+            compute_modality_score(
+                modality_name="eye",
+                current_data=current.get("eye", {}),
+                baseline_data=baseline.get("eye", {})
+            )
         )
-    )
+    else:
+        eye_score, eye_contrib = None, {}
 
     # =================================================
     # GAME
@@ -330,17 +356,19 @@ def compute_fatigue_score(data):
 
     modality_scores = {
         "voice": voice_score,
-        "eye": eye_score,
         "game": game_score,
-        "subjective": subjective_score
+        "subjective": subjective_score,
     }
+    if eye_score is not None:
+        modality_scores["eye"] = eye_score
 
     modality_contributions = {
         "voice": voice_contrib,
-        "eye": eye_contrib,
         "game": game_contrib,
-        "subjective": subjective_contrib
+        "subjective": subjective_contrib,
     }
+    if eye_contrib:
+        modality_contributions["eye"] = eye_contrib
 
     # =================================================
     # FINAL AGGREGATION

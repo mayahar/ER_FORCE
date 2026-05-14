@@ -7,9 +7,17 @@ for path in (str(REPO_ROOT), str(UI_DIR)):
     if path not in sys.path:
         sys.path.insert(0, path)
 
+from eye_tracking_analysis.stdout_safe import install_safe_stdio
+
+install_safe_stdio()
+
 import streamlit as st
 import copy
 
+from score.eye_features import (
+    apply_controller_eye_features,
+    strip_absent_eye_from_result,
+)
 from core.mock_controller import Controller
 from core.subject_repository import update_subject_baseline
 from screens import enter_id, questionnaire, game, results
@@ -80,9 +88,7 @@ elif state == "result":
         st.stop()
 
     if st.session_state.state.get("baseline_capture"):
-        eye_features = st.session_state.get("eye_features")
-        if eye_features and hasattr(controller, "set_eye_features"):
-            controller.set_eye_features(eye_features)
+        apply_controller_eye_features(controller, st.session_state.get("eye_features"))
 
         controller.run_multimodal_game()
         baseline = copy.deepcopy(controller.features)
@@ -92,7 +98,9 @@ elif state == "result":
         controller.subject = copy.deepcopy(updated_subject)
         controller.compute_fatigue()
 
-        baseline_result = copy.deepcopy(controller.get_result())
+        baseline_result = strip_absent_eye_from_result(
+            copy.deepcopy(controller.get_result())
+        )
         research_context = st.session_state.state.get("research_context")
 
         if research_context:
@@ -113,15 +121,15 @@ elif state == "result":
     # ------------------------
     if not st.session_state.result:
 
-        eye_features = st.session_state.get("eye_features")
-        if eye_features and hasattr(controller, "set_eye_features"):
-            controller.set_eye_features(eye_features)
+        apply_controller_eye_features(controller, st.session_state.get("eye_features"))
 
         controller.run_multimodal_game()
         controller.compute_fatigue()
 
         # 🔥 חשוב מאוד: freeze snapshot
-        st.session_state.result = copy.deepcopy(controller.get_result())
+        st.session_state.result = strip_absent_eye_from_result(
+            copy.deepcopy(controller.get_result())
+        )
 
         research_context = st.session_state.state.get("research_context")
 

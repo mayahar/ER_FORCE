@@ -8,12 +8,15 @@ import sys
 import csv
 import math
 
+_repo_root = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
 try:
-    import tkinter as tk
-    from tkinter import messagebox
-except Exception:
-    tk = None
-    messagebox = None
+    from eye_tracking_analysis.stdout_safe import install_safe_stdio
+
+    install_safe_stdio()
+except ImportError:
+    pass
 
 
 def resolve_f16_aircraft_paths(script_dir):
@@ -380,59 +383,16 @@ def show_final_results(session_folder, csv_path):
             + (f"Breakdown: {breakdown_path}\n" if breakdown_path else "")
         )
 
-    show_popup = os.environ.get("SIVAKS_SHOW_RESULTS_POPUP", "").strip().lower() in ("1", "true", "yes", "y", "on")
-
-    if show_popup and tk is not None and messagebox is not None:
-        root = tk.Tk()
-        root.title("CorrActions - Final Results")
-        root.configure(bg="#0f172a")
-        root.geometry("560x360")
-        root.resizable(False, False)
-
-        if result["score"] >= 85:
-            accent = "#22c55e"
-        elif result["score"] >= 70:
-            accent = "#f59e0b"
-        else:
-            accent = "#ef4444"
-
-        title = tk.Label(root, text="Flight Performance Summary", fg="#e2e8f0", bg="#0f172a", font=("Segoe UI", 18, "bold"))
-        title.pack(pady=(16, 8))
-
-        score_line = tk.Label(
-            root,
-            text=f"Score {result['score']}/100    Grade {result['grade']}",
-            fg=accent,
-            bg="#0f172a",
-            font=("Segoe UI", 20, "bold"),
+    try:
+        print(
+            f"Final Score: {result['score']}/100 "
+            f"(grade {result['grade']}, hits {result['hits']}, misses {result['misses']})"
         )
-        score_line.pack(pady=(6, 12))
-
-        stats_text = (
-            f"Balloons counted: {result['total']}\n"
-            f"Hits: {result['hits']}    Misses: {result['misses']}\n"
-            f"Average closest distance at pass: {result['avg_dist_ft']:.1f} ft"
-        )
-        stats = tk.Label(root, text=stats_text, fg="#cbd5e1", bg="#0f172a", font=("Segoe UI", 12), justify="center")
-        stats.pack(pady=(4, 14))
-
-        extra = f"\nBreakdown:\n{breakdown_path}" if breakdown_path else ""
-        report_lbl = tk.Label(root, text=f"Saved report:\n{report_path}{extra}", fg="#94a3b8", bg="#0f172a", font=("Segoe UI", 9), justify="center")
-        report_lbl.pack(pady=(0, 14))
-
-        ok_btn = tk.Button(root, text="Close", font=("Segoe UI", 11, "bold"), bg=accent, fg="#0b1020", activebackground=accent, relief="flat", padx=20, pady=8, command=root.destroy)
-        ok_btn.pack()
-        root.eval("tk::PlaceWindow . center")
-        root.mainloop()
-    else:
-        text = (
-            f"Final Score: {result['score']}/100\n"
-            f"Grade: {result['grade']}\n"
-            f"Hits: {result['hits']} | Misses: {result['misses']}\n"
-            f"Average closest at pass: {result['avg_dist_ft']:.1f} ft\n"
-            f"Saved report: {report_path}"
-        )
-        print(text)
+        print(f"Saved report: {report_path}")
+        if breakdown_path:
+            print(f"Saved breakdown: {breakdown_path}")
+    except Exception:
+        pass
 
 def run_flightgear(fg_bin_path, fg_aircraft, aircraft_dir, aircraft, airport, xml_filename, export_folder, fg_command_args=None):
     """
@@ -569,11 +529,17 @@ def run_flightgear(fg_bin_path, fg_aircraft, aircraft_dir, aircraft, airport, xm
         file.seek(0)
         file.writelines(lines)
 
-    # Report filenames to command prompt
-    print(f"Session folder: {session_folder}")
-    print(f"XML File: {session_xml_path}")
-    print(f"CSV File: {session_csv_path}")
     show_final_results(session_folder, session_csv_path)
+
+    for line in (
+        f"Session folder: {session_folder}",
+        f"XML File: {session_xml_path}",
+        f"CSV File: {session_csv_path}",
+    ):
+        try:
+            print(line)
+        except Exception:
+            pass
 
     # Run Zohar's analytics script with arguments
     # time.sleep(5)
@@ -583,7 +549,7 @@ def run_flightgear(fg_bin_path, fg_aircraft, aircraft_dir, aircraft, airport, xm
     try:
         # Optional: run the analytics/dashboard script (can be disabled).
         # Set SIVAKS_RUN_DASHBOARD=0 to skip.
-        run_dashboard = os.environ.get("SIVAKS_RUN_DASHBOARD", "1").strip().lower() not in ("0", "false", "no", "n", "off")
+        run_dashboard = os.environ.get("SIVAKS_RUN_DASHBOARD", "").strip().lower() in ("1", "true", "yes", "y", "on")
         if run_dashboard:
             # Use the active interpreter so this works on any machine/user.
             subprocess.run([sys.executable, output_script, session_csv_path], cwd=script_dir, check=True)
@@ -645,6 +611,8 @@ if __name__ == "__main__":
         '--disable-splash-screen',
         # Hide the top menubar (can also be toggled with F10).
         '--prop:/sim/menubar/visibility=false',
+        # Avoid redout wash during startup trim and session shutdown.
+        '--prop:/sim/rendering/redout/enabled=false',
         # Speed-up: avoid parsing AI traffic schedules (not needed for CorrActions balloons).
         '--disable-ai-traffic',
         # Speed-up: do not use the TerraSync scenery folder (loads a lot of tiles).
@@ -733,6 +701,24 @@ if __name__ == "__main__":
             fg_command_args,
         )
     except Exception as e:
+        report_path = os.path.join(_session_folder, "final_score.txt")
+        if not os.path.isfile(report_path):
+            try:
+                csv_candidates = [
+                    os.path.join(_session_folder, name)
+                    for name in os.listdir(_session_folder)
+                    if name.lower().startswith("sivaks_logging_") and name.lower().endswith(".csv")
+                ]
+                csv_candidates = [
+                    path for path in csv_candidates
+                    if os.path.isfile(path) and os.path.getsize(path) > 0
+                ]
+                if csv_candidates:
+                    csv_candidates.sort(key=os.path.getmtime, reverse=True)
+                    show_final_results(_session_folder, csv_candidates[0])
+            except Exception:
+                pass
+
         err_path = os.path.join(_session_folder, "session_error.txt")
         try:
             with open(err_path, "w", encoding="utf-8") as ef:

@@ -1,11 +1,33 @@
 import time
 import random
-import os
-import re
-from pathlib import Path
 
 from core.subject_repository import get_subject
+from core.fg_run_score import find_latest_flightgear_score
+from core.modality_features import (
+    compact_eye_features,
+    has_eye_features,
+    strip_absent_eye_from_result,
+    unused_voice_features,
+    voice_features_unused,
+)
+from score.feature_values import coerce_feature_number
 from score.fatigue_scoring import compute_fatigue_score
+
+
+def _baseline_scalar(value, fallback: float) -> float:
+    number = coerce_feature_number(value)
+    return number if number is not None else fallback
+
+
+def _mock_voice_features(baseline: dict) -> dict:
+    voice = baseline.get("voice") or {}
+    return {
+        "dLPC": _baseline_scalar(voice.get("dLPC"), 0.41) * random.uniform(0.9, 1.1),
+        "PARCOR": _baseline_scalar(voice.get("PARCOR"), 0.54) * random.uniform(0.9, 1.1),
+        "LPC": _baseline_scalar(voice.get("LPC"), 0.60) * random.uniform(0.9, 1.1),
+        "Pitch": _baseline_scalar(voice.get("Pitch"), 150.0) * random.uniform(0.95, 1.05),
+        "MFCC": _baseline_scalar(voice.get("MFCC"), 0.52) * random.uniform(0.9, 1.1),
+    }
 
 
 class Controller:
@@ -15,6 +37,7 @@ class Controller:
         self.features = {}
         self.questionnaire = {}
         self.result = None
+        self.recorded_voice_features = None
         self.recorded_eye_features = None
         self.recorded_game_score = None
 
@@ -32,12 +55,10 @@ class Controller:
 
         subject = get_subject(subject_id)
 
-
         if subject is None:
             self.subject = None
             return False
 
-        # 🔥 DEEP COPY (CRITICAL FIX)
         import copy
         self.subject = copy.deepcopy(subject)
 
@@ -46,18 +67,51 @@ class Controller:
         self.features = {}
         self.questionnaire = {}
         self.result = None
+        self.recorded_voice_features = None
         self.recorded_eye_features = None
         self.recorded_game_score = None
 
         return True
+
     # -------------------
     # RUN SIMULATION
     # -------------------
+    def set_voice_features(self, voice_features: dict | None):
+        self.recorded_voice_features = voice_features
+
     def set_eye_features(self, eye_features: dict | None):
         self.recorded_eye_features = eye_features
 
     def set_game_score(self, score: int | None):
         self.recorded_game_score = score
+
+    def get_voice_dlpc(self):
+        return self._resolve_voice_features().get("dLPC")
+
+    def get_voice_parcor(self):
+        return self._resolve_voice_features().get("PARCOR")
+
+    def get_voice_lpc(self):
+        return self._resolve_voice_features().get("LPC")
+
+    def get_voice_pitch(self):
+        return self._resolve_voice_features().get("Pitch")
+
+    def get_voice_mfcc(self):
+        return self._resolve_voice_features().get("MFCC")
+
+    def _resolve_voice_features(self, baseline: dict | None = None) -> dict:
+        if self.features.get("voice"):
+            return self.features["voice"]
+        if baseline is None:
+            baseline = (self.subject or {}).get("baseline") or {}
+        if self.recorded_voice_features is not None:
+            if voice_features_unused(self.recorded_voice_features):
+                return unused_voice_features()
+            return self.recorded_voice_features
+        if baseline:
+            return _mock_voice_features(baseline)
+        return unused_voice_features()
 
     def run_multimodal_game(self):
 
@@ -89,79 +143,32 @@ class Controller:
         if fg_score is None:
             fg_score = self._try_get_latest_flightgear_score()
 
-        eye_features = self.recorded_eye_features
-        if eye_features is None:
-            eye_features = {
-                "fixation_duration": b["eye"]["fixation_duration"] * random.uniform(1.0, 1.4),
-                "fixation_count": b["eye"]["fixation_count"] * random.uniform(0.8, 1.2),
-                "saccade_count": b["eye"]["saccade_count"] * random.uniform(0.9, 1.3)
-            }
+        voice_features = self.recorded_voice_features
+        if voice_features is None:
+            voice_features = _mock_voice_features(b)
+        elif voice_features_unused(voice_features):
+            voice_features = unused_voice_features()
 
         self.features = {
-            "voice": {
-                "dLPC": b["voice"]["dLPC"] * random.uniform(0.9, 1.1),
-                "PARCOR": b["voice"]["PARCOR"] * random.uniform(0.9, 1.1),
-                "LPC": b["voice"]["LPC"] * random.uniform(0.9, 1.1),
-                "Pitch": b["voice"]["Pitch"] * random.uniform(0.95, 1.05),
-                "MFCC": b["voice"]["MFCC"] * random.uniform(0.9, 1.1)
-            },
-
-            "eye": eye_features,
-
+            "voice": voice_features,
             "game": {
-                # Prefer the real FlightGear score (from logging_fg_start_ver5.py final_score.txt).
-                # Fallback to the prior mock behavior if we can't find a recent run.
-                "score": int(fg_score) if fg_score is not None else int(b["game"]["score"] * random.uniform(0.7, 0.95)),
+                "score": (
+                    int(fg_score)
+                    if fg_score is not None
+                    else int(
+                        _baseline_scalar(b["game"].get("score"), 82)
+                        * random.uniform(0.7, 0.95)
+                    )
+                ),
             },
-
-            "questionnaire": self.questionnaire.copy()
+            "questionnaire": self.questionnaire.copy(),
         }
 
+        if has_eye_features(self.recorded_eye_features):
+            self.features["eye"] = compact_eye_features(self.recorded_eye_features)
+
     def _try_get_latest_flightgear_score(self) -> int | None:
-        
-        runs_root = os.environ.get(
-            "SIVAKS_FG_RUNS_ROOT",
-            r"C:\Users\srule\OneDrive\Desktop\yan\FlightGear_2020_3\sivaks_logging_version\runs",
-        )
-
-        root = Path(runs_root)
-        if not root.exists() or not root.is_dir():
-            return None
-
-        sessions = [p for p in root.glob("session_*") if p.is_dir()]
-        if not sessions:
-            return None
-
-        min_ts = None
-        try:
-            raw_min_ts = os.environ.get("SIVAKS_FG_MIN_START_TS")
-            if raw_min_ts:
-                min_ts = float(raw_min_ts)
-        except Exception:
-            min_ts = None
-
-        if min_ts is not None:
-            sessions = [p for p in sessions if p.stat().st_mtime >= (min_ts - 1.0)]
-            if not sessions:
-                return None
-
-        sessions.sort(key=lambda p: p.stat().st_mtime, reverse=True)
-
-        for session in sessions[:10]:
-            report = session / "final_score.txt"
-            if not report.exists():
-                continue
-            try:
-                text = report.read_text(encoding="utf-8", errors="ignore")
-            except OSError:
-                continue
-
-            m = re.search(r"Score:\s*(\d+)\s*/\s*100", text)
-            if m:
-                score = int(m.group(1))
-                return max(0, min(100, score))
-
-        return None
+        return find_latest_flightgear_score()
 
     # -------------------
     # SCORING
@@ -181,14 +188,13 @@ class Controller:
             "current": self.features,
             "subject_info": {
                 "sex": self.subject.get("sex"),
-                "age": self.subject.get("age")
-            }
+                "age": self.subject.get("age"),
+            },
         }
 
         raw = compute_fatigue_score(data)
 
-        # 🔥 UPDATED RESULT SCHEMA
-        self.result = {
+        self.result = strip_absent_eye_from_result({
             "subject_id": self.subject.get("id", "UNKNOWN"),
             "subject_info": {
                 "name": self.subject.get("name"),
@@ -199,8 +205,8 @@ class Controller:
             "scores": raw.get("scores", {}),
             "feature_contributions": raw.get("feature_contributions", {}),
             "features": self.features,
-            "baseline": b
-        }
+            "baseline": b,
+        })
 
         return self.result
 
@@ -218,6 +224,5 @@ class Controller:
             "score": None,
             "scores": {},
             "features": self.features,
-            "baseline": self.subject.get("baseline") if self.subject else {}
+            "baseline": self.subject.get("baseline") if self.subject else {},
         }
-    
