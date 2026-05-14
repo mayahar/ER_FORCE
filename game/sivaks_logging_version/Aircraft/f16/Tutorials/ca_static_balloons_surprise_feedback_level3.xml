@@ -87,8 +87,8 @@ This Scenario announces if you hit or miss.
 	# sivaks: on starting scenario show dialog to get pilot data
 	# fgcommand("dialog-show", props.Node.new({"dialog-name": "sivaks_pilot_info_dlg"}));
 
-	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-10_scoring-closest-ft loaded");
-	# Pass scoring requires a real approach (commit gate) to avoid counting a miss for the next balloon while still enroute.
+	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-14_pass-south-gate loaded");
+	# Score a pass only after the aircraft was south of the balloon, then crossed north of it.
 
 	# STEP 1: GLOBAL VARIABLES AND FUNCTIONS
 	# Use a single balloon model so visuals and behavior are consistent.
@@ -140,13 +140,16 @@ This Scenario announces if you hit or miss.
 	var AIM_DOT_UP_FT = 48;
 	# After a scored pass, ignore lat-trigger until this many sim seconds (stops double LEVEL UP when next spawn is still "south").
 	var PASS_COOLDOWN_SEC = 2.5;
-	# We only score an attempt (hit/miss) if the aircraft actually came close to the balloon.
-	# This prevents "random misses" when the player never entered the balloon's hit area.
-	# Tune: larger = more forgiving but more false misses; smaller = stricter but may miss legit attempts.
-	var PASS_SCORE_MAX_FT = 1200;
-	# Must have closed inside this range (ft) to "arm" scoring for the current balloon.
-	# Keep this equal to PASS_SCORE_MAX_FT so "armed" implies "scorable".
-	var PASS_COMMIT_FT = PASS_SCORE_MAX_FT;
+	# Slant range (ft) used to track closest approach for hit vs miss on the current balloon.
+	var PASS_APPROACH_ARM_FT = 8000;
+	# Small latitude margin so pass scoring does not flutter on the exact balloon latitude.
+	var PASS_LAT_MARGIN_DEG = 0.00003;
+	# First target only: extra lead so 350 kt spawn has room to reach 500 kt before pass 1.
+	var BALLOON_INIT_AHEAD_LAT = 0.030;
+	var BALLOON_INIT_AHEAD_STEP_LAT = 0.008;
+	var BALLOON_AHEAD_BASE_FT = 1800;
+	var BALLOON_AHEAD_PER_LEVEL_FT = 200;
+	var MAX_LATERAL_VISIBLE_ANGLE = 28;
 
 	# Install a one-time listener so we can grab the *real* model node path when it is created.
 	# This avoids guessing where the object lives in /ai/models.
@@ -241,7 +244,7 @@ This Scenario announces if you hit or miss.
 	# STEP 2: intial balloon placing in one line.
 	var position = geo.aircraft_position();
 	var elevation = geo.elevation( position.lat(), position.lon() );
-	init_shift_val = 0.05;
+	init_shift_val = BALLOON_INIT_AHEAD_LAT;
 	var base_balloon_altitude = 2000;
 
 	forindex (var i; balloonsArray) 
@@ -262,7 +265,7 @@ This Scenario announces if you hit or miss.
 		bullseyeArray[i] = createBullseyeSign(last_balloon_lat, last_balloon_lon, base_balloon_altitude, bullseyeCallsigns[i]);
 		aimDotArray[i] = createAimDot(last_balloon_lat, last_balloon_lon, base_balloon_altitude);
 		print ("INIT: aircraft_Lat = ",position.lat(), "aircraft_Lon = ",position.lon(), "  ballon_Lat = ", last_balloon_lat, "  ballon_Lon = ", last_balloon_lon);
-		init_shift_val = init_shift_val + 0.03;
+		init_shift_val = init_shift_val + BALLOON_INIT_AHEAD_STEP_LAT;
 	}
 
 	# =========================================================
@@ -339,6 +342,7 @@ This Scenario announces if you hit or miss.
 	var min_dist_ft = 10000000;
 	var pass_cooldown_until = 0;
 	var pass_committed = 0;
+	var pass_south_armed = 0;
 
 	var airspeed_kt = 0;
 	var vert_speed_fpm = 0;
@@ -564,19 +568,23 @@ This Scenario announces if you hit or miss.
 					dist_aicraft_to_balloon_ft;
 			}
 
-			# Commit gate: only allow scoring once we've actually approached this balloon.
-			if (pass_committed == 0 and min_dist_ft <= PASS_COMMIT_FT)
+			# Commit gate: remember closest approach while still south of the balloon.
+			if (pass_committed == 0 and min_dist_ft <= PASS_APPROACH_ARM_FT)
 				pass_committed = 1;
 
+			if (position.lat() < current_lat - PASS_LAT_MARGIN_DEG)
+				pass_south_armed = 1;
+
+			var passed_balloon =
+				(pass_south_armed and position.lat() > current_lat + PASS_LAT_MARGIN_DEG);
+
 			# =====================================================
-			# PASSED BALLOON (debounced + require real close approach on *this* target)
+			# PASSED BALLOON (south-to-north gate; far approach = miss)
 			# =====================================================
 
 			if (
-				position.lat() > current_lat
-				and pass_committed
+				passed_balloon
 				and sim_elapsed >= pass_cooldown_until
-				and min_dist_ft <= PASS_SCORE_MAX_FT
 			)
 			{
 
@@ -677,8 +685,8 @@ This Scenario announces if you hit or miss.
 				# END GAME
 				# =================================================
 
-				# End only after the 8th HIT (not after 8 passes, since passes can be misses).
-				if (balloons_counted_hit >= MAX_BALLOONS)
+				# End after the 8th scored pass (hit or miss).
+				if (balloons_counted_passed >= MAX_BALLOONS)
 				{
 					setprop("/algorithm/game/finished", 1);
 
@@ -714,24 +722,21 @@ This Scenario announces if you hit or miss.
 					current_lon
 				);
 
-				var self_heading =
-					getprop("/orientation/heading-deg");
-
 				# =================================================
 				# FIELD OF VIEW
 				# =================================================
 
 				var max_visible_angle =
 					10 +
-					(hardness_lon * 4);
+					(hardness_lon * 3);
 
-				if (max_visible_angle > 40)
-					max_visible_angle = 40;
+				if (max_visible_angle > MAX_LATERAL_VISIBLE_ANGLE)
+					max_visible_angle = MAX_LATERAL_VISIBLE_ANGLE;
 
 				var side =
 					((rand() > 0.5) ? 1 : -1);
 
-				# Tell the pilot where the *next* balloon spawned (relative to heading).
+				# Tell the pilot where the *next* balloon spawned (relative to north).
 				var turn_hint = ((side > 0) ? "turn right" : "turn left");
 				setprop("/sim/messages/copilot", hit_miss_msg ~ " - " ~ turn_hint);
 
@@ -741,18 +746,15 @@ This Scenario announces if you hit or miss.
 					side;
 
 				var new_balloon_heading =
-					geo.normdeg(
-						self_heading +
-						visible_offset
-					);
+					geo.normdeg(visible_offset);
 
 				# =================================================
 				# SHORTER DISTANCE
 				# =================================================
 
 				var new_balloon_horizontal_offset =
-					2600 +
-					(hardness_lon * 350);
+					BALLOON_AHEAD_BASE_FT +
+					(hardness_lon * BALLOON_AHEAD_PER_LEVEL_FT);
 
 				new_balloon_pos.apply_course_distance(
 					new_balloon_heading,
@@ -880,6 +882,7 @@ This Scenario announces if you hit or miss.
 
 				min_dist_ft = 10000000;
 				pass_committed = 0;
+				pass_south_armed = 0;
 			}
 		}
 	}
