@@ -11,6 +11,8 @@ __pycache__/
 # =========================
 game/sivaks_logging_version/runs/
 game/bin/
+temp_voice_recordings/
+voice_reports/
 
 # =========================
 # Ignore everything in sivaks_logging_version by default

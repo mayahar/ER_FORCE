@@ -15,6 +15,7 @@ class Controller:
         self.features = {}
         self.questionnaire = {}
         self.result = None
+        self.voice_session_data = None
 
     # -------------------
     # DISPATCH (mock)
@@ -77,13 +78,21 @@ class Controller:
 
         fg_score = self._try_get_latest_flightgear_score()
 
+        voice_summary = None
+        voice_events = []
+
+        if self.voice_session_data:
+            voice_summary = self.voice_session_data.get("summary", {})
+            voice_events = self.voice_session_data.get("events", [])
+
         self.features = {
             "voice": {
-                "dLPC": b["voice"]["dLPC"] * random.uniform(0.9, 1.1),
-                "PARCOR": b["voice"]["PARCOR"] * random.uniform(0.9, 1.1),
-                "LPC": b["voice"]["LPC"] * random.uniform(0.9, 1.1),
-                "Pitch": b["voice"]["Pitch"] * random.uniform(0.95, 1.05),
-                "MFCC": b["voice"]["MFCC"] * random.uniform(0.9, 1.1)
+                "dLPC": voice_summary.get("dLPC"),
+                "PARCOR": voice_summary.get("PARCOR"),
+                "LPC": voice_summary.get("LPC"),
+                "Pitch": voice_summary.get("Pitch"),
+                "MFCC": voice_summary.get("MFCC"),
+                "events": voice_events,
             },
 
             "eye": {
@@ -100,6 +109,9 @@ class Controller:
 
             "questionnaire": self.questionnaire.copy()
         }
+
+    def attach_voice_session_result(self, session_data):
+        self.voice_session_data = session_data or {}
 
     def _try_get_latest_flightgear_score(self) -> int | None:
         

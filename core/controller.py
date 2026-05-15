@@ -14,6 +14,7 @@ class Controller:
         self.features = {}
         self.questionnaire = {}
         self.result = None
+        self.voice_session_data = None
 
     # -------------------
     # DISPATCH
@@ -53,17 +54,22 @@ class Controller:
         if self.subject is None:
             raise ValueError("No subject loaded")
 
-        time.sleep(0.3)
-
         fg_score = self._try_get_latest_flightgear_score()
+        
+        voice_summary = {}
+        voice_events = []
+        if self.voice_session_data:
+            voice_summary = self.voice_session_data.get("summary", {})
+            voice_events = self.voice_session_data.get("events", [])
 
         self.features = {
             "voice": {
-                "dLPC": self.get_voice_dlpc(),
-                "PARCOR": self.get_voice_parcor(),
-                "LPC": self.get_voice_lpc(),
-                "Pitch": self.get_voice_pitch(),
-                "MFCC": self.get_voice_mfcc()
+                "dLPC": voice_summary.get("dLPC"),
+                "PARCOR": voice_summary.get("PARCOR"),
+                "LPC": voice_summary.get("LPC"),
+                "Pitch": voice_summary.get("Pitch"),
+                "MFCC": voice_summary.get("MFCC"),
+                "events": voice_events
             },
 
             "eye": {
@@ -79,25 +85,8 @@ class Controller:
             "questionnaire": self.questionnaire.copy()
         }
 
-    # -------------------
-    # REAL DATA FUNCTIONS
-    # -------------------
-
-    # ---- Voice ----
-    def get_voice_dlpc(self):
-        return None
-
-    def get_voice_parcor(self):
-        return None
-
-    def get_voice_lpc(self):
-        return None
-
-    def get_voice_pitch(self):
-        return None
-
-    def get_voice_mfcc(self):
-        return None
+    def attach_voice_session_result(self, session_data):
+        self.voice_session_data = session_data or {}
 
     # ---- Eye Tracking ----
     def get_fixation_duration(self):
