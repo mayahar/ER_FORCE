@@ -16,7 +16,7 @@ The system combines:
 * Research participant management
 * Fatigue scoring algorithms
 * Eye tracking controller abstraction
-* Streamlit UI
+* PySide6 desktop UI
 * Experiment logging and reporting
 
 ---
@@ -42,16 +42,12 @@ score/
 scores_reports/
 
 ui/
-├── components.py
 ├── state.py
-├── streamlit_app.py
-├── styles.py
-└── screens/
-    ├── enter_id.py
-    ├── game.py
-    ├── new_user_sleep_gate.py
-    ├── questionnaire.py
-    └── results.py
+├── app.py
+├── game_runtime.py
+├── pyside_app.py
+├── results_export.py
+└── theme.py
 
 playground.py
 .gitignore
@@ -218,11 +214,17 @@ Likely contents:
 
 The frontend layer of the system.
 
-The UI is implemented using Streamlit.
+The UI is implemented as a PySide6 desktop application.
 
-## `streamlit_app.py`
+## `app.py`
 
 Main application entry point.
+
+Run with:
+
+```bash
+python -m ui.app
+```
 
 ---
 
@@ -348,7 +350,7 @@ Ignored content includes:
 
 ## Frontend
 
-* Streamlit
+* PySide6
 
 ## Data Storage
 
@@ -419,7 +421,7 @@ Still worth documenting later:
 
 # Summary
 
-ER Force is a Python + Streamlit research platform for fatigue estimation and eye tracking experiments using an interactive flight/game environment.
+ER Force is a Python + PySide6 research platform for fatigue estimation and eye tracking experiments using an interactive flight/game environment.
 
 The project combines:
 

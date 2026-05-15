@@ -1,6 +1,9 @@
 librosa
+matplotlib
+pandas
 numpy
 scipy
 sounddevice
 soundfile
-pysptk
+tobii_research
+PySide6

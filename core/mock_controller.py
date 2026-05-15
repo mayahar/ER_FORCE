@@ -6,11 +6,14 @@ from pathlib import Path
 
 from core.subject_repository import get_subject
 from score.fatigue_scoring import compute_fatigue_score
+from core.session_manager import create_session
+
 
 
 class Controller:
 
     def __init__(self):
+        self.session = None
         self.subject = None
         self.features = {}
         self.questionnaire = {}
@@ -41,6 +44,7 @@ class Controller:
         self.subject = copy.deepcopy(subject)
 
         self.subject["id"] = subject.get("id", subject_id)
+        self.session = create_session(subject_id)
 
         self.features = {}
         self.questionnaire = {}
@@ -115,6 +119,20 @@ class Controller:
 
     def _try_get_latest_flightgear_score(self) -> int | None:
         
+        # 1. בדיקה ראשונה: האם קיים ציון בסשן הנוכחי (המיקום החדש)
+        if self.session and self.session.game_dir:
+            report = self.session.game_dir / "final_score.txt"
+            if report.exists():
+                try:
+                    text = report.read_text(encoding="utf-8", errors="ignore")
+                    m = re.search(r"Score:\s*(\d+)\s*/\s*100", text)
+                    if m:
+                        score = int(m.group(1))
+                        return max(0, min(100, score))
+                except OSError:
+                    pass
+
+        # 2. לוגיקה ישנה/גיבוי: חיפוש בתיקיית הריצות הכללית
         runs_root = os.environ.get(
             "SIVAKS_FG_RUNS_ROOT",
             r"C:\Users\srule\OneDrive\Desktop\yan\FlightGear_2020_3\sivaks_logging_version\runs",

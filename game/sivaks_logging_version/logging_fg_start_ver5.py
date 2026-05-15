@@ -667,7 +667,7 @@ if __name__ == "__main__":
     if os.environ.get("SIVAKS_NOTRIM", "").strip().lower() in ("1", "true", "yes", "y", "on"):
         fg_command_args.append("--notrim")
 
-    # Fullscreen: set by ER_FORCE Streamlit "Start game", or SIVAKS_FG_FULLSCREEN=1 for CLI.
+    # Fullscreen: set by the ER_FORCE desktop UI, or SIVAKS_FG_FULLSCREEN=1 for CLI.
     if os.environ.get("SIVAKS_FG_FULLSCREEN", "").strip().lower() in ("1", "true", "yes", "y", "on"):
         # 2020.3 Windows build rejects --fullscreen; --enable-fullscreen is recognized.
         fg_command_args.append("--enable-fullscreen")
@@ -679,9 +679,15 @@ if __name__ == "__main__":
     # Single timestamp for session_* dir and sivaks_logging_*.xml — avoids mismatched names and stray empty dirs.
     _run_stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     _session_id = f"session_{_run_stamp}"
-    _session_folder = os.path.join(_runs_root, _session_id)
+    _session_dir_is_final = os.environ.get("SIVAKS_FG_SESSION_DIR_IS_FINAL", "").strip().lower() in ("1", "true", "yes", "y", "on")
+    if _session_dir_is_final:
+        _session_folder = _runs_root
+    else:
+        _session_folder = os.path.join(_runs_root, _session_id)
+    os.makedirs(_session_folder, exist_ok=True)
 
-    _cleanup_old_sessions(_runs_root, keep_last=keep_last_sessions)
+    if not _session_dir_is_final:
+        _cleanup_old_sessions(_runs_root, keep_last=keep_last_sessions)
     _cleanup_export_folder(export_folder, keep_last=keep_last_exports)
 
     # Generate XML log file into the session folder and run FlightGear (makedirs happens on write).

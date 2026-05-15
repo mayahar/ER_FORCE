@@ -5,64 +5,64 @@
     "sex": "male",
     "age": 28
   },
-  "score": 9.864320565759744,
+  "score": 54.76091732242499,
   "scores": {
-    "voice": -83.20571060723715,
-    "eye": 73.50603808440664,
-    "game": 33.00257299012308,
+    "voice": -19.518235336620368,
+    "eye": 78.95661212409856,
+    "game": 99.98645516482271,
     "subjective": -33.33333333333333
   },
   "feature_contributions": {
     "voice": {
       "dLPC": {
-        "weighted_contribution": -0.7892914345956247,
-        "fatigue_score": -0.9866142932445308,
-        "relative_change": -0.9999999761904768,
-        "normalized_effect": -4.999999630952402,
-        "raw_sigmoid": 0.006692853377734647,
+        "weighted_contribution": -0.734677093601684,
+        "fatigue_score": -0.9183463670021049,
+        "relative_change": -0.6313465342745367,
+        "normalized_effect": -3.1567325135360575,
+        "raw_sigmoid": 0.04082681649894756,
         "better_than_baseline": true,
         "weight": 0.8,
         "direction": 1,
         "expected_change": 0.2,
         "std": null,
         "baseline": 0.42,
-        "current": 0.0
+        "current": 0.15483444929122925
       },
       "PARCOR": {
-        "weighted_contribution": -0.7699300871995779,
-        "fatigue_score": -0.9999092041552959,
-        "relative_change": -0.9999999818181821,
-        "normalized_effect": -9.999998818181938,
-        "raw_sigmoid": 4.5397922352051614e-05,
+        "weighted_contribution": -0.7693582995902102,
+        "fatigue_score": -0.9991666228444288,
+        "relative_change": -0.7782755433892153,
+        "normalized_effect": -7.782754655616688,
+        "raw_sigmoid": 0.00041668857778557727,
         "better_than_baseline": true,
         "weight": 0.77,
         "direction": 1,
         "expected_change": 0.1,
         "std": null,
         "baseline": 0.55,
-        "current": 0.0
+        "current": 0.12194844335317612
       },
       "LPC": {
-        "weighted_contribution": -0.7596347258930249,
-        "fatigue_score": -0.9995193761750328,
-        "relative_change": -0.9999999836065576,
-        "normalized_effect": -8.333332502276939,
-        "raw_sigmoid": 0.00024031191248360178,
+        "weighted_contribution": -0.7554516890911208,
+        "fatigue_score": -0.9940153803830537,
+        "relative_change": -0.6970456040350289,
+        "normalized_effect": -5.808712882899168,
+        "raw_sigmoid": 0.0029923098084731693,
         "better_than_baseline": true,
         "weight": 0.76,
         "direction": 1,
         "expected_change": 0.12,
         "std": null,
         "baseline": 0.61,
-        "current": 0.0
+        "current": 0.18480217456817627
       },
       "Pitch": {
-        "weighted_contribution": -0.7599999999999949,
-        "fatigue_score": -0.9999999999999933,
-        "relative_change": -0.9999999999166668,
-        "normalized_effect": -33.333331462037144,
-        "raw_sigmoid": 3.3382440422025056e-15,
-        "better_than_baseline": true,
+        "weighted_contribution": 0.76,
+        "fatigue_score": 1.0,
+        "relative_change": 2.160047149478199,
+        "normalized_effect": 72.00156761318543,
+        "raw_sigmoid": 1.0,
+        "better_than_baseline": false,
         "weight": 0.76,
         "direction": 1,
         "expected_change": 0.18,
@@ -71,43 +71,43 @@
           "female": 30.0
         },
         "baseline": 120.0,
-        "current": 0.0
+        "current": 379.2056579589844
       },
       "MFCC": {
-        "weighted_contribution": -0.11624303962968408,
-        "fatigue_score": -0.15499071950624543,
-        "relative_change": -0.9999999800000003,
-        "normalized_effect": -0.31249997773437616,
-        "raw_sigmoid": 0.4225046402468773,
-        "better_than_baseline": true,
+        "weighted_contribution": 0.7499868453567929,
+        "fatigue_score": 0.9999824604757239,
+        "relative_change": 37.26141664368768,
+        "normalized_effect": 11.644192104387553,
+        "raw_sigmoid": 0.999991230237862,
+        "better_than_baseline": false,
         "weight": 0.75,
         "direction": 1,
         "expected_change": 0.2,
         "std": 8.0,
         "baseline": 0.5,
-        "current": 0.0
+        "current": 19.130708694458008
       }
     },
     "eye": {
       "fixation_duration": {
-        "weighted_contribution": 0.2316751044477925,
-        "fatigue_score": 0.2316751044477925,
-        "relative_change": 0.09652863528237672,
-        "normalized_effect": 0.4719177106179631,
-        "raw_sigmoid": 0.6158375522238962,
+        "weighted_contribution": 0.38974175159885815,
+        "fatigue_score": 0.38974175159885815,
+        "relative_change": 0.16833908882841656,
+        "normalized_effect": 0.8229909930356601,
+        "raw_sigmoid": 0.6948708757994291,
         "better_than_baseline": false,
         "weight": 1.0,
         "direction": 1,
         "expected_change": 0.5,
         "std": 0.09,
         "baseline": 0.22,
-        "current": 0.24123630072740923
+        "current": 0.25703460122564253
       },
       "fixation_count": {
         "weighted_contribution": 0.9,
         "fatigue_score": 1.0,
-        "relative_change": 0.07364763160562797,
-        "normalized_effect": 98.19683504884352,
+        "relative_change": 0.10060270856818401,
+        "normalized_effect": 134.13693506991098,
         "raw_sigmoid": 1.0,
         "better_than_baseline": false,
         "weight": 0.9,
@@ -115,13 +115,13 @@
         "expected_change": 0.45,
         "std": 0.2,
         "baseline": 120.0,
-        "current": 128.83771579341183
+        "current": 132.0723250291881
       },
       "saccade_count": {
         "weighted_contribution": 1.0,
         "fatigue_score": 1.0,
-        "relative_change": 0.16074412295011695,
-        "normalized_effect": 199.26956122431318,
+        "relative_change": 0.16999713889821208,
+        "normalized_effect": 210.74024142175145,
         "raw_sigmoid": 1.0,
         "better_than_baseline": false,
         "weight": 1.0,
@@ -129,23 +129,23 @@
         "expected_change": 0.55,
         "std": 0.22,
         "baseline": 150.0,
-        "current": 174.11161844412499
+        "current": 175.4995708364318
       }
     },
     "game": {
       "score": {
-        "weighted_contribution": 0.27062109851900923,
-        "fatigue_score": 0.3300257299012308,
-        "relative_change": -0.07058823528581315,
-        "normalized_effect": -0.6857142580091248,
-        "raw_sigmoid": 0.6650128649506154,
+        "weighted_contribution": 0.8198889323515463,
+        "fatigue_score": 0.9998645516482272,
+        "relative_change": -0.9882352940013841,
+        "normalized_effect": -9.599999612127746,
+        "raw_sigmoid": 0.9999322758241136,
         "better_than_baseline": false,
         "weight": 0.82,
         "direction": -1,
         "expected_change": 0.25,
         "std": 35.0,
         "baseline": 85.0,
-        "current": 79.0
+        "current": 1.0
       }
     },
     "subjective": {
@@ -195,20 +195,31 @@
   },
   "features": {
     "voice": {
-      "dLPC": 0.0,
-      "PARCOR": 0.0,
-      "LPC": 0.0,
-      "Pitch": 0.0,
-      "MFCC": 0.0,
-      "events": []
+      "dLPC": 0.15483444929122925,
+      "PARCOR": 0.12194844335317612,
+      "LPC": 0.18480217456817627,
+      "Pitch": 379.2056579589844,
+      "MFCC": 19.130708694458008,
+      "events": [
+        {
+          "event_id": "voice_phrase_1",
+          "prompt_text": "Sustained vowel 'Ah'",
+          "prompt_type": "phrase",
+          "event_type": "phrase",
+          "timestamp": 1778865656.9205103,
+          "duration": 10.0,
+          "audio_path": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\1_2026-05-15_20-20-41\\voice\\voice_phrase_1.wav",
+          "error": null
+        }
+      ]
     },
     "eye": {
-      "fixation_duration": 0.24123630072740923,
-      "fixation_count": 128.83771579341183,
-      "saccade_count": 174.11161844412499
+      "fixation_duration": 0.25703460122564253,
+      "fixation_count": 132.0723250291881,
+      "saccade_count": 175.4995708364318
     },
     "game": {
-      "score": 79
+      "score": 1
     },
     "questionnaire": {
       "fatigue_self": 5,

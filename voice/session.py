@@ -1,8 +1,9 @@
 import time
-from datetime import datetime
+import zipfile
 from concurrent.futures import ThreadPoolExecutor, Future
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from xml.sax.saxutils import escape
 
 import numpy as np
 import sounddevice as sd
@@ -25,6 +26,7 @@ class VoiceSessionError(Exception):
 class VoiceSessionManager:
     DEFAULT_RECORDING_ROOT = Path("temp_voice_recordings")
     DEFAULT_REPORTS_ROOT = Path("voice_reports")
+    FEATURE_ARRAY_KEYS = ("mfcc", "pitch", "lpc", "parcor", "delta_lpc")
 
     # קובץ ה־WAV של הצליל "אאאאא"
     PROMPT_AUDIO_FILE = Path(__file__).parent / "Ahhhh.wav"
@@ -45,7 +47,10 @@ class VoiceSessionManager:
         self.finish_timestamp: Optional[float] = None
         self.events = events if events is not None else self._default_events()
 
-        self.recording_root = Path(recording_root or self.DEFAULT_RECORDING_ROOT) / self.session_id
+        if recording_root:
+            self.recording_root = Path(recording_root)
+        else:
+            self.recording_root = Path(self.DEFAULT_RECORDING_ROOT) / self.session_id
         self.recording_root.mkdir(parents=True, exist_ok=True)
 
         # Pre-load prompt audio to ensure immediate transition after TTS
@@ -213,11 +218,13 @@ class VoiceSessionManager:
 
     def finalize_session(self) -> Dict[str, Any]:
         if self._finalized:
-            return self._build_result()
+            return self._build_result(include_feature_arrays=False)
 
         if self._active_future is not None:
             try:
-                self._active_future.result(timeout=10.0)
+                active = self.active_event
+                timeout = max(45.0, (active.duration if active else 10.0) + 35.0)
+                self._active_future.result(timeout=timeout)
             except Exception:
                 pass
 
@@ -260,9 +267,9 @@ class VoiceSessionManager:
 
         self._finalized = True
 
-        result = self._build_result()
+        result = self._build_result(include_feature_arrays=True)
         self._save_results_to_file(result)
-        return result
+        return self._build_result(include_feature_arrays=False)
 
     def _load_audio(self, event: VoiceEvent):
         stored = event.metadata.get("audio")
@@ -280,51 +287,224 @@ class VoiceSessionManager:
 
         return audio, int(sr)
 
-    def _build_result(self) -> Dict[str, Any]:
+    def _build_result(self, include_feature_arrays: bool = False) -> Dict[str, Any]:
+        events = self._event_results
+        if not include_feature_arrays:
+            events = [self._compact_event_result(event) for event in self._event_results]
+
         return {
             "session_id": self.session_id,
             "subject_id": self.subject_id,
             "started_at": self.start_timestamp,
             "finished_at": self.finish_timestamp,
-            "events": self._event_results,
+            "events": events,
             "summary": self._aggregate_summary(),
         }
 
+    def _compact_event_result(self, event: Dict[str, Any]) -> Dict[str, Any]:
+        compact = {}
+        for key, value in event.items():
+            if isinstance(value, (list, np.ndarray)):
+                continue
+            compact[key] = value
+        return compact
+
+    def _feature_array_dataframe(self, event: Dict[str, Any], feature_name: str):
+        values = event.get(feature_name, [])
+        array = np.asarray(values)
+
+        if array.ndim == 0:
+            array = array.reshape(1)
+
+        if array.ndim == 1:
+            df = pd.DataFrame({feature_name: array})
+        else:
+            flat = array.reshape(array.shape[0], -1)
+            df = pd.DataFrame(
+                flat,
+                columns=[f"{feature_name}_{idx}" for idx in range(flat.shape[1])],
+            )
+
+        df.insert(0, "frame", range(len(df)))
+        df.insert(0, "event_id", event.get("event_id"))
+        df.insert(1, "audio_path", event.get("audio_path"))
+        return df
+
+    def _save_feature_workbook(self, result: Dict[str, Any], subject: str) -> None:
+        workbook_path = self.recording_root / f"voice_features_{subject}_{self.session_id}.xlsx"
+        sheets = [("summary", pd.DataFrame([result["summary"]]))]
+
+        for feature_name in self.FEATURE_ARRAY_KEYS:
+            frames = [
+                self._feature_array_dataframe(event, feature_name)
+                for event in result["events"]
+                if feature_name in event
+            ]
+            if frames:
+                feature_df = pd.concat(frames, ignore_index=True)
+            else:
+                feature_df = pd.DataFrame(columns=["event_id", "audio_path", "frame"])
+
+            sheets.append((feature_name[:31], feature_df))
+
+        self._write_xlsx(workbook_path, sheets)
+
+    def _write_xlsx(self, path: Path, sheets) -> None:
+        sheet_xml = []
+        for _, df in sheets:
+            sheet_xml.append(self._worksheet_xml(df))
+
+        with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("[Content_Types].xml", self._content_types_xml(len(sheets)))
+            zf.writestr("_rels/.rels", self._root_rels_xml())
+            zf.writestr("xl/workbook.xml", self._workbook_xml([name for name, _ in sheets]))
+            zf.writestr("xl/_rels/workbook.xml.rels", self._workbook_rels_xml(len(sheets)))
+            zf.writestr("xl/styles.xml", self._styles_xml())
+            for index, xml in enumerate(sheet_xml, start=1):
+                zf.writestr(f"xl/worksheets/sheet{index}.xml", xml)
+
+    def _content_types_xml(self, sheet_count: int) -> str:
+        overrides = [
+            '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>',
+            '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>',
+        ]
+        for index in range(1, sheet_count + 1):
+            overrides.append(
+                f'<Override PartName="/xl/worksheets/sheet{index}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+            )
+
+        return (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+            '<Default Extension="xml" ContentType="application/xml"/>'
+            + "".join(overrides)
+            + "</Types>"
+        )
+
+    def _root_rels_xml(self) -> str:
+        return (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+            "</Relationships>"
+        )
+
+    def _workbook_xml(self, sheet_names) -> str:
+        sheets_xml = []
+        for index, name in enumerate(sheet_names, start=1):
+            safe_name = escape(str(name).replace(":", "_").replace("/", "_").replace("\\", "_")[:31])
+            sheets_xml.append(
+                f'<sheet name="{safe_name}" sheetId="{index}" r:id="rId{index}"/>'
+            )
+
+        return (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            "<sheets>"
+            + "".join(sheets_xml)
+            + "</sheets></workbook>"
+        )
+
+    def _workbook_rels_xml(self, sheet_count: int) -> str:
+        rels = []
+        for index in range(1, sheet_count + 1):
+            rels.append(
+                f'<Relationship Id="rId{index}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet{index}.xml"/>'
+            )
+        rels.append(
+            f'<Relationship Id="rId{sheet_count + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+        )
+        return (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            + "".join(rels)
+            + "</Relationships>"
+        )
+
+    def _styles_xml(self) -> str:
+        return (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            '<fonts count="1"><font><sz val="11"/><name val="Calibri"/></font></fonts>'
+            '<fills count="1"><fill><patternFill patternType="none"/></fill></fills>'
+            '<borders count="1"><border/></borders>'
+            '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+            '<cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs>'
+            "</styleSheet>"
+        )
+
+    def _worksheet_xml(self, df) -> str:
+        rows_xml = []
+        rows = [list(df.columns)] + df.astype(object).where(pd.notnull(df), None).values.tolist()
+
+        for row_index, row in enumerate(rows, start=1):
+            cells = []
+            for col_index, value in enumerate(row, start=1):
+                cells.append(self._cell_xml(row_index, col_index, value))
+            rows_xml.append(f'<row r="{row_index}">' + "".join(cells) + "</row>")
+
+        return (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            "<sheetData>"
+            + "".join(rows_xml)
+            + "</sheetData></worksheet>"
+        )
+
+    def _cell_xml(self, row_index: int, col_index: int, value) -> str:
+        cell_ref = f"{self._column_name(col_index)}{row_index}"
+
+        if value is None:
+            return f'<c r="{cell_ref}"/>'
+
+        if isinstance(value, (np.integer, int)):
+            return f'<c r="{cell_ref}"><v>{int(value)}</v></c>'
+
+        if isinstance(value, (np.floating, float)):
+            value = float(value)
+            if not np.isfinite(value):
+                return f'<c r="{cell_ref}"/>'
+            return f'<c r="{cell_ref}"><v>{value}</v></c>'
+
+        text = escape(str(value))
+        return f'<c r="{cell_ref}" t="inlineStr"><is><t>{text}</t></is></c>'
+
+    def _column_name(self, col_index: int) -> str:
+        name = ""
+        while col_index:
+            col_index, remainder = divmod(col_index - 1, 26)
+            name = chr(65 + remainder) + name
+        return name
+
     def _save_results_to_file(self, result: Dict[str, Any]) -> None:
         """
-        Saves the session metrics to an Excel file with multiple sheets.
-        Note: Since CSV files do not support multiple sheets, we use .xlsx format.
+        Saves the session metrics as CSV files in the voice folder.
         """
         if pd is None:
             # Pandas is required for multi-sheet export
             return
 
         try:
-            self.DEFAULT_REPORTS_ROOT.mkdir(parents=True, exist_ok=True)
-            
-            # Generate filename: {subject_id}_{YYYY-MM-DD}.xlsx
-            ts = self.start_timestamp or time.time()
-            date_str = datetime.fromtimestamp(ts).strftime("%Y-%m-%d")
+            # שימוש ב-Session ID המקורי לשם הקובץ בתוך תיקיית הקול
             subject = self.subject_id if self.subject_id else "unknown"
-            filename = f"{subject}_{date_str}.xlsx"
-            report_path = self.DEFAULT_REPORTS_ROOT / filename
 
             summary_df = pd.DataFrame([result["summary"]])
             
-            # Filter event results to include only scalar values (exclude raw audio/feature arrays)
             report_events = []
             for event in result["events"]:
-                clean_event = {k: v for k, v in event.items() if not isinstance(v, (list, np.ndarray))}
-                report_events.append(clean_event)
-            events_df = pd.DataFrame(report_events)
+                report_events.append(self._compact_event_result(event))
+            
+            # Save summary and event details to separate CSV files
+            self._save_feature_workbook(result, subject)
+            
+            print(f"Voice reports saved to: {self.recording_root}")
 
-            # Write to Excel with multiple sheets
-            with pd.ExcelWriter(report_path, engine='openpyxl') as writer:
-                summary_df.to_excel(writer, sheet_name='Session Summary', index=False)
-                events_df.to_excel(writer, sheet_name='Event Details', index=False)
-        except Exception:
-            # Fallback for logging or silent failure during session finalization
-            pass
+        except Exception as e:
+            print(f"Error saving voice report to {self.recording_root}: {e}")
+            import traceback
+            traceback.print_exc()
 
     def _aggregate_summary(self) -> Dict[str, Any]:
         if not self._event_results:
