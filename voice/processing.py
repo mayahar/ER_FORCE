@@ -3,7 +3,6 @@ import librosa
 from scipy.signal import lfilter
 
 
-
 class VoiceFeatureExtractionError(Exception):
     pass
 
@@ -13,7 +12,8 @@ class VoiceFeatureExtractor:
     PREEMPHASIS = 0.97
     FRAME_LENGTH_MS = 25
     HOP_LENGTH_MS = 10
-    LPC_ORDER = 16
+    # תיקון מבוסס ספרות: סדר 12 הוא האופטימלי לצליל תנועה (Vowel) מתמשך ב-16kHz
+    LPC_ORDER = 12 
     FMIN = 50.0
     FMAX = 500.0
 
@@ -58,6 +58,8 @@ class VoiceFeatureExtractor:
     def extract_mfcc(cls, audio: np.ndarray, sr: int, n_mfcc: int = 13):
         frame_length = cls._frame_length(sr)
         hop_length = cls._hop_length(sr)
+        
+        # שינוי: center=True מבטיח סנכרון זמנים מושלם מול אלגוריתם ה-Pitch (pyin)
         mfcc = librosa.feature.mfcc(
             y=audio,
             sr=sr,
@@ -66,7 +68,7 @@ class VoiceFeatureExtractor:
             hop_length=hop_length,
             win_length=frame_length,
             window="hamming",
-            center=False,
+            center=True, 
         )
         return mfcc.T.astype(np.float32)
 
@@ -76,6 +78,7 @@ class VoiceFeatureExtractor:
             return np.array([], dtype=np.float32)
 
         try:
+            # שינוי: center=True כדי להתאים קוהרנטית ל-MFCC ולמנוע איבוד פריימים בסוף האות
             result = librosa.pyin(
                 audio,
                 fmin=cls.FMIN,
@@ -83,7 +86,7 @@ class VoiceFeatureExtractor:
                 sr=sr,
                 frame_length=cls._frame_length(sr),
                 hop_length=cls._hop_length(sr),
-                center=False,
+                center=True,
             )
             if isinstance(result, tuple):
                 f0 = result[0]
@@ -99,10 +102,6 @@ class VoiceFeatureExtractor:
 
     @classmethod
     def _levinson_durbin(cls, r: np.ndarray, order: int):
-        """
-        מימוש אלגוריתם לוינסון-דרבין לחילוץ מקדמי LPC ו-PARCOR.
-        מבוסס על פונקציית האוטוקורלציה r.
-        """
         a = np.zeros(order + 1, dtype=np.float64)
         k = np.zeros(order, dtype=np.float64)
         a[0] = 1.0
@@ -132,9 +131,6 @@ class VoiceFeatureExtractor:
 
     @classmethod
     def _compute_frame_lpc_features(cls, audio: np.ndarray, sr: int, mode="lpc"):
-        """
-        פונקציית עזר לחישוב LPC או PARCOR לכל הפריימים ללא תלות ב-pysptk.
-        """
         frames = cls.frame_signal(audio, sr)
         order = cls.LPC_ORDER
         
@@ -147,10 +143,7 @@ class VoiceFeatureExtractor:
             if np.allclose(frame, 0.0):
                 continue
             
-            # חישוב אוטוקורלציה (מקדמים 0 עד order)
-            # librosa.autocorrelate מחזירה מערך באורך המקור
             r = librosa.autocorrelate(frame)[:order + 1]
-            
             if r[0] == 0:
                 continue
 
@@ -175,10 +168,7 @@ class VoiceFeatureExtractor:
 
     @classmethod
     def compute_delta_lpc(cls, lpc_features: np.ndarray):
-        if lpc_features.ndim != 2:
-            return np.zeros_like(lpc_features, dtype=np.float32)
-
-        if lpc_features.shape[0] < 2:
+        if lpc_features.ndim != 2 or lpc_features.shape[0] < 2:
             return np.zeros_like(lpc_features, dtype=np.float32)
 
         delta = np.diff(lpc_features, axis=0)
@@ -188,21 +178,32 @@ class VoiceFeatureExtractor:
     @classmethod
     def extract_features(cls, audio: np.ndarray, sample_rate: int):
         audio, sr = cls.preprocess_audio(audio, sample_rate)
+        
         mfcc = cls.extract_mfcc(audio, sr)
         pitch = cls.extract_pitch(audio, sr)
         lpc = cls.extract_lpc(audio, sr)
         parcor = cls.extract_parcor(audio, sr)
         delta_lpc = cls.compute_delta_lpc(lpc)
 
-        frame_count = min(
-            mfcc.shape[0],
-            pitch.shape[0] if pitch.ndim == 1 else pitch.shape[0],
-            lpc.shape[0],
-            parcor.shape[0],
-            delta_lpc.shape[0],
-        )
+        # תיקון קריטי: במקום לחתוך גלובלית לפי ה-minimum, אנחנו מתאימים את אורכי 
+        # המערכים באופן דינמי באמצעות אינטרפולציה או הצמדה (Padding/Clipping) 
+        # כדי לא לאבד נתוני Pitch קריטיים בסוף ההקלטה.
+        target_frames = pitch.shape[0]
 
-        if frame_count == 0:
+        def adjust_time_dimension(arr, target_len):
+            curr_len = arr.shape[0]
+            if curr_len == target_len:
+                return arr
+            if curr_len > target_len:
+                return arr[:target_len]
+            # אם קצר מדי, נבצע פאדינג של השורה האחרונה
+            pad_width = target_len - curr_len
+            if arr.ndim == 1:
+                return np.pad(arr, (0, pad_width), mode='edge')
+            else:
+                return np.pad(arr, ((0, pad_width), (0, 0)), mode='edge')
+
+        if target_frames == 0:
             return {
                 "mfcc": np.zeros((0, mfcc.shape[1]), dtype=np.float32),
                 "pitch": np.full((0,), np.float32(np.nan)),
@@ -212,9 +213,9 @@ class VoiceFeatureExtractor:
             }
 
         return {
-            "mfcc": mfcc[:frame_count],
-            "pitch": pitch[:frame_count],
-            "lpc": lpc[:frame_count],
-            "parcor": parcor[:frame_count],
-            "delta_lpc": delta_lpc[:frame_count],
+            "mfcc": adjust_time_dimension(mfcc, target_frames),
+            "pitch": pitch,
+            "lpc": adjust_time_dimension(lpc, target_frames),
+            "parcor": adjust_time_dimension(parcor, target_frames),
+            "delta_lpc": adjust_time_dimension(delta_lpc, target_frames),
         }

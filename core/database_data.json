@@ -7,11 +7,11 @@
       "age": 28,
       "baseline": {
         "voice": {
-          "dLPC": 0.1,
-          "PARCOR": 0.55,
-          "LPC": -1,
+          "dLPC": 0.06,
+          "PARCOR": 0.4,
+          "LPC": 1200,
           "Pitch": 120.0,
-          "MFCC": -50
+          "MFCC": 50
         },
         "eye": {
           "fixation_duration": 0.22,
@@ -35,11 +35,11 @@
       "age": 25,
       "baseline": {
         "voice": {
-          "dLPC": 0.04,
-          "PARCOR": 0.53,
-          "LPC": -0.9,
+          "dLPC": 0.10,
+          "PARCOR": 0.5,
+          "LPC": 1000,
           "Pitch": 230.0,
-          "MFCC": -60
+          "MFCC": 70
         },
         "eye": {
           "fixation_duration": 0.2,
@@ -63,11 +63,11 @@
       "age": 24,
       "baseline": {
         "voice": {
-          "dLPC": 0.08,
-          "PARCOR": 0.5517144600546122,
-          "LPC": -0.5676467583287299,
+          "dLPC": 0.12,
+          "PARCOR": 0.45,
+          "LPC": 1500,
           "Pitch": 200,
-          "MFCC": -70
+          "MFCC": 30
         },
         "eye": {
           "fixation_duration": 0.28036600936790407,

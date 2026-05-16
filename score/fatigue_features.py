@@ -11,34 +11,34 @@ FEATURES = {
     "dLPC": {
         "modality": "voice",
         "weight": 0.80,
-        "direction": 1,
+        "direction": -1,
         "std": None,
         "expected_change": 0.20,
-        "MEASUREMENT_VALID_RANGES": (0.001, 0.3)
+        "MEASUREMENT_VALID_RANGES": (0.01, 0.45)
     },
 
     "PARCOR": {
         "modality": "voice",
         "weight": 0.77,
-        "direction": 1,
+        "direction": -1,
         "std": None,
         "expected_change": 0.10,
-        "MEASUREMENT_VALID_RANGES": (-1.0, 1.0)
+        "MEASUREMENT_VALID_RANGES": (0.15, 0.85)
     },
 
     "LPC": {
         "modality": "voice",
         "weight": 0.76,
-        "direction": 1,
+        "direction": -1,
         "std": None,
         "expected_change": 0.12,
-        "MEASUREMENT_VALID_RANGES": (-1.45, -0.35)
+        "MEASUREMENT_VALID_RANGES": (500, 1800)
     },
 
     "Pitch": {
         "modality": "voice",
         "weight": 0.76,
-        "direction": 1,
+        "direction": -1,
         "std": {
             "male": 20.0,
             "female": 30.0
@@ -50,10 +50,10 @@ FEATURES = {
     "MFCC": {
         "modality": "voice",
         "weight": 0.75,
-        "direction": 1,
+        "direction": -1,
         "std": 8.0,
         "expected_change": 0.20,
-        "MEASUREMENT_VALID_RANGES": (-110.0, -25.0)
+        "MEASUREMENT_VALID_RANGES": (5, 80)
     },
 
     # =====================================================

@@ -516,58 +516,76 @@ class VoiceSessionManager:
                 "MFCC": 0.0,
             }
 
-        dLPC = []
-        parcor = []
-        lpc = []
-        pitch_means = []
-        pitch_jitters = [] # מדד נוסף לעייפות
-        mfcc_focus = [] # נתמקד במקדם MFCC 1 ו-2
+        dLPC_list = []
+        parcor_list = []
+        lpc_formants_list = []
+        pitch_list = []
+        mfcc_list = []
+
+        sampling_rate = 16000  # קצב הדגימה המוגדר ב-VoiceFeatureExtractor
 
         for event in self._event_results:
             try:
-                # שימוש ב-MFCC: במקום ממוצע של הכל, ניקח את MFCC 1 (מייצג גוון קול)
-                # אנחנו לא עושים Absolute Value כדי לא לאבד את הכיווניות של האנרגיה
+                # 1. MFCC: חישוב עוצמת הרעש/אנרגיה (RMS) של המקדם הראשון לקבלת ערך חיובי מייצג
                 mfcc_array = np.asarray(event["mfcc"], dtype=np.float32)
                 if mfcc_array.ndim == 2 and mfcc_array.shape[1] > 1:
-                    # ממוצע של מקדם 1 (השני בסדרה) - נחשב למדד יציבות ספקטרלית
-                    mfcc_focus.append(np.nanmean(mfcc_array[:, 1])) 
-                
-                # LPC ו-PARCOR: במקום ממוצע ערך מוחלט, נחשב ממוצע פשוט של המקדמים הראשונים
+                    coef_1 = mfcc_array[:, 1]
+                    rms_mfcc = np.sqrt(np.nanmean(coef_1 ** 2))
+                    mfcc_list.append(rms_mfcc)
+
+                # 2. LPC: המרה של המקמדים לתדרי פורמנטים (Hz) במקום מיצוע אלגברי של פילטרים
                 lpc_array = np.asarray(event["lpc"], dtype=np.float32)
+                if lpc_array.size > 0 and lpc_array.ndim == 2:
+                    frame_formants = []
+                    for frame_lpc in lpc_array:
+                        # מציאת שורשי הפולינום לקבלת תדרי התהודה
+                        roots = np.roots(frame_lpc)
+                        # לוקחים רק את השורשים בחצי המישור העליון (תדרים חיוביים)
+                        roots = [r for r in roots if np.imag(r) >= 0]
+                        # חישוב התדרים ב-Hz
+                        angles = np.angle(roots)
+                        freqs = sorted(angles * (sampling_rate / (2 * np.pi)))
+                        
+                        # פילטרציה של תדרי 0 (DC) ותדרים גבוהים מדי
+                        valid_freqs = [f for f in freqs if 250 < f < 4000]
+                        if valid_freqs:
+                            # לוקחים את הפורמנט הראשי הדומיננטי (F1 או F2)
+                            frame_formants.append(valid_freqs[0])
+                    
+                    if frame_formants:
+                        lpc_formants_list.append(np.nanmean(frame_formants))
+
+                # 3. PARCOR: מיצוע אנרגטי (RMS) של מקדמי ההחזר הראשונים (0 עד 3)
                 parcor_array = np.asarray(event["parcor"], dtype=np.float32)
-                
-                if lpc_array.size > 0:
-                    lpc.append(np.nanmean(lpc_array[:, 1:4])) # מקדמי המבנה העיקריים
-                if parcor_array.size > 0:
-                    parcor.append(np.nanmean(parcor_array[:, 0:3]))
+                if parcor_array.size > 0 and parcor_array.ndim == 2:
+                    # מקדמי PARCOR משמעותיים נמצאים בטווח של [-1, 1], נמדוד את עצמתם (RMS)
+                    rms_parcor = np.sqrt(np.nanmean(parcor_array[:, 0:3] ** 2))
+                    parcor_list.append(rms_parcor)
 
-                # deltaLPC: נשאר עם ממוצע ערך מוחלט כי הוא מייצג "שינוי" (יציבות)
-                dlpc_arr = np.abs(np.asarray(event["delta_lpc"], dtype=np.float32))
+                # 4. dLPC: מדד יציבות - ממוצע השינויים הריבועיים (פלקטואציה של הסיגנל)
+                dlpc_arr = np.asarray(event["delta_lpc"], dtype=np.float32)
                 if dlpc_arr.size > 0:
-                    dLPC.append(np.nanmean(dlpc_arr))
+                    dLPC_list.append(np.sqrt(np.nanmean(dlpc_arr ** 2)))
 
-                # Pitch ו-Jitter
+                # 5. Pitch: ממוצע תדר יסודי לקטעי קול בלבד (נשאר מצוין כמו שהיה)
                 pitch_array = np.asarray(event["pitch"], dtype=np.float32)
                 voiced = pitch_array[~np.isnan(pitch_array)]
-                if voiced.size > 1:
-                    pitch_means.append(np.nanmean(voiced))
-                    # חישוב Jitter בסיסי: ממוצע ההפרשים בין פריימים עוקבים
-                    jitter = np.nanmean(np.abs(np.diff(voiced)))
-                    pitch_jitters.append(jitter)
+                if voiced.size > 0:
+                    pitch_list.append(np.nanmean(voiced))
 
             except Exception:
                 continue
 
         def _safe_mean(vals):
-            if not vals: return 0.0
+            if not vals: 
+                return 0.0
             m = np.nanmean(vals)
             return float(m) if np.isfinite(m) else 0.0
 
-        # החזרת התוצאות באותו פורמט בדיוק
         return {
-            "dLPC": _safe_mean(dLPC),
-            "PARCOR": _safe_mean(parcor),
-            "LPC": _safe_mean(lpc),
-            "Pitch": _safe_mean(pitch_means), # ממוצע תדר יסודי
-            "MFCC": _safe_mean(mfcc_focus),   # ממוצע המקדם ה-1 (Spectral Slope)
+            "dLPC": _safe_mean(dLPC_list),
+            "PARCOR": _safe_mean(parcor_list),
+            "LPC": _safe_mean(lpc_formants_list),  # יציג כעת את תדר התהודה הדומיננטי ב-Hz
+            "Pitch": _safe_mean(pitch_list),       # יציג את ה-Pitch הקיים והטוב
+            "MFCC": _safe_mean(mfcc_list),         # יציג ערך חיובי ומנורמל של הנטייה הספקטרלית
         }
