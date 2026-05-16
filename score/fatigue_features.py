@@ -13,7 +13,8 @@ FEATURES = {
         "weight": 0.80,
         "direction": 1,
         "std": None,
-        "expected_change": 0.20
+        "expected_change": 0.20,
+        "MEASUREMENT_VALID_RANGES": (0.001, 0.3)
     },
 
     "PARCOR": {
@@ -21,7 +22,8 @@ FEATURES = {
         "weight": 0.77,
         "direction": 1,
         "std": None,
-        "expected_change": 0.10
+        "expected_change": 0.10,
+        "MEASUREMENT_VALID_RANGES": (-1.0, 1.0)
     },
 
     "LPC": {
@@ -29,7 +31,8 @@ FEATURES = {
         "weight": 0.76,
         "direction": 1,
         "std": None,
-        "expected_change": 0.12
+        "expected_change": 0.12,
+        "MEASUREMENT_VALID_RANGES": (-1.45, -0.35)
     },
 
     "Pitch": {
@@ -40,7 +43,8 @@ FEATURES = {
             "male": 20.0,
             "female": 30.0
         },
-        "expected_change": 0.18
+        "expected_change": 0.18,
+        "MEASUREMENT_VALID_RANGES": (65.0, 350.0)
     },
 
     "MFCC": {
@@ -48,7 +52,8 @@ FEATURES = {
         "weight": 0.75,
         "direction": 1,
         "std": 8.0,
-        "expected_change": 0.20
+        "expected_change": 0.20,
+        "MEASUREMENT_VALID_RANGES": (-110.0, -25.0)
     },
 
     # =====================================================
@@ -60,7 +65,8 @@ FEATURES = {
         "weight": 1.00,
         "direction": 1,
         "std": 0.09,
-        "expected_change": 0.50
+        "expected_change": 0.50,
+        "MEASUREMENT_VALID_RANGES": (0.01, 10.0)
     },
 
     "fixation_count": {
@@ -68,7 +74,8 @@ FEATURES = {
         "weight": 0.90,
         "direction": 1,
         "std": 0.20,
-        "expected_change": 0.45
+        "expected_change": 0.45,
+        "MEASUREMENT_VALID_RANGES": (1.0, 10000.0)
     },
 
     "saccade_count": {
@@ -76,7 +83,8 @@ FEATURES = {
         "weight": 1.00,
         "direction": 1,
         "std": 0.22,
-        "expected_change": 0.55
+        "expected_change": 0.55,
+        "MEASUREMENT_VALID_RANGES": (1.0, 10000.0)
     },
 
     # =====================================================
@@ -88,7 +96,8 @@ FEATURES = {
         "weight": 0.82,
         "direction": -1,
         "std": 35.0,
-        "expected_change": 0.25
+        "expected_change": 0.25,
+        "MEASUREMENT_VALID_RANGES": (0.0, 100.0)
     },
 
     # =====================================================

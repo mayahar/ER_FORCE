@@ -7,11 +7,11 @@
       "age": 28,
       "baseline": {
         "voice": {
-          "dLPC": 0.42,
+          "dLPC": 0.1,
           "PARCOR": 0.55,
-          "LPC": 0.61,
+          "LPC": -1,
           "Pitch": 120.0,
-          "MFCC": 0.5
+          "MFCC": -50
         },
         "eye": {
           "fixation_duration": 0.22,
@@ -35,11 +35,11 @@
       "age": 25,
       "baseline": {
         "voice": {
-          "dLPC": 0.4,
+          "dLPC": 0.04,
           "PARCOR": 0.53,
-          "LPC": 0.6,
-          "Pitch": 200.0,
-          "MFCC": 0.55
+          "LPC": -0.9,
+          "Pitch": 230.0,
+          "MFCC": -60
         },
         "eye": {
           "fixation_duration": 0.2,
@@ -63,11 +63,11 @@
       "age": 24,
       "baseline": {
         "voice": {
-          "dLPC": 0.37474603247480937,
+          "dLPC": 0.08,
           "PARCOR": 0.5517144600546122,
-          "LPC": 0.5676467583287299,
-          "Pitch": 154.31965105361414,
-          "MFCC": 0.561842707244883
+          "LPC": -0.5676467583287299,
+          "Pitch": 200,
+          "MFCC": -70
         },
         "eye": {
           "fixation_duration": 0.28036600936790407,
@@ -81,37 +81,6 @@
           "fatigue_self": 0,
           "sleep_last": 7,
           "sleep_previous": 7
-        }
-      }
-    },
-    "101": {
-      "id": 101,
-      "name": "Participant 101",
-      "sex": "unknown",
-      "age": 18,
-      "baseline": {
-        "voice": {
-          "dLPC": 0.38045851482745907,
-          "PARCOR": 0.5811223616020295,
-          "LPC": 0.6570726986496267,
-          "Pitch": 149.90777882977474,
-          "MFCC": 0.5215460963588233
-        },
-        "eye": {
-          "fixation_duration": 0.25738158269042016,
-          "fixation_count": 128.63131170379927,
-          "saccade_count": 191.98445286661308
-        },
-        "game": {
-          "score": 74
-        },
-        "questionnaire": {
-          "fatigue_self": 5,
-          "sleep_last": 7,
-          "sleep_previous": 7,
-          "research_day": 1,
-          "research_condition": "baseline",
-          "study_id": "sleep_deprivation_research"
         }
       }
     }

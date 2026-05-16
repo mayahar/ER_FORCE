@@ -35,7 +35,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from core.mock_controller import Controller
+from core.controller import Controller
 from core.research_repository import (
     get_current_research_day,
     get_research_participant,
@@ -759,6 +759,19 @@ class ResultsScreen(BaseScreen):
         score_layout.addWidget(score_label)
         score_layout.addWidget(score_value)
         self.content.addWidget(score_panel)
+
+        quality_warning = result.get("quality_warning")
+        measurement_warnings = result.get("measurement_warnings") or []
+        if quality_warning:
+            warning_text = quality_warning
+            details = [
+                f"{warning.get('label')}: {warning.get('detail')}"
+                for warning in measurement_warnings
+                if warning.get("detail")
+            ]
+            if details:
+                warning_text = warning_text + "\n" + "\n".join(details)
+            self.content.addWidget(message(warning_text, "warningText"))
 
         export_rows, graph_rows = build_result_export_rows(result)
         ordered_rows = self._ordered_graph_rows(graph_rows)

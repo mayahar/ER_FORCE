@@ -1,3 +1,4 @@
+import math
 import time
 import os
 import re
@@ -5,7 +6,15 @@ from pathlib import Path
 
 from core.subject_repository import get_subject
 from core.session_manager import create_session
+from score.fatigue_features import FEATURES
 from score.fatigue_scoring import compute_fatigue_score
+
+
+MODALITY_WARNING_LABELS = {
+    "voice": "קול",
+    "eye": "תנועות עיניים",
+    "game": "משחק",
+}
 
 
 class Controller:
@@ -17,6 +26,7 @@ class Controller:
         self.questionnaire = {}
         self.result = None
         self.voice_session_data = None
+        self.measurement_warnings = []
 
     # -------------------
     # DISPATCH
@@ -46,6 +56,8 @@ class Controller:
         self.features = {}
         self.questionnaire = {}
         self.result = None
+        self.voice_session_data = None
+        self.measurement_warnings = []
 
         return True
 
@@ -57,39 +69,150 @@ class Controller:
         if self.subject is None:
             raise ValueError("No subject loaded")
 
-        fg_score = self._try_get_latest_flightgear_score()
-        
-        voice_summary = {}
-        voice_events = []
-        if self.voice_session_data:
-            voice_summary = self.voice_session_data.get("summary", {})
-            voice_events = self.voice_session_data.get("events", [])
+        self.measurement_warnings = []
+        voice_features, voice_events = self._collect_voice_features()
+        eye_features = self._collect_eye_features()
+        game_features = self._collect_game_features()
 
         self.features = {
-            "voice": {
-                "dLPC": voice_summary.get("dLPC"),
-                "PARCOR": voice_summary.get("PARCOR"),
-                "LPC": voice_summary.get("LPC"),
-                "Pitch": voice_summary.get("Pitch"),
-                "MFCC": voice_summary.get("MFCC"),
-                "events": voice_events
-            },
-
-            "eye": {
-                "fixation_duration": self.get_fixation_duration(),
-                "fixation_count": self.get_fixation_count(),
-                "saccade_count": self.get_saccade_count()
-            },
-
-            "game": {
-                "score": fg_score
-            },
-
+            "voice": {**voice_features, "events": voice_events},
+            "eye": eye_features,
+            "game": game_features,
             "questionnaire": self.questionnaire.copy()
         }
 
     def attach_voice_session_result(self, session_data):
         self.voice_session_data = session_data or {}
+
+    def _warn_measurement(self, modality, detail):
+        label = MODALITY_WARNING_LABELS.get(modality, modality)
+        warning = {
+            "modality": modality,
+            "label": label,
+            "detail": str(detail),
+        }
+        self.measurement_warnings.append(warning)
+        print(f"[ER Force warning] {label}: {detail}")
+
+    def _none_features(self, modality):
+        return {
+            feature: None
+            for feature in self._measurement_features(modality)
+        }
+
+    def _measurement_features(self, modality):
+        return {
+            feature: cfg
+            for feature, cfg in FEATURES.items()
+            if cfg.get("modality") == modality
+            and cfg.get("MEASUREMENT_VALID_RANGES") is not None
+        }
+
+    def _coerce_valid_number(self, modality, feature, value):
+        if value is None or isinstance(value, bool):
+            return None
+
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return None
+
+        if not math.isfinite(number):
+            return None
+
+        valid_range = FEATURES[feature].get("MEASUREMENT_VALID_RANGES")
+        if valid_range is None:
+            return number
+
+        minimum, maximum = valid_range
+        if number < minimum or number > maximum:
+            return None
+
+        return number
+
+    def _validate_modality_features(self, modality, values):
+        validated = {}
+        invalid = []
+
+        for feature in self._measurement_features(modality):
+            value = self._coerce_valid_number(
+                modality,
+                feature,
+                values.get(feature)
+            )
+            if value is None:
+                invalid.append(feature)
+            validated[feature] = value
+
+        if invalid:
+            return None, invalid
+
+        return validated, []
+
+    def _collect_voice_features(self):
+        voice_events = []
+
+        if not self.voice_session_data:
+            self._warn_measurement("voice", "voice recording was not started or no voice session data was attached")
+            return self._none_features("voice"), voice_events
+
+        if self.voice_session_data.get("error"):
+            self._warn_measurement("voice", self.voice_session_data["error"])
+            return self._none_features("voice"), self.voice_session_data.get("events", [])
+
+        voice_summary = self.voice_session_data.get("summary") or {}
+        voice_events = self.voice_session_data.get("events", [])
+        voice_features, invalid = self._validate_modality_features(
+            "voice",
+            voice_summary
+        )
+
+        if voice_features is None:
+            self._warn_measurement(
+                "voice",
+                f"invalid or missing voice feature values: {', '.join(invalid)}"
+            )
+            return self._none_features("voice"), voice_events
+
+        return voice_features, voice_events
+
+    def _collect_eye_features(self):
+        try:
+            raw_eye_features = {
+                "fixation_duration": self.get_fixation_duration(),
+                "fixation_count": self.get_fixation_count(),
+                "saccade_count": self.get_saccade_count(),
+            }
+        except Exception as exc:
+            self._warn_measurement("eye", f"eye tracking measurement failed: {exc}")
+            return self._none_features("eye")
+
+        eye_features, invalid = self._validate_modality_features(
+            "eye",
+            raw_eye_features
+        )
+
+        if eye_features is None:
+            self._warn_measurement(
+                "eye",
+                f"eye tracker missing, script inactive, or invalid values: {', '.join(invalid)}"
+            )
+            return self._none_features("eye")
+
+        return eye_features
+
+    def _collect_game_features(self):
+        fg_score = self._try_get_latest_flightgear_score()
+        score = self._coerce_valid_number("game", "score", fg_score)
+
+        if score is None:
+            if fg_score is None:
+                self._warn_measurement("game", "game was not started or no FlightGear score was found")
+            else:
+                self._warn_measurement("game", f"invalid game score value: {fg_score}")
+            return self._none_features("game")
+
+        return {"score": score}
 
     # ---- Eye Tracking ----
     def get_fixation_duration(self):
@@ -209,6 +332,7 @@ class Controller:
         }
 
         raw = compute_fatigue_score(data)
+        quality_warning = self._build_quality_warning()
 
         self.result = {
             "subject_id": self.subject.get("id", "UNKNOWN"),
@@ -223,11 +347,33 @@ class Controller:
                 "feature_contributions",
                 {}
             ),
+            "raw_score": raw.get("raw_score"),
+            "modality_contributions": raw.get(
+                "modality_contributions",
+                {}
+            ),
+            "measurement_warnings": self.measurement_warnings.copy(),
+            "quality_warning": quality_warning,
             "features": self.features,
             "baseline": b
         }
 
         return self.result
+
+    def _build_quality_warning(self):
+        labels = []
+        for warning in self.measurement_warnings:
+            label = warning["label"]
+            if label not in labels:
+                labels.append(label)
+
+        if not labels:
+            return None
+
+        return (
+            "איכות ציון העייפות נמוכה עקב חוסר מדידה תקינה של "
+            + " / ".join(labels)
+        )
 
     # -------------------
     # RESULT ACCESS
@@ -259,6 +405,8 @@ class Controller:
             },
             "score": None,
             "scores": {},
+            "measurement_warnings": self.measurement_warnings.copy(),
+            "quality_warning": self._build_quality_warning(),
             "features": self.features,
             "baseline": (
                 self.subject.get("baseline")
