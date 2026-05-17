@@ -1,7 +1,69 @@
 <?xml version="1.0"?>
 <PropertyList>
-  <description>CorrActions bullseye sign (faces pilot)</description>
+  <description>CorrActions bullseye sign (billboard — always faces the pilot)</description>
   <author>Sivaks (overlay sign)</author>
   <path>Models/bullseye_quad.ac</path>
   <texture-path>Textures/flightgear</texture-path>
+  <animation>
+    <type>noshadow</type>
+    <object-name>bullseye_quad</object-name>
+  </animation>
+  <animation>
+    <type>billboard</type>
+    <object-name>bullseye_quad</object-name>
+    <spherical type="bool">true</spherical>
+  </animation>
+  <animation>
+    <type>material</type>
+    <object-name>bullseye_quad</object-name>
+    <emission>
+      <red>1.0</red>
+      <green>1.0</green>
+      <blue>1.0</blue>
+      <factor>0.35</factor>
+    </emission>
+  </animation>
+  <animation>
+    <type>dist-scale</type>
+    <object-name>bullseye_quad</object-name>
+    <center>
+      <x-m>0</x-m>
+      <y-m>0</y-m>
+      <z-m>0</z-m>
+    </center>
+    <interpolation>
+      <entry>
+        <ind>0</ind>
+        <dep>1.0</dep>
+      </entry>
+      <entry>
+        <ind>800</ind>
+        <dep>1.0</dep>
+      </entry>
+      <entry>
+        <ind>4000</ind>
+        <dep>2.4</dep>
+      </entry>
+      <entry>
+        <ind>12000</ind>
+        <dep>4.2</dep>
+      </entry>
+    </interpolation>
+  </animation>
+  <animation>
+    <type>scale</type>
+    <object-name>bullseye_quad</object-name>
+    <property>/algorithm/game/bullseye-visual-scale</property>
+    <x-factor>1</x-factor>
+    <y-factor>1</y-factor>
+    <z-factor>1</z-factor>
+    <x-min>0.12</x-min>
+    <y-min>0.12</y-min>
+    <z-min>0.12</z-min>
+    <center>
+      <x-m>0</x-m>
+      <y-m>0</y-m>
+      <z-m>0</z-m>
+    </center>
+  </animation>
 </PropertyList>

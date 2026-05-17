@@ -97,7 +97,9 @@ This Scenario announces if you hit or miss.
 	# sivaks: on starting scenario show dialog to get pilot data
 	# fgcommand("dialog-show", props.Node.new({"dialog-name": "sivaks_pilot_info_dlg"}));
 
-	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-14_pass-south-gate loaded");
+	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-13_single-target-purge-ahead loaded");
+	var active_target_id = 0;
+	var last_pass_scored_id = -1;
 	# Score a pass only after the aircraft was south of the balloon, then crossed north of it.
 	setprop("/sim/rendering/redout/enabled", 0);
 	setprop("/sim/rendering/redout/internal/redout", 0);
@@ -132,7 +134,7 @@ This Scenario announces if you hit or miss.
 	var bullseyeCallsigns = [];
 	setsize(bullseyeCallsigns, balloon_count);
 	var bullseyeSerial = 0;
-	var bullseyePending = {}; # callsign -> heading (deg) to apply once model is added
+	var bullseyePending = {};
 	var bullseyeListenerInstalled = 0;
 
 	setprop("/algorithm/game/balloons-count", 0);
@@ -147,20 +149,147 @@ This Scenario announces if you hit or miss.
 
 	# Make the (one-sided) bullseye face the pilot.
 	# We compute the course from balloon -> aircraft and use it as the sign's heading.
-	var BULLSEYE_HEADING_FLIP_DEG = 0; # set to 180 if facing is reversed
+	var BULLSEYE_HEADING_FLIP_DEG = 0;
 	var facePilotHeading = func(lat, lon) {
 		var b = geo.Coord.new().set_latlon(lat, lon);
 		var ac = geo.aircraft_position();
 		return geo.normdeg(b.course_to(ac) + BULLSEYE_HEADING_FLIP_DEG);
 	};
-	
-	# Bullseye overlay sign model (flat quad). This will rotate to face the pilot.
+
+	var publishBalloonFacing = func(lat, lon) {
+		var face_hdg = facePilotHeading(lat, lon);
+		setprop("/algorithm/game/balloon-face-heading-deg", face_hdg);
+		return face_hdg;
+	};
+
+	var signPositionTowardPilot = func(lat, lon, elevation_ft) {
+		var b = geo.Coord.new().set_latlon(lat, lon);
+		var ac = geo.aircraft_position();
+		var toward = b.course_to(ac);
+		b.apply_course_distance(toward, 25);
+		return {
+			"lat": b.lat(),
+			"lon": b.lon(),
+			"alt": elevation_ft + BSIGN_ALT_OFFSET_FT
+		};
+	};
+
+	# Place the next target ahead of the aircraft (northbound tutorial), never behind.
+	var computeNextBalloonPosition = func(hardness_level) {
+		var ac = geo.aircraft_position();
+		var ahead_ft =
+			BALLOON_AHEAD_BASE_FT +
+			(hardness_level * BALLOON_AHEAD_PER_LEVEL_FT);
+
+		# Always step north first (heading 0), then offset longitude only.
+		var spawn_pos = geo.Coord.new().set_latlon(ac.lat(), ac.lon());
+		spawn_pos.apply_course_distance(0, ahead_ft);
+
+		var min_ahead_lat = spawn_pos.lat();
+		if (min_ahead_lat <= ac.lat())
+		{
+			spawn_pos = geo.Coord.new().set_latlon(ac.lat(), ac.lon());
+			spawn_pos.apply_course_distance(0, ahead_ft);
+			min_ahead_lat = spawn_pos.lat();
+		}
+
+		var lon_spread =
+			0.003 + (hardness_level * 0.00025);
+		var spawn_lon = ac.lon() + (rand() - 0.5) * lon_spread * 2;
+		var lateral_deg = (spawn_lon - ac.lon()) * 10000;
+
+		var balloon_alt_rand =
+			(500 + (hardness_level * 350)) * (rand() - 0.5);
+		var new_alt = 2000 + balloon_alt_rand;
+		if (new_alt < 1200)
+			new_alt = 1200;
+		if (new_alt > 4500)
+			new_alt = 4500;
+
+		return {
+			"lat": min_ahead_lat,
+			"lon": spawn_lon,
+			"alt": new_alt,
+			"heading": 0,
+			"lateral_deg": lateral_deg
+		};
+	};
+
+	var applyBullseyeFacing = func(balloon_index, lat, lon) {
+		var face_hdg = publishBalloonFacing(lat, lon);
+		if (bullseyeArray[balloon_index] != nil)
+		{
+			var sign = bullseyeArray[balloon_index];
+			if (sign.getNode("heading") != nil)
+				sign.getNode("heading").setValue(face_hdg);
+			if (sign.getNode("heading-deg") != nil)
+				sign.getNode("heading-deg").setValue(face_hdg);
+		}
+	};
+
+	var ensureBullseyeListener = func() {
+		if (bullseyeListenerInstalled) return;
+		bullseyeListenerInstalled = 1;
+		setlistener("/ai/models/model-added", func(v) {
+			var path = v.getValue();
+			if (path == nil) return;
+			var cs = getprop(path ~ "/callsign");
+			if (cs == nil or cs == "") return;
+			if (substr(cs, 0, 12) != "sivaks_bsign") return;
+			var hdg = bullseyePending[cs];
+			if (hdg == nil) return;
+			setprop(path ~ "/orientation/true-heading-deg", hdg);
+			setprop(path ~ "/orientation/pitch-deg", 0);
+			setprop(path ~ "/orientation/roll-deg", 0);
+			bullseyePending[cs] = nil;
+		});
+	};
+
+	# Bullseye overlay (billboard in XML — always faces camera).
 	var BSIGN_MODEL = "AI/Aircraft/balloon/ca_sivaks_bullseye_sign.xml";
-	# Green billboard marker (dist-scaled in XML/model). Slightly above balloon; scoring uses same offset.
+	var BSIGN_ALT_OFFSET_FT = 12;
 	var ADOT_MODEL = "AI/Aircraft/balloon/ca_sivaks_aim_dot.xml";
-	var AIM_DOT_UP_FT = 48;
-	# After a scored pass, ignore lat-trigger until this many sim seconds (stops double LEVEL UP when next spawn is still "south").
-	var PASS_COOLDOWN_SEC = 2.5;
+	# Hit slant-range (ft) matches required_hit_distance below.
+	var HIT_RADIUS_BASE_FT = 180;
+	var HIT_RADIUS_MIN_FT = 85;
+	var HIT_RADIUS_PER_LEVEL_FT = 20;
+	# Visual scale at level 0 (full hitbox); shrinks with level via /algorithm/game/*-visual-scale.
+	var BULLSEYE_SCALE_AT_BASE_HIT = 3.2;
+	var AIM_DOT_SCALE_RATIO = 0.42;
+	var TURN_HINT_LATERAL_DEG = 4;
+
+	var turnHintForNextTarget = func(lateral_deg) {
+		if (lateral_deg == nil)
+			return ", fly straight";
+		if (lateral_deg > TURN_HINT_LATERAL_DEG)
+			return ", turn right";
+		if (lateral_deg < -TURN_HINT_LATERAL_DEG)
+			return ", turn left";
+		return ", fly straight";
+	};
+
+	var getHitRadiusFt = func(level) {
+		var radius_ft = HIT_RADIUS_BASE_FT - (level * HIT_RADIUS_PER_LEVEL_FT);
+		if (radius_ft < HIT_RADIUS_MIN_FT)
+			radius_ft = HIT_RADIUS_MIN_FT;
+		return radius_ft;
+	};
+
+	var publishMarkerScales = func(level) {
+		var hit_radius_ft = getHitRadiusFt(level);
+		var bullseye_scale =
+			(hit_radius_ft / HIT_RADIUS_BASE_FT) * BULLSEYE_SCALE_AT_BASE_HIT;
+		var aim_scale = bullseye_scale * AIM_DOT_SCALE_RATIO;
+		setprop("/algorithm/game/bullseye-visual-scale", bullseye_scale);
+		setprop("/algorithm/game/aim-dot-visual-scale", aim_scale);
+		setprop("/algorithm/game/hit-radius-ft", hit_radius_ft);
+	};
+
+	var scoringMarkerPosition = func(balloon_lat, balloon_lon, balloon_alt_ft) {
+		return signPositionTowardPilot(balloon_lat, balloon_lon, balloon_alt_ft);
+	};
+	# After a scored pass, ignore lat-trigger until this many sim seconds.
+	var PASS_COOLDOWN_SEC = 3.0;
 	# Slant range (ft) used to track closest approach for hit vs miss on the current balloon.
 	var PASS_APPROACH_ARM_FT = 8000;
 	# Small latitude margin so pass scoring does not flutter on the exact balloon latitude.
@@ -172,87 +301,125 @@ This Scenario announces if you hit or miss.
 	var BALLOON_AHEAD_PER_LEVEL_FT = 200;
 	var MAX_LATERAL_VISIBLE_ANGLE = 28;
 
-	# Install a one-time listener so we can grab the *real* model node path when it is created.
-	# This avoids guessing where the object lives in /ai/models.
-	var ensureBullseyeListener = func() {
-		if (bullseyeListenerInstalled) return;
-		bullseyeListenerInstalled = 1;
-		print("Bullseye model-added listener installed");
-		setlistener("/ai/models/model-added", func(v) {
-			var path = v.getValue();
-			if (path == nil) return;
-			var cs = getprop(path ~ "/callsign");
-			if (cs == nil or cs == "") return;
-			# Debug: confirm our sign shows up and where.
-			if (substr(cs, 0, 12) == "sivaks_bsign") {
-				print("Bullseye sign model-added event: callsign=", cs, " path=", path);
+	var removeAiByCallsign = func(callsign) {
+		if (callsign == nil or callsign == "")
+			return 0;
+		var root = props.globals.getNode("/ai/models");
+		if (root == nil)
+			return 0;
+		foreach (var typ; ["static", "aircraft", "multiplayer"])
+		{
+			foreach (var m; root.getChildren(typ))
+			{
+				var cs = m.getNode("callsign");
+				if (cs == nil or cs.getValue() != callsign)
+					continue;
+				var idn = m.getNode("id");
+				if (idn != nil)
+				{
+					fgcommand(
+						"remove-aiobject",
+						props.Node.new({"id": idn.getValue()})
+					);
+				}
+				return 1;
 			}
-			var hdg = bullseyePending[cs];
-			if (hdg == nil) return;
-			setprop(path ~ "/orientation/true-heading-deg", hdg);
-			setprop(path ~ "/orientation/pitch-deg", 0);
-			setprop(path ~ "/orientation/roll-deg", 0);
-			print("Bullseye sign heading applied via model-added: ", cs, " hdg=", hdg, " path=", path);
-			bullseyePending[cs] = nil;
-		});
+		}
+		return 0;
+	};
+
+	var purgeCorrTargetModels = func() {
+		var root = props.globals.getNode("/ai/models");
+		if (root == nil)
+			return;
+		var ids_to_remove = [];
+		var types = ["static", "aircraft", "multiplayer", "wingman"];
+		foreach (var typ; types)
+		{
+			foreach (var m; root.getChildren(typ))
+			{
+				var cs = m.getNode("callsign");
+				var model = m.getNode("model");
+				if (model == nil)
+					model = m.getNode("model-path");
+				var cs_v = (cs != nil) ? cs.getValue() : "";
+				var model_v = (model != nil) ? model.getValue() : "";
+				var is_ours = 0;
+				if (cs_v != "" and (
+					find(cs_v, "sivaks_bsign") >= 0 or
+					find(cs_v, "ca_corr_") >= 0))
+					is_ours = 1;
+				if (!is_ours and model_v != "" and (
+					find(model_v, "ca_sivaks_balloon") >= 0 or
+					find(model_v, "ca_sivaks_bullseye") >= 0 or
+					find(model_v, "ca_sivaks_aim_dot") >= 0))
+					is_ours = 1;
+				if (!is_ours)
+					continue;
+				var idn = m.getNode("id");
+				if (idn != nil)
+					append(ids_to_remove, idn.getValue());
+			}
+		}
+		foreach (var rid; ids_to_remove)
+		{
+			fgcommand(
+				"remove-aiobject",
+				props.Node.new({"id": rid})
+			);
+		}
 	};
 
 	var createBalloon = func(balloon_model, positionLat, positionLon, elevation_ft, heading)
 	{
 		last_balloon_geo_coord = geo.Coord.new().set_latlon(positionLat, positionLon);
 		last_balloon_geo_coord.set_alt(elevation_ft/globals.M2FT);
-		#var new_object = geo.put_model(balloon_model, m, heading); # creates object which plane hits and crashes
-		# Override heading so the bullseye side faces the aircraft.
-		var face_hdg = facePilotHeading(positionLat, positionLon);
-		new_object = props.Node.new(
-			{
+		publishBalloonFacing(positionLat, positionLon);
+		var new_object = props.Node.new({
 			"type": "static",
-			"model": balloon_model,	
+			"model": balloon_model,
+			"callsign": "ca_corr_balloon_0",
 			"latitude": positionLat,
-			"longitude": positionLon,        
-			# Different FG models/keypaths expect different heading fields. Set both.
-			"heading": face_hdg,
-			"heading-deg": face_hdg,
+			"longitude": positionLon,
 			"altitude": elevation_ft,
+			"heading": 0,
+			"heading-deg": 0,
 			"search-order": "DATA_ONLY"
-			});
-
-		fgcommand("add-aiobject", new_object);	
-
+		});
+		fgcommand("add-aiobject", new_object);
 		return new_object;
-	}	
+	};
 
 	var createBullseyeSign = func(positionLat, positionLon, elevation_ft, cs)
 	{
 		ensureBullseyeListener();
-		var face_hdg = facePilotHeading(positionLat, positionLon);
+		var marker = scoringMarkerPosition(positionLat, positionLon, elevation_ft);
+		var face_hdg = publishBalloonFacing(positionLat, positionLon);
 		bullseyePending[cs] = face_hdg;
-		var sign = props.Node.new(
-			{
+		var sign = props.Node.new({
 			"type": "static",
 			"model": BSIGN_MODEL,
 			"callsign": cs,
-			"latitude": positionLat,
-			"longitude": positionLon,
-			# Slightly forward so it doesn't z-fight with balloon surface
-			"altitude": elevation_ft,
+			"latitude": marker.lat,
+			"longitude": marker.lon,
+			"altitude": marker.alt,
 			"heading": face_hdg,
 			"heading-deg": face_hdg,
 			"search-order": "DATA_ONLY"
-			});
+		});
 		fgcommand("add-aiobject", sign);
-
 		return sign;
 	};
 
-	var createAimDot = func(positionLat, positionLon, elevation_ft)
+	var createAimDot = func(marker_lat, marker_lon, marker_alt)
 	{
 		var dot = props.Node.new({
 			"type": "static",
 			"model": ADOT_MODEL,
-			"latitude": positionLat,
-			"longitude": positionLon,
-			"altitude": elevation_ft + AIM_DOT_UP_FT,
+			"callsign": "ca_corr_dot_0",
+			"latitude": marker_lat,
+			"longitude": marker_lon,
+			"altitude": marker_alt,
 			"heading": 0,
 			"heading-deg": 0,
 			"search-order": "DATA_ONLY"
@@ -261,33 +428,63 @@ This Scenario announces if you hit or miss.
 		return dot;
 	};
 
-	
-	# STEP 2: intial balloon placing in one line.
-	var position = geo.aircraft_position();
-	var elevation = geo.elevation( position.lat(), position.lon() );
-	init_shift_val = BALLOON_INIT_AHEAD_LAT;
-	var base_balloon_altitude = 2000;
+	var destroyActiveTarget = func() {
+		# Remove every CorrActions target (all bullseye serials, not only the latest callsign).
+		purgeCorrTargetModels();
+		balloonsArray[0] = nil;
+		bullseyeArray[0] = nil;
+		aimDotArray[0] = nil;
+	};
 
-	forindex (var i; balloonsArray) 
-	{
-		if (balloonsArray[i] != nil)
-			balloonsArray[i].remove();
-		if (bullseyeArray[i] != nil)
-			bullseyeArray[i].remove();
-		if (aimDotArray[i] != nil)
-			aimDotArray[i].remove();
-		last_balloon_lat = position.lat()+init_shift_val;
-		last_balloon_lon = position.lon()+((0.003)*(rand()-0.5));
-		last_balloon_alt = base_balloon_altitude;
-		balloonsArray[i] = createBalloon(BMODEL, last_balloon_lat,  last_balloon_lon, base_balloon_altitude, 0);											
-		# Set bullseye direction once at spawn time (faces pilot's approach direction).
+	var spawnActiveTarget = func(balloon_lat, balloon_lon, balloon_alt_ft, level) {
+		if (level == nil)
+			level = 0;
+		var i = 0;
+		destroyActiveTarget();
+		balloonsArray[i] = createBalloon(
+			BMODEL,
+			balloon_lat,
+			balloon_lon,
+			balloon_alt_ft,
+			0
+		);
 		bullseyeCallsigns[i] = "sivaks_bsign_" ~ i ~ "_" ~ bullseyeSerial;
 		bullseyeSerial += 1;
-		bullseyeArray[i] = createBullseyeSign(last_balloon_lat, last_balloon_lon, base_balloon_altitude, bullseyeCallsigns[i]);
-		aimDotArray[i] = createAimDot(last_balloon_lat, last_balloon_lon, base_balloon_altitude);
-		print ("INIT: aircraft_Lat = ",position.lat(), "aircraft_Lon = ",position.lon(), "  ballon_Lat = ", last_balloon_lat, "  ballon_Lon = ", last_balloon_lon);
-		init_shift_val = init_shift_val + BALLOON_INIT_AHEAD_STEP_LAT;
-	}
+		bullseyeArray[i] = createBullseyeSign(
+			balloon_lat,
+			balloon_lon,
+			balloon_alt_ft,
+			bullseyeCallsigns[i]
+		);
+		var marker = scoringMarkerPosition(
+			balloon_lat,
+			balloon_lon,
+			balloon_alt_ft
+		);
+		aimDotArray[i] = createAimDot(
+			marker.lat,
+			marker.lon,
+			marker.alt
+		);
+		last_balloon_lat = balloon_lat;
+		last_balloon_lon = balloon_lon;
+		last_balloon_alt = balloon_alt_ft;
+		publishMarkerScales(level);
+		active_target_id += 1;
+		last_pass_scored_id = -1;
+		print(
+			"SPAWN target id=",
+			active_target_id,
+			" lat=",
+			balloon_lat,
+			" lon=",
+			balloon_lon,
+			" alt=",
+			balloon_alt_ft,
+			" level=",
+			level
+		);
+	};
 
 	# =========================================================
 	# STEP 3: balloons update timer
@@ -310,8 +507,7 @@ This Scenario announces if you hit or miss.
 
 	var hardness_lon_max_levels = 8;
 
-	# 0 = balloons stay fixed between spawns (no gust / drift / wave). Level-up and hit rules still use hardness_lon.
-	# Set to 1 to restore the moving-target behavior.
+	# 0 = balloons stay fixed between spawns (no gust / drift / wave).
 	var BALLOON_DRIFT_ENABLED = 0;
 
 	# =========================================================
@@ -354,6 +550,34 @@ This Scenario announces if you hit or miss.
 			balloonWaveSpeed[i] = 0;
 		}
 	}
+
+	# STEP 2: initial target (after hardness_lon exists)
+	var position = geo.aircraft_position();
+	var elevation = geo.elevation(position.lat(), position.lon());
+	init_shift_val = BALLOON_INIT_AHEAD_LAT;
+	var base_balloon_altitude = 2000;
+
+	purgeCorrTargetModels();
+
+	last_balloon_lat = position.lat() + init_shift_val;
+	last_balloon_lon = position.lon() + ((0.003) * (rand() - 0.5));
+	last_balloon_alt = base_balloon_altitude;
+	spawnActiveTarget(
+		last_balloon_lat,
+		last_balloon_lon,
+		base_balloon_altitude,
+		hardness_lon
+	);
+	print(
+		"INIT: aircraft_Lat=",
+		position.lat(),
+		" aircraft_Lon=",
+		position.lon(),
+		" target_Lat=",
+		last_balloon_lat,
+		" target_Lon=",
+		last_balloon_lon
+	);
 
 	# =========================================================
 	# GAME STATE
@@ -400,6 +624,8 @@ This Scenario announces if you hit or miss.
 
 		forindex (var i; balloonsArray)
 		{
+			if (balloonsArray[i] == nil)
+				continue;
 
 			# =====================================================
 			# CURRENT DIFFICULTY
@@ -410,10 +636,8 @@ This Scenario announces if you hit or miss.
 
 			var current_lat =
 				balloonsArray[i].getNode("latitude").getValue();
-
 			var current_lon =
 				balloonsArray[i].getNode("longitude").getValue();
-
 			var current_alt =
 				balloonsArray[i].getNode("altitude").getValue();
 
@@ -521,36 +745,42 @@ This Scenario announces if you hit or miss.
 
 			balloonsArray[i].getNode("latitude")
 				.setValue(current_lat);
-
 			balloonsArray[i].getNode("longitude")
 				.setValue(current_lon);
-
 			balloonsArray[i].getNode("altitude")
 				.setValue(current_alt);
+
+			applyBullseyeFacing(i, current_lat, current_lon);
+			publishMarkerScales(hardness_lon);
+
+			var marker = scoringMarkerPosition(
+				current_lat,
+				current_lon,
+				current_alt
+			);
 
 			if (bullseyeArray[i] != nil)
 			{
 				bullseyeArray[i].getNode("latitude")
-					.setValue(current_lat);
-
+					.setValue(marker.lat);
 				bullseyeArray[i].getNode("longitude")
-					.setValue(current_lon);
-
+					.setValue(marker.lon);
 				bullseyeArray[i].getNode("altitude")
-					.setValue(current_alt);
+					.setValue(marker.alt);
 			}
 
 			if (aimDotArray[i] != nil)
 			{
-				aimDotArray[i].getNode("latitude").setValue(current_lat);
-				aimDotArray[i].getNode("longitude").setValue(current_lon);
-				aimDotArray[i].getNode("altitude").setValue(current_alt + AIM_DOT_UP_FT);
+				aimDotArray[i].getNode("latitude").setValue(marker.lat);
+				aimDotArray[i].getNode("longitude").setValue(marker.lon);
+				aimDotArray[i].getNode("altitude").setValue(marker.alt);
 			}
 
-			var score_alt_ft = current_alt + AIM_DOT_UP_FT;
-			setprop("/algorithm/game/balloon-lat", current_lat);
-			setprop("/algorithm/game/balloon-lon", current_lon);
+			var score_alt_ft = marker.alt;
+			setprop("/algorithm/game/balloon-lat", marker.lat);
+			setprop("/algorithm/game/balloon-lon", marker.lon);
 			setprop("/algorithm/game/balloon-alt", score_alt_ft);
+
 			# "Level" should represent the next required hit, not passes (misses shouldn't skip level 8).
 			setprop("/algorithm/game/balloon-level", balloons_counted_hit + 1);
 
@@ -596,8 +826,10 @@ This Scenario announces if you hit or miss.
 			if (position.lat() < current_lat - PASS_LAT_MARGIN_DEG)
 				pass_south_armed = 1;
 
+			# One score per target: pass_south_armed resets only after spawn (not when south of lat).
 			var passed_balloon =
-				(pass_south_armed and position.lat() > current_lat + PASS_LAT_MARGIN_DEG);
+				(pass_south_armed and
+				position.lat() > current_lat + PASS_LAT_MARGIN_DEG);
 
 			# =====================================================
 			# PASSED BALLOON (south-to-north gate; far approach = miss)
@@ -606,8 +838,10 @@ This Scenario announces if you hit or miss.
 			if (
 				passed_balloon
 				and sim_elapsed >= pass_cooldown_until
+				and last_pass_scored_id != active_target_id
 			)
 			{
+				last_pass_scored_id = active_target_id;
 
 				balloons_counted_passed =
 					balloons_counted_passed + 1;
@@ -653,11 +887,7 @@ This Scenario announces if you hit or miss.
 				# HIT DETECTION — wider envelope for 500 kt; no VSI gate (gauge often swings thousands fpm in a pass)
 				# =================================================
 
-				var required_hit_distance =
-					180 - (hardness_for_hit * 20);
-
-				if (required_hit_distance < 85)
-					required_hit_distance = 85;
+				var required_hit_distance = getHitRadiusFt(hardness_for_hit);
 
 				var passed_through_balloon =
 					(min_dist_ft <= required_hit_distance);
@@ -713,15 +943,8 @@ This Scenario announces if you hit or miss.
 
 					BalloonTimer.stop();
 
-					forindex (var j; balloonsArray)
-					{
-						if (balloonsArray[j] != nil)
-							balloonsArray[j].remove();
-						if (bullseyeArray[j] != nil)
-							bullseyeArray[j].remove();
-						if (aimDotArray[j] != nil)
-							aimDotArray[j].remove();
-					}
+					destroyActiveTarget();
+					purgeCorrTargetModels();
 
 					setprop("/sim/rendering/redout/enabled", 0);
 					setprop("/sim/rendering/redout/internal/redout", 0);
@@ -736,130 +959,43 @@ This Scenario announces if you hit or miss.
 				}
 
 				# =================================================
-				# CREATE NEXT BALLOON
-				# ALWAYS VISIBLE TO PILOT
+				# CREATE NEXT BALLOON (only after scored pass; always ahead of aircraft)
 				# =================================================
 
-				var new_balloon_pos =
-					geo.Coord.new();
+				var next_spawn = computeNextBalloonPosition(hardness_lon);
+				var new_ballon_lat = next_spawn.lat;
+				var new_ballon_lon = next_spawn.lon;
+				var new_ballon_alt = next_spawn.alt;
+				var new_balloon_heading = next_spawn.heading;
+				var lateral_deg = next_spawn.lateral_deg;
 
-				new_balloon_pos.set_latlon(
-					current_lat,
-					current_lon
+				var next_turn_hint = turnHintForNextTarget(lateral_deg);
+				var target_feedback =
+					(passed_through_balloon ? "TARGET HIT" : "TARGET MISS") ~
+					next_turn_hint;
+				setprop("/sim/messages/copilot", target_feedback);
+
+				print(
+					"NEXT spawn ahead of AC: ac_lat=",
+					position.lat(),
+					" balloon_lat=",
+					new_ballon_lat,
+					" ahead_ft~",
+					BALLOON_AHEAD_BASE_FT + (hardness_lon * BALLOON_AHEAD_PER_LEVEL_FT)
 				);
 
 				# =================================================
-				# FIELD OF VIEW
+				# ONE TARGET ONLY — remove old AI, spawn one new target ahead
 				# =================================================
 
-				var max_visible_angle =
-					10 +
-					(hardness_lon * 3);
-
-				if (max_visible_angle > MAX_LATERAL_VISIBLE_ANGLE)
-					max_visible_angle = MAX_LATERAL_VISIBLE_ANGLE;
-
-				var side =
-					((rand() > 0.5) ? 1 : -1);
-
-				# Tell the pilot where the *next* balloon spawned (relative to north).
-				var turn_hint = ((side > 0) ? "turn right" : "turn left");
-				setprop("/sim/messages/copilot", hit_miss_msg ~ " - " ~ turn_hint);
-
-				var visible_offset =
-					(rand() * max_visible_angle)
-					*
-					side;
-
-				var new_balloon_heading =
-					geo.normdeg(visible_offset);
-
-				# =================================================
-				# SHORTER DISTANCE
-				# =================================================
-
-				var new_balloon_horizontal_offset =
-					BALLOON_AHEAD_BASE_FT +
-					(hardness_lon * BALLOON_AHEAD_PER_LEVEL_FT);
-
-				new_balloon_pos.apply_course_distance(
-					new_balloon_heading,
-					new_balloon_horizontal_offset
+				spawnActiveTarget(
+					new_ballon_lat,
+					new_ballon_lon,
+					new_ballon_alt,
+					hardness_lon
 				);
-
-				# =================================================
-				# ALTITUDE RANDOMIZATION
-				# =================================================
-
-				var balloon_alt_rand =
-					(
-						500 +
-						(hardness_lon * 350)
-					)
-					*
-					(rand()-0.5);
-
-				var new_ballon_lat =
-					new_balloon_pos.lat();
-
-				var new_ballon_lon =
-					new_balloon_pos.lon();
-
-				var new_ballon_alt =
-					2000 +
-					balloon_alt_rand;
-
-				if (new_ballon_alt < 1200)
-					new_ballon_alt = 1200;
-
-				if (new_ballon_alt > 4500)
-					new_ballon_alt = 4500;
-
-				# =================================================
-				# REMOVE OLD
-				# =================================================
-
-				balloonsArray[i].remove();
-
-				if (bullseyeArray[i] != nil)
-					bullseyeArray[i].remove();
-				if (aimDotArray[i] != nil)
-					aimDotArray[i].remove();
-
-				# =================================================
-				# CREATE NEW
-				# =================================================
-
-				balloonsArray[i] =
-					createBalloon(
-						BMODEL,
-						new_ballon_lat,
-						new_ballon_lon,
-						new_ballon_alt,
-						new_balloon_heading
-					);
-
-				bullseyeCallsigns[i] =
-					"sivaks_bsign_" ~
-					i ~ "_" ~
-					bullseyeSerial;
-
-				bullseyeSerial += 1;
-
-				bullseyeArray[i] =
-					createBullseyeSign(
-						new_ballon_lat,
-						new_ballon_lon,
-						new_ballon_alt,
-						bullseyeCallsigns[i]
-					);
-
-				aimDotArray[i] =
-					createAimDot(
-						new_ballon_lat,
-						new_ballon_lon,
-						new_ballon_alt
-					);
+				# Require a fresh south→north crossing for the new target (stops sound spam while north).
+				pass_south_armed = 0;
 
 				# =================================================
 				# NEW DRIFT PROFILE (skipped when BALLOON_DRIFT_ENABLED = 0)
@@ -908,7 +1044,6 @@ This Scenario announces if you hit or miss.
 
 				min_dist_ft = 10000000;
 				pass_committed = 0;
-				pass_south_armed = 0;
 			}
 		}
 	}
@@ -920,7 +1055,7 @@ This Scenario announces if you hit or miss.
 	var BalloonTimer =
 		maketimer(0.02, updateBalloons);
 
-	BalloonTimer.start();	
+	BalloonTimer.start();
 	]]>
 	</script>
 </nasal>			

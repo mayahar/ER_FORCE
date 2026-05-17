@@ -237,6 +237,14 @@ def render(result):
     # =========================
     st.markdown(f"<h1>דוח תוצאות - {subject_id}</h1>", unsafe_allow_html=True)
 
+    raw_paths = st.session_state.get("eye_raw_export_paths")
+    if raw_paths:
+        st.info(
+            "קובצי עיניים גולמיים נשמרו:\n"
+            f"- {raw_paths.get('json')}\n"
+            f"- {raw_paths.get('csv')}"
+        )
+
     # =========================
     # SCORE WITH GLOW
     # =========================

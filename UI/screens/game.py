@@ -11,6 +11,7 @@ import numpy as np
 from eye_tracking_analysis.eye_tracker_recorder import EyeTrackerRecorder
 import eye_tracking_analysis.eye_tracker_recorder as eye_tracker_recorder_module
 from eye_tracking_analysis.eye_movement_analyzer import EyeMovementAnalyzer
+from eye_tracking_analysis.gaze_raw_export import export_raw_gaze_recording
 from core.fg_run_score import wait_for_latest_flightgear_score
 from score.eye_features import apply_controller_eye_features, has_eye_features
 from styles import apply_game_theme
@@ -212,18 +213,53 @@ def _start_eye_tracking() -> tuple[bool, str]:
     return True, ""
 
 
+def _current_subject_id():
+    controller = st.session_state.get("controller")
+    if controller and controller.subject:
+        return controller.subject.get("id")
+    return None
+
+
 def _stop_eye_tracking() -> tuple[dict | None, str]:
     global _eye_recorder, _eye_analyzer
-    if _eye_recorder is None or not _eye_recorder.is_recording:
+    if _eye_recorder is None:
         return None, ""
 
-    stopped = _eye_recorder.stop_recording()
-    if not stopped:
-        return None, "שגיאה בהפסקת הקלטת תנועות העיניים."
+    was_active = bool(st.session_state.get("eye_tracking_active"))
+
+    if _eye_recorder.is_recording:
+        if not _eye_recorder.stop_recording():
+            gaze_data = _eye_recorder.get_collected_data()
+            if not gaze_data:
+                return None, "שגיאה בהפסקת הקלטת תנועות העיניים."
 
     gaze_data = _eye_recorder.get_collected_data()
-    if not gaze_data:
-        return None, "לא נאספו נתוני עיניים."
+    sample_count = len(gaze_data)
+
+    if sample_count == 0:
+        st.session_state.eye_raw_export_paths = None
+        st.session_state.eye_raw_sample_count = 0
+        if was_active:
+            return None, "לא נאספו נתוני עיניים (0 דגימות מהמכשיר)."
+        return None, ""
+
+    recordings_dir = _REPO_ROOT / "eye_tracking_analysis" / "recordings"
+    try:
+        raw_export = export_raw_gaze_recording(
+            _eye_recorder,
+            output_dir=recordings_dir,
+            subject_id=_current_subject_id(),
+        )
+        st.session_state.eye_raw_export_paths = {
+            "json": str(raw_export["json"]),
+            "csv": str(raw_export["csv"]),
+            "directory": str(raw_export["directory"]),
+        }
+        st.session_state.eye_raw_sample_count = int(raw_export["sample_count"])
+    except Exception as exc:
+        st.session_state.eye_raw_export_paths = None
+        st.session_state.eye_raw_sample_count = sample_count
+        return None, f"שמירת נתוני עיניים גולמיים נכשלה: {exc}"
 
     eye_x = []
     eye_y = []
@@ -345,6 +381,7 @@ def render(controller):
     # ===== Start Session =====
     if start_clicked:
         st.session_state.eye_features = None
+        st.session_state.eye_raw_export_paths = None
         st.session_state.eye_recording_error = ""
         st.session_state.eye_tracking_active = False
         apply_controller_eye_features(controller, None)
@@ -397,6 +434,15 @@ def render(controller):
     if st.session_state.get("eye_recording_error"):
         st.warning(st.session_state.eye_recording_error)
 
+    raw_paths = st.session_state.get("eye_raw_export_paths")
+    if raw_paths:
+        sample_count = st.session_state.get("eye_raw_sample_count")
+        st.success(
+            f"נשמרו נתוני עיניים גולמיים ({sample_count} דגימות):\n"
+            f"JSON: {raw_paths.get('json')}\n"
+            f"CSV: {raw_paths.get('csv')}"
+        )
+
     if st.session_state.get("eye_tracking_active"):
         st.info("הקלטת תנועות עיניים פעילה")
 
@@ -437,6 +483,11 @@ def render(controller):
                     "Aircraft/f16, נתיב FlightGear (yan/FlightGear_2020_3 או SIVAKS_FG_ROOT), "
                     "והרץ logging_fg_start_ver5.py מהטרמינל לראות שגיאה."
                 )
+                eye_features, eye_err = _stop_eye_tracking()
+                st.session_state.eye_tracking_active = False
+                if eye_err:
+                    st.session_state.eye_recording_error = eye_err
+                _store_eye_features_for_result(eye_features)
                 st.session_state.fg_pid = 0
                 st.session_state.fg_started_at = None
             else:
