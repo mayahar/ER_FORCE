@@ -1,5 +1,5 @@
 @echo off
-REM Alias: full first-time setup (opens Tobii download pages) + verify
+REM Alias for first-time colleague setup (opens Tobii download pages + full verify)
 setlocal
-call "%~dp0verify_eye_tracking.cmd" -OpenDownloads %*
+call "%~dp0setup_colleague.cmd" -FirstTime %*
 exit /b %ERRORLEVEL%

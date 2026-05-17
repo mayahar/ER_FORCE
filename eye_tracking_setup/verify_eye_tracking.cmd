@@ -6,7 +6,8 @@ set "PYTHONIOENCODING=utf-8"
 set "PYTHONUTF8=1"
 
 echo.
-echo ER_FORCE - one-shot eye tracking setup and verify
+echo ER_FORCE - eye tracking verify (quick re-check)
+echo For full colleague setup use: eye_tracking_setup\setup_colleague.cmd
 echo Repo: %ROOT%
 echo.
 
@@ -20,8 +21,7 @@ if "%RC%"=="0" (
     echo Software is ready; connect/calibrate the Tobii and run this script again.
 ) else (
     echo Fix the errors above, then run this script again.
-    echo First-time PC? Also run: eye_tracking_setup\install_prerequisites.cmd
-    echo   then install Tobii Fusion + Eye Tracker Manager + Tobii Pro SDK from the browser.
+    echo First-time PC? Run: eye_tracking_setup\setup_colleague.cmd -FirstTime
 )
 
 exit /b %RC%
