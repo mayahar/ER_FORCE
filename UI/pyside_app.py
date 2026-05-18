@@ -67,6 +67,7 @@ MODALITY_ORDER = ["game", "eye", "voice"]
 MODALITY_LABELS = {"game": "משחק", "eye": "עיניים", "voice": "קול"}
 
 
+
 def get_score_color(score):
     if score <= 15:
         return "#00ff3c"
@@ -517,7 +518,8 @@ class GameScreen(BaseScreen):
         self.start_button = QPushButton("התחל משחק")
         self.stop_button = QPushButton("סיים משחק")
         self.calibration_status = message(
-            "לפני המשחק: מיקום ראש (5 שניות) → כיול 5 נקודות → תצוגת מבט."
+            "מעקב עיניים אופציונלי: לחץ «כיול עיניים» רק אם רוצים להקליט מבט.\n"
+            "ניתן להתחיל משחק בלי עוקב עיניים או בלי כיול."
         )
         self.calibration_preview_label = QLabel()
         self.calibration_preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -570,16 +572,6 @@ class GameScreen(BaseScreen):
         self.app.eye_runtime.reset_calibration()
         self.calibration_preview_label.clear()
         self.calibration_preview_label.setVisible(False)
-        connected, err = self.app.eye_runtime.ensure_tracker()
-        if connected:
-            self.calibration_status.setText(
-                f"מחובר: {self.app.eye_runtime.tracker_label}\n"
-                "לחץ «כיול עיניים» ואז «התחל משחק»."
-            )
-        else:
-            self.calibration_status.setText(
-                f"{err}\nניתן להמשיך בלי מעקב עיניים."
-            )
         self._sync_buttons()
         if self.app.fg_pid or self.app.voice_only_running:
             self.timer.start()
@@ -648,13 +640,10 @@ class GameScreen(BaseScreen):
     def start_session(self):
         self.error_label.clear()
         runtime = self.app.eye_runtime
-        if runtime.tracker_connected and not runtime.calibration_passed:
-            self.set_error("יש לבצע כיול עיניים לפני תחילת המשחק.")
-            return
-
         self.app.eye_runtime.reset()
         apply_controller_eye_features(self.app.controller, None)
-        self._start_eye_tracking()
+        if runtime.calibration_passed:
+            self._start_eye_tracking()
 
         if self.audio_only.isChecked():
             try:
@@ -753,9 +742,7 @@ class GameScreen(BaseScreen):
 
     def _sync_buttons(self):
         running = bool(self.app.voice_only_running or is_pid_running(self.app.fg_pid))
-        runtime = self.app.eye_runtime
-        needs_calibration = runtime.tracker_connected and not runtime.calibration_passed
-        self.start_button.setDisabled(running or needs_calibration)
+        self.start_button.setDisabled(running)
         self.calibrate_button.setDisabled(running)
         self.stop_button.setVisible(running)
         self.audio_only.setDisabled(running)
@@ -1127,7 +1114,7 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("ER Force")
     window = FatigueApp()
-    window.show()
+    window.showFullScreen()
     return app.exec()
 
 

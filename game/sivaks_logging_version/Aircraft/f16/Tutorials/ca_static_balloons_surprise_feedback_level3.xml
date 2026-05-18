@@ -7,7 +7,7 @@
     <description>
 	Welcome to CorrActions Flight!
 This tutorial starts above Hilo Intl Airport (PHTO) in the northeast of Hawaii, in clear, still, weather.
-Keep north heading at around 2000 feet. Maintain speed of 500 knots. Hit balloons horizontally at target mark in north direction.
+Keep north heading at around 2000 feet. Maintain speed of 500 knots. Hit targets horizontally at the target mark in north direction.
 This Scenario announces if you hit or miss.
     </description>
 
@@ -68,7 +68,7 @@ This Scenario announces if you hit or miss.
 	
 	
 	<step>
-	<message>Keep heading north at around 2000 feet. Maintain speed of 500 knots. Hit balloons horizontally at target mark.</message>
+	<message>Keep heading north at around 2000 feet. Maintain speed of 500 knots. Hit targets horizontally at the target mark.</message>
 	
 		 <nasal>
             <script>
@@ -84,7 +84,7 @@ This Scenario announces if you hit or miss.
   </step>
 
 	<step>
-	<message> Fly into Balloons. </message>
+	<message>Fly to the target.</message>
  		
 <!-- RUN EACH 2 SECONDs VIA TIMER -->
 <nasal>
@@ -98,6 +98,42 @@ This Scenario announces if you hit or miss.
 	# fgcommand("dialog-show", props.Node.new({"dialog-name": "sivaks_pilot_info_dlg"}));
 
 	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-13_single-target-purge-ahead loaded");
+
+	# Edge overlay (optional). Never reference bare SivaksTargetEdge — undefined symbol aborts this script.
+	var sivaksLoadTargetEdgeNasal = func() {
+		if (contains(globals, "SivaksTargetEdge"))
+			return 1;
+		var path = finddata("Aircraft/f16/Nasal/sivaks_target_edge_indicator.nas");
+		if (path == nil) {
+			print("SivaksTargetEdge: nasal file not found (overlay skipped)");
+			return 0;
+		}
+		var code = io.readfile(path);
+		if (code == nil or size(code) < 1)
+			return 0;
+		var compiled = compile(code, path);
+		if (compiled == nil)
+			return 0;
+		compiled();
+		return contains(globals, "SivaksTargetEdge");
+	};
+
+	var sivaksStartTargetEdge = func() {
+		if (!sivaksLoadTargetEdgeNasal())
+			return;
+		var edge = globals.SivaksTargetEdge;
+		if (edge != nil and contains(edge, "init"))
+			edge.init();
+	};
+
+	var sivaksStopTargetEdge = func() {
+		if (!contains(globals, "SivaksTargetEdge"))
+			return;
+		var edge = globals.SivaksTargetEdge;
+		if (edge != nil and contains(edge, "shutdown"))
+			edge.shutdown();
+	};
+
 	var active_target_id = 0;
 	var last_pass_scored_id = -1;
 	# Score a pass only after the aircraft was south of the balloon, then crossed north of it.
@@ -256,18 +292,6 @@ This Scenario announces if you hit or miss.
 	# Visual scale at level 0 (full hitbox); shrinks with level via /algorithm/game/*-visual-scale.
 	var BULLSEYE_SCALE_AT_BASE_HIT = 3.2;
 	var AIM_DOT_SCALE_RATIO = 0.42;
-	var TURN_HINT_LATERAL_DEG = 4;
-
-	var turnHintForNextTarget = func(lateral_deg) {
-		if (lateral_deg == nil)
-			return ", fly straight";
-		if (lateral_deg > TURN_HINT_LATERAL_DEG)
-			return ", turn right";
-		if (lateral_deg < -TURN_HINT_LATERAL_DEG)
-			return ", turn left";
-		return ", fly straight";
-	};
-
 	var getHitRadiusFt = func(level) {
 		var radius_ft = HIT_RADIUS_BASE_FT - (level * HIT_RADIUS_PER_LEVEL_FT);
 		if (radius_ft < HIT_RADIUS_MIN_FT)
@@ -943,6 +967,8 @@ This Scenario announces if you hit or miss.
 
 					BalloonTimer.stop();
 
+					sivaksStopTargetEdge();
+
 					destroyActiveTarget();
 					purgeCorrTargetModels();
 
@@ -967,12 +993,8 @@ This Scenario announces if you hit or miss.
 				var new_ballon_lon = next_spawn.lon;
 				var new_ballon_alt = next_spawn.alt;
 				var new_balloon_heading = next_spawn.heading;
-				var lateral_deg = next_spawn.lateral_deg;
-
-				var next_turn_hint = turnHintForNextTarget(lateral_deg);
 				var target_feedback =
-					(passed_through_balloon ? "TARGET HIT" : "TARGET MISS") ~
-					next_turn_hint;
+					(passed_through_balloon ? "TARGET HIT" : "TARGET MISS");
 				setprop("/sim/messages/copilot", target_feedback);
 
 				print(
@@ -1055,6 +1077,8 @@ This Scenario announces if you hit or miss.
 
 	var BalloonTimer =
 		maketimer(0.02, updateBalloons);
+
+	sivaksStartTargetEdge();
 
 	BalloonTimer.start();
 	]]>

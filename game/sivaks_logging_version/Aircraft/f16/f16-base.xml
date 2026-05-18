@@ -1694,6 +1694,9 @@
         <sivaks_autostart>
             <file>Aircraft/f16/Nasal/sivaks_autostart_tutorial.nas</file>
         </sivaks_autostart>
+        <sivaks_target_edge>
+            <file>Aircraft/f16/Nasal/sivaks_target_edge_indicator.nas</file>
+        </sivaks_target_edge>
     </nasal>
 
 

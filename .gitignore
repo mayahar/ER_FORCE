@@ -38,7 +38,9 @@ game/sivaks_logging_version/Aircraft/f16/Fonts
 game/sivaks_logging_version/Aircraft/f16/gui
 game/sivaks_logging_version/Aircraft/f16/Kneeboards
 game/sivaks_logging_version/Aircraft/f16/Models
-game/sivaks_logging_version/Aircraft/f16/Nasal
+game/sivaks_logging_version/Aircraft/f16/Nasal/*
+!game/sivaks_logging_version/Aircraft/f16/Nasal/
+!game/sivaks_logging_version/Aircraft/f16/Nasal/sivaks_*.nas
 game/sivaks_logging_version/Aircraft/f16/Scenarios
 game/sivaks_logging_version/Aircraft/f16/Shaders
 game/sivaks_logging_version/Aircraft/f16/Shaders4
