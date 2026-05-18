@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor, QFont, QPainter
+from PySide6.QtGui import QColor, QFont, QGuiApplication, QPainter, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
@@ -50,15 +50,18 @@ from core.subject_repository import (
     subject_exists,
     update_subject_baseline,
 )
-from ui.game_runtime import (
+from score.eye_features import apply_controller_eye_features
+
+from .eye_tracking_runtime import EyeTrackingRuntime
+from .game_runtime import (
     create_voice_session,
     finalize_voice_session,
     is_pid_running,
     start_flightgear_session,
     terminate_session_process,
 )
-from ui.results_export import build_result_export_rows, export_result_csv, save_report_once
-from ui.theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
+from .results_export import build_result_export_rows, export_result_csv, save_report_once
+from .theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
 
 
 MODALITY_ORDER = ["game", "eye", "voice"]
@@ -550,11 +553,22 @@ class GameScreen(BaseScreen):
         self.timer.timeout.connect(self._tick)
         
         self.audio_only = QCheckBox("הרצת בדיקת קול בלבד (ללא הפעלת המשחק)")
+<<<<<<< HEAD
         self.audio_only.setLayoutDirection(Qt.RightToLeft)
         
+=======
+        self.calibrate_button = QPushButton("כיול עיניים (Tobii)")
+>>>>>>> 525a31ceace7d1b06a9de12f623313514b9cd11f
         self.start_button = QPushButton("התחל משחק")
         self.stop_button = QPushButton("סיים משחק")
+        self.calibration_status = message(
+            "לפני המשחק: מיקום ראש (5 שניות) → כיול 5 נקודות → תצוגת מבט."
+        )
+        self.calibration_preview_label = QLabel()
+        self.calibration_preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.calibration_preview_label.setVisible(False)
         self.status_label = message("המשחק מוכן")
+        self.eye_label = message("")
         self.voice_label = message("")
         self.error_label = message("", "errorText")
         self.started_at = None
@@ -573,6 +587,13 @@ class GameScreen(BaseScreen):
         )
         self.root.addWidget(info_panel)
         self.root.addWidget(self.audio_only)
+        self.root.addWidget(self.calibration_status)
+        self.root.addWidget(self.calibration_preview_label)
+
+        cal_row = QHBoxLayout()
+        cal_row.addWidget(self.calibrate_button)
+        cal_row.addStretch()
+        self.root.addLayout(cal_row)
 
         buttons = QHBoxLayout()
         buttons.addWidget(self.start_button)
@@ -580,25 +601,106 @@ class GameScreen(BaseScreen):
         buttons.addStretch()
         self.root.addLayout(buttons)
         self.root.addWidget(self.status_label)
+        self.root.addWidget(self.eye_label)
         self.root.addWidget(self.voice_label)
         self.root.addWidget(self.error_label)
         self.root.addStretch()
 
         self.start_button.clicked.connect(self.start_session)
         self.stop_button.clicked.connect(self.stop_session)
+        self.calibrate_button.clicked.connect(self.run_calibration)
 
     def activate(self):
         self.error_label.clear()
+        self.app.eye_runtime.reset_calibration()
+        self.calibration_preview_label.clear()
+        self.calibration_preview_label.setVisible(False)
+        connected, err = self.app.eye_runtime.ensure_tracker()
+        if connected:
+            self.calibration_status.setText(
+                f"מחובר: {self.app.eye_runtime.tracker_label}\n"
+                "לחץ «כיול עיניים» ואז «התחל משחק»."
+            )
+        else:
+            self.calibration_status.setText(
+                f"{err}\nניתן להמשיך בלי מעקב עיניים."
+            )
         self._sync_buttons()
         if self.app.fg_pid or self.app.voice_only_running:
             self.timer.start()
         else:
             self.timer.stop()
             self.status_label.setText("Ready")
+            self.eye_label.clear()
             self.voice_label.clear()
+
+    def _start_eye_tracking(self) -> bool:
+        apply_controller_eye_features(self.app.controller, None)
+        started, error = self.app.eye_runtime.start()
+        if error:
+            self.app.eye_runtime.last_error = error
+        return started
+
+    def _stop_eye_tracking(self) -> None:
+        _features, error = self.app.eye_runtime.stop(self.app.controller)
+        if error:
+            self.app.eye_runtime.last_error = error
+
+    def _finish_session(self) -> None:
+        self._stop_eye_tracking()
+        finalize_voice_session(self.app.controller, self.app.voice_session)
+        self.app.voice_session = None
+        if self.app.fg_pid:
+            terminate_session_process(self.app.fg_pid)
+        self.app.fg_pid = 0
+        self.app.voice_only_running = False
+        self.app.fg_started_at = None
+        self.app.result = None
+        self.timer.stop()
+        self.app.navigate("result")
+
+    def run_calibration(self):
+        self.error_label.clear()
+        screen = self.window().screen() if self.window() else QGuiApplication.primaryScreen()
+        success, message = self.app.eye_runtime.run_calibration(
+            parent=self.window(),
+            screen=screen,
+            controller=self.app.controller,
+        )
+        if success:
+            self.calibration_status.setText(
+                f"כיול עבר ✓ ({self.app.eye_runtime.tracker_label})"
+            )
+            preview_path = self.app.eye_runtime.calibration_preview_path
+            if preview_path:
+                pixmap = QPixmap(preview_path)
+                if not pixmap.isNull():
+                    scaled = pixmap.scaled(
+                        400,
+                        250,
+                        Qt.AspectRatioMode.KeepAspectRatio,
+                        Qt.TransformationMode.SmoothTransformation,
+                    )
+                    self.calibration_preview_label.setPixmap(scaled)
+                    self.calibration_preview_label.setVisible(True)
+        else:
+            self.calibration_status.setText(message)
+            self.calibration_preview_label.clear()
+            self.calibration_preview_label.setVisible(False)
+            self.set_error(message)
+        self._sync_buttons()
 
     def start_session(self):
         self.error_label.clear()
+        runtime = self.app.eye_runtime
+        if runtime.tracker_connected and not runtime.calibration_passed:
+            self.set_error("יש לבצע כיול עיניים לפני תחילת המשחק.")
+            return
+
+        self.app.eye_runtime.reset()
+        apply_controller_eye_features(self.app.controller, None)
+        self._start_eye_tracking()
+
         if self.audio_only.isChecked():
             try:
                 self.app.voice_session = create_voice_session(self.app.controller)
@@ -630,20 +732,7 @@ class GameScreen(BaseScreen):
         self._sync_buttons()
 
     def stop_session(self):
-        if self.app.fg_pid:
-            ok, error = terminate_session_process(self.app.fg_pid)
-            if not ok:
-                self.set_error(f"Failed to stop session: {error}")
-                return
-
-        finalize_voice_session(self.app.controller, self.app.voice_session)
-        self.app.voice_session = None
-        self.app.fg_pid = 0
-        self.app.voice_only_running = False
-        self.app.fg_started_at = None
-        self.app.result = None
-        self.timer.stop()
-        self.app.navigate("result")
+        self._finish_session()
 
     def _tick(self):
         if self.app.voice_session is not None:
@@ -657,24 +746,45 @@ class GameScreen(BaseScreen):
         if self.app.fg_pid and not fg_running:
             elapsed = time.time() - float(self.app.fg_started_at or time.time())
             if elapsed < 8.0:
+                self._stop_eye_tracking()
+                finalize_voice_session(self.app.controller, self.app.voice_session)
+                self.app.voice_session = None
                 self.app.fg_pid = 0
                 self.app.fg_started_at = None
+                self.app.voice_only_running = False
+                self.timer.stop()
                 self.set_error(
                     "FlightGear closed too quickly. Check the FlightGear path and run "
                     "logging_fg_start_ver5.py from a terminal for details."
                 )
             else:
-                finalize_voice_session(self.app.controller, self.app.voice_session)
-                self.app.voice_session = None
-                self.app.fg_pid = 0
-                self.app.fg_started_at = None
-                self.timer.stop()
-                self.app.navigate("result")
+                self._finish_session()
                 return
 
         runtime = int(time.time() - self.app.fg_started_at) if self.app.fg_started_at else 0
         mode = "Audio only" if self.app.voice_only_running else "Game running"
         self.status_label.setText(f"{mode} | {runtime} seconds")
+
+        if self.app.eye_runtime.active:
+            sample_count = 0
+            if self.app.eye_runtime.recorder is not None:
+                sample_count = len(self.app.eye_runtime.recorder.get_collected_data())
+            self.eye_label.setText(
+                f"Eye recording active ({sample_count} samples; timestamps saved in ms)"
+            )
+        elif self.app.eye_runtime.export_paths:
+            paths = self.app.eye_runtime.export_paths
+            self.eye_label.setText(
+                "Eye data saved in session/eye:\n"
+                f"  raw CSV: {paths.get('csv', '')}\n"
+                f"  raw JSON: {paths.get('json', '')}\n"
+                f"  features: {paths.get('features_json', '')}\n"
+                f"  events: {paths.get('events_json', '')}"
+            )
+        elif self.app.eye_runtime.last_error:
+            self.eye_label.setText(f"Eye: {self.app.eye_runtime.last_error}")
+        else:
+            self.eye_label.clear()
 
         voice_session = self.app.voice_session
         if voice_session is not None:
@@ -688,7 +798,10 @@ class GameScreen(BaseScreen):
 
     def _sync_buttons(self):
         running = bool(self.app.voice_only_running or is_pid_running(self.app.fg_pid))
-        self.start_button.setDisabled(running)
+        runtime = self.app.eye_runtime
+        needs_calibration = runtime.tracker_connected and not runtime.calibration_passed
+        self.start_button.setDisabled(running or needs_calibration)
+        self.calibrate_button.setDisabled(running)
         self.stop_button.setVisible(running)
         self.audio_only.setDisabled(running)
 
@@ -1026,6 +1139,7 @@ class FatigueApp(QMainWindow):
         self.fg_finished_handled = False
         self.voice_only_running = False
         self.voice_session = None
+        self.eye_runtime = EyeTrackingRuntime()
 
         self.stack = QStackedWidget()
         
@@ -1053,6 +1167,9 @@ class FatigueApp(QMainWindow):
 
 
 def main():
+    from eye_tracking_analysis.stdout_safe import install_safe_stdio
+
+    install_safe_stdio()
     app = QApplication(sys.argv)
     app.setApplicationName("ER Force")
     window = FatigueApp()

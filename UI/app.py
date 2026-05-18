@@ -1,4 +1,4 @@
-from ui.pyside_app import main
+from .pyside_app import main
 
 
 if __name__ == "__main__":
