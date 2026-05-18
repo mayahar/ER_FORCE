@@ -1,12 +1,18 @@
 import math
 import time
 import os
-import re
-from pathlib import Path
 
 from core.subject_repository import get_subject
 from core.session_manager import create_session
 from score.fatigue_features import FEATURES
+from core.fg_run_score import find_latest_flightgear_score
+from core.modality_features import (
+    compact_eye_features,
+    has_eye_features,
+    strip_absent_eye_from_result,
+    unused_voice_features,
+    voice_features_unused,
+)
 from score.fatigue_scoring import compute_fatigue_score
 
 
@@ -27,6 +33,8 @@ class Controller:
         self.result = None
         self.voice_session_data = None
         self.measurement_warnings = []
+        self.recorded_eye_features = None
+        self.recorded_game_score = None
 
     # -------------------
     # DISPATCH
@@ -58,12 +66,23 @@ class Controller:
         self.result = None
         self.voice_session_data = None
         self.measurement_warnings = []
+        self.recorded_eye_features = None
+        self.recorded_game_score = None
 
         return True
 
     # -------------------
     # RUN MULTIMODAL GAME
     # -------------------
+    def set_voice_features(self, voice_features: dict | None):
+        self.recorded_voice_features = voice_features
+
+    def set_eye_features(self, eye_features: dict | None):
+        self.recorded_eye_features = eye_features
+
+    def set_game_score(self, score: int | None):
+        self.recorded_game_score = score
+
     def run_multimodal_game(self):
 
         if self.subject is None:
@@ -74,12 +93,19 @@ class Controller:
         eye_features = self._collect_eye_features()
         game_features = self._collect_game_features()
 
+        voice_features = self.recorded_voice_features
+        if voice_features is None or voice_features_unused(voice_features):
+            voice_features = unused_voice_features()
+
         self.features = {
             "voice": {**voice_features, "events": voice_events},
             "eye": eye_features,
             "game": game_features,
             "questionnaire": self.questionnaire.copy()
         }
+
+        if has_eye_features(self.recorded_eye_features):
+            self.features["eye"] = compact_eye_features(self.recorded_eye_features)
 
     def attach_voice_session_result(self, session_data):
         self.voice_session_data = session_data or {}
@@ -110,7 +136,7 @@ class Controller:
 
     def _coerce_valid_number(self, modality, feature, value):
         if value is None or isinstance(value, bool):
-            return None
+            return self._voice_feature_value("dLPC")
 
         try:
             number = float(value)
@@ -334,7 +360,7 @@ class Controller:
         raw = compute_fatigue_score(data)
         quality_warning = self._build_quality_warning()
 
-        self.result = {
+        self.result = strip_absent_eye_from_result({
             "subject_id": self.subject.get("id", "UNKNOWN"),
             "subject_info": {
                 "name": self.subject.get("name"),
@@ -356,7 +382,7 @@ class Controller:
             "quality_warning": quality_warning,
             "features": self.features,
             "baseline": b
-        }
+        })
 
         return self.result
 

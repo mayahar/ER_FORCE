@@ -396,7 +396,7 @@ class EyeMovementAnalyzer:
         with open(filename, 'w') as f:
             json.dump(data, f, indent=2)
         
-        print(f"✓ Metrics exported to {filename}")
+        print(f"Metrics exported to {filename}")
 
 
 def main_analysis(gaze_data_json_path: str):
@@ -427,7 +427,7 @@ def main_analysis(gaze_data_json_path: str):
     fixations, saccades, metrics = analyzer.analyze_gaze_data(gaze_x, gaze_y, timestamps)
     
     # Print results
-    print(f"\n✓ Analysis complete: {len(gaze_samples)} samples processed")
+    print(f"\nAnalysis complete: {len(gaze_samples)} samples processed")
     analyzer.print_metrics(metrics)
     
     # Export

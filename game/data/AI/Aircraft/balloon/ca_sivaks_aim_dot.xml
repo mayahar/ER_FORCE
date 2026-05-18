@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <PropertyList>
-  <description>CorrActions aim marker — large billboard + strong distance scaling for long-range visibility</description>
+  <description>CorrActions aim marker — centered on bullseye; scales with hit radius per level</description>
   <author>ER_FORCE / CorrActions</author>
   <path>Models/aim_dot.ac</path>
   <texture-path></texture-path>
@@ -34,28 +34,44 @@
     <interpolation>
       <entry>
         <ind>0</ind>
-        <dep>1.65</dep>
+        <dep>1.1</dep>
       </entry>
       <entry>
         <ind>400</ind>
-        <dep>1.65</dep>
+        <dep>1.1</dep>
       </entry>
       <entry>
         <ind>2000</ind>
-        <dep>4.1</dep>
+        <dep>2.8</dep>
       </entry>
       <entry>
         <ind>8000</ind>
-        <dep>8.2</dep>
+        <dep>5.5</dep>
       </entry>
       <entry>
         <ind>20000</ind>
-        <dep>12.5</dep>
+        <dep>8.5</dep>
       </entry>
       <entry>
         <ind>40000</ind>
-        <dep>17.5</dep>
+        <dep>12.0</dep>
       </entry>
     </interpolation>
+  </animation>
+  <animation>
+    <type>scale</type>
+    <object-name>aim_dot</object-name>
+    <property>/algorithm/game/aim-dot-visual-scale</property>
+    <x-factor>1</x-factor>
+    <y-factor>1</y-factor>
+    <z-factor>1</z-factor>
+    <x-min>0.08</x-min>
+    <y-min>0.08</y-min>
+    <z-min>0.08</z-min>
+    <center>
+      <x-m>0</x-m>
+      <y-m>0</y-m>
+      <z-m>0</z-m>
+    </center>
   </animation>
 </PropertyList>

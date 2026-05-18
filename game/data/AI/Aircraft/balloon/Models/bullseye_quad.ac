@@ -10,10 +10,10 @@ texrep 1 1
 texture "bullseye_sign.png"
 crease 30.000000
 numvert 4
--3.5 0.0 0.0
- 3.5 0.0 0.0
- 3.5 7.0 0.0
--3.5 7.0 0.0
+-5.0 -5.0 0.0
+ 5.0 -5.0 0.0
+ 5.0  5.0 0.0
+-5.0  5.0 0.0
 numsurf 1
 SURF 0x30
 mat 0
