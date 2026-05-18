@@ -2,6 +2,7 @@
 Tobii Pro Eye Tracker Recording and Real-Time Gaze Data Collection
 Automatically starts recording, collects gaze data, and returns extracted data to the application.
 """
+import importlib
 import os
 import sys
 
@@ -11,11 +12,25 @@ install_safe_stdio()
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SDK_DIR = os.path.join(ROOT_DIR, "TobiiPro_SDK")
-for path in (ROOT_DIR, SDK_DIR):
-    if path not in sys.path:
-        sys.path.insert(0, path)
 
-import tobii_research as tr
+
+def _load_tobii_research():
+    try:
+        return importlib.import_module("tobii_research")
+    except Exception:
+        for path in (ROOT_DIR, SDK_DIR):
+            if path not in sys.path:
+                sys.path.insert(0, path)
+        try:
+            return importlib.import_module("tobii_research")
+        except Exception as exc:
+            print(
+                f"Warning: Could not import Tobii SDK module 'tobii_research' ({exc.__class__.__name__}: {exc})"
+            )
+            return None
+
+
+tr = _load_tobii_research()
 import time
 from dataclasses import dataclass
 from typing import List, Optional, Callable
@@ -71,6 +86,10 @@ class EyeTrackerRecorder:
     def find_and_select_eyetracker(self, auto_select_first: bool = True) -> bool:
         """Find and select an eye tracker"""
         _safe_print("Looking for eye trackers...")
+        if tr is None:
+            _safe_print("Tobii SDK is not available. Eye tracking is disabled.")
+            return False
+
         found_eyetrackers = tr.find_all_eyetrackers()
         
         if not found_eyetrackers:
