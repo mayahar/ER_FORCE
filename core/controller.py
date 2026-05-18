@@ -1,6 +1,8 @@
 import math
 import time
 import os
+import re
+from pathlib import Path
 
 from core.subject_repository import get_subject
 from core.session_manager import create_session
@@ -93,9 +95,12 @@ class Controller:
         eye_features = self._collect_eye_features()
         game_features = self._collect_game_features()
 
-        voice_features = self.recorded_voice_features
-        if voice_features is None or voice_features_unused(voice_features):
-            voice_features = unused_voice_features()
+        if self.recorded_voice_features is not None:
+            voice_features = (
+                self.recorded_voice_features
+                if not voice_features_unused(self.recorded_voice_features)
+                else unused_voice_features()
+            )
 
         self.features = {
             "voice": {**voice_features, "events": voice_events},

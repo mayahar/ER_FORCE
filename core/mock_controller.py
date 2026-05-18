@@ -1,5 +1,8 @@
+import os
+import re
 import time
 import random
+from pathlib import Path
 
 from core.subject_repository import get_subject
 from core.fg_run_score import find_latest_flightgear_score
@@ -14,22 +17,6 @@ from score.feature_values import coerce_feature_number
 from score.fatigue_scoring import compute_fatigue_score
 from core.session_manager import create_session
 
-
-
-def _baseline_scalar(value, fallback: float) -> float:
-    number = coerce_feature_number(value)
-    return number if number is not None else fallback
-
-
-def _mock_voice_features(baseline: dict) -> dict:
-    voice = baseline.get("voice") or {}
-    return {
-        "dLPC": _baseline_scalar(voice.get("dLPC"), 0.41) * random.uniform(0.9, 1.1),
-        "PARCOR": _baseline_scalar(voice.get("PARCOR"), 0.54) * random.uniform(0.9, 1.1),
-        "LPC": _baseline_scalar(voice.get("LPC"), 0.60) * random.uniform(0.9, 1.1),
-        "Pitch": _baseline_scalar(voice.get("Pitch"), 150.0) * random.uniform(0.95, 1.05),
-        "MFCC": _baseline_scalar(voice.get("MFCC"), 0.52) * random.uniform(0.9, 1.1),
-    }
 
 
 def _baseline_scalar(value, fallback: float) -> float:
