@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
     QStackedWidget,
     QTableWidget,
     QTableWidgetItem,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -119,9 +120,16 @@ def panel(object_name="panel"):
 
 
 def add_labeled(parent_layout, label_text, widget):
+    row_layout = QHBoxLayout()
+    
     label = QLabel(label_text)
-    parent_layout.addWidget(label)
-    parent_layout.addWidget(widget)
+    label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+    label.setMinimumWidth(90)
+    
+    # הוספת הוידג'ט קודם ואז הלייבל כדי שויזואלית הלייבל יהיה מימין
+    row_layout.addWidget(widget, 1)
+    row_layout.addWidget(label)
+    parent_layout.addLayout(row_layout)
 
 
 class SliderTickRuler(QWidget):
@@ -171,45 +179,36 @@ def slider_row(label_text, minimum, maximum, value):
     layout.setContentsMargins(0, 5, 0, 15)
     layout.setSpacing(4)
 
-    # 1. לייבל לבן עם הערך צמוד לפרומפט
     label = QLabel(f"{label_text}: {value}")
-    label.setStyleSheet("font-size: 14px; font-weight: bold; color: white;")
+    label.setAlignment(Qt.AlignCenter)
+    label.setStyleSheet("font-size: 15px; font-weight: bold; color: white;")
 
     slider = QSlider(Qt.Horizontal)
     slider.setRange(minimum, maximum)
     slider.setValue(value)
     
-    # 2. הגדרות טכניות לשנתות (שיהיו קיימות ברקע)
     slider.setTickPosition(QSlider.NoTicks)
     slider.setTickInterval(1)
     
-    # 3. עיצוב מתקדם (CSS) - יצירת שנתות ויזואליות בתוך המסילה
-    # השתמשתי ב-repeating-linear-gradient כדי לצייר את הקווים
     slider.setStyleSheet("""
         QSlider {
             min-height: 50px;
         }
         QSlider::groove:horizontal {
             height: 6px;
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                        stop:0 #444, stop:1 #444); /* צבע המסילה */
+            background: #444;
             border-radius: 3px;
-            /* יצירת השנתות כקווקוו לבן על המסילה */
-            background-image: repeating-linear-gradient(to right, 
-                              white, white 1px, 
-                              transparent 1px, transparent 10%); 
         }
         QSlider::handle:horizontal {
-            background: #38bdf8; /* צבע תכלת מודרני */
+            background: #66aaff;
             border: 2px solid white;
             width: 16px;
             height: 16px;
-            margin: -6px 0;
+            margin: -5px 0;
             border-radius: 9px;
         }
     """)
     
-    # עדכון הטקסט בזמן אמת
     slider.valueChanged.connect(lambda v: label.setText(f"{label_text}: {v}"))
 
     layout.addWidget(label)
@@ -244,16 +243,38 @@ class EnterIdScreen(BaseScreen):
         super().__init__(app_window)
         self.mode_group = QButtonGroup(self)
         self.subject_combo = QComboBox()
+        self.subject_combo.setLayoutDirection(Qt.RightToLeft)
+        
         self.subject_input = QLineEdit()
+        self.subject_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.subject_input.setLayoutDirection(Qt.RightToLeft)
+        
         self.name_input = QLineEdit()
+        self.name_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.name_input.setLayoutDirection(Qt.RightToLeft)
+        
         self.sex_combo = QComboBox()
+        self.sex_combo.setLayoutDirection(Qt.RightToLeft)
+        
         self.age_input = QSpinBox()
+        self.age_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.age_input.setLayoutDirection(Qt.RightToLeft)
+        
         self.dynamic_panel = panel()
         self.dynamic_layout = QVBoxLayout(self.dynamic_panel)
         self.error_label = message("", "errorText")
 
+        # עיגון ומרכוס של האלמנטים במסך הבית למראה הייטקיסטי ומקצועי שלא נמתח
         self.root.addWidget(title("התחלת מפגש חדש"))
-        self.root.addWidget(self.dynamic_panel)
+        
+        center_wrapper = QHBoxLayout()
+        center_wrapper.addStretch()
+        self.dynamic_panel.setMinimumWidth(450)
+        self.dynamic_panel.setMaximumWidth(550)
+        center_wrapper.addWidget(self.dynamic_panel)
+        center_wrapper.addStretch()
+        
+        self.root.addLayout(center_wrapper)
         self.root.addWidget(self.error_label)
         self.root.addStretch()
 
@@ -279,8 +300,9 @@ class EnterIdScreen(BaseScreen):
             return
 
         self.subject_combo = QComboBox()
+        self.subject_combo.setLayoutDirection(Qt.RightToLeft)
         self.subject_combo.addItems([str(pid) for pid in participant_ids])
-        add_labeled(self.dynamic_layout, "Participant ID", self.subject_combo)
+        add_labeled(self.dynamic_layout, "מספר אישי", self.subject_combo)
         self.dynamic_layout.addWidget(
             message(
                 f"יום הסדנה: {research_day['day_number']} | "
@@ -292,64 +314,87 @@ class EnterIdScreen(BaseScreen):
         continue_button.clicked.connect(lambda: self._continue_research(research_day))
         self.dynamic_layout.addWidget(continue_button, alignment=Qt.AlignLeft)
 
-    def _continue_research(self, research_day):
-        subject_id = self.subject_combo.currentText()
-        participant = get_research_participant(subject_id)
-        if not participant:
-            self.set_error("המשתתף שנבחר לא נמצא.")
-            return
-
-        create_or_update_subject_profile(
-            subject_id,
-            name=participant.get("name"),
-            sex=participant.get("sex", "unknown"),
-            age=participant.get("age", 0),
-        )
-
-        if self.app.controller.load_subject(subject_id):
-            self.app.state = {
-                "screen": "questionnaire",
-                "session_id": subject_id,
-                "research_context": research_day,
-                "baseline_capture": research_day["is_baseline_day"],
-            }
-            self.app.result = None
-            self.app.navigate("questionnaire")
-
     def _build_manual_mode(self):
         available_ids = get_all_subject_ids()
 
         mode_box = QGroupBox("בחר מצב הפעלה")
+        mode_box.setAlignment(Qt.AlignRight)
         mode_layout = QHBoxLayout(mode_box)
+        
         existing_button = QRadioButton(EXISTING_USER_MODE)
         new_button = QRadioButton(NEW_USER_MODE)
         existing_button.setChecked(True)
         self.mode_group = QButtonGroup(self)
         self.mode_group.addButton(existing_button)
         self.mode_group.addButton(new_button)
-        mode_layout.addWidget(existing_button)
+        
+        # מוסיפים קודם את כפתור "חדש" ואז "קיים" כדי שמימין לשמאל "קיים" יופיע ראשון
+        mode_layout.addStretch()
         mode_layout.addWidget(new_button)
+        mode_layout.addWidget(existing_button)
         self.dynamic_layout.addWidget(mode_box)
 
         self.subject_input = QLineEdit()
+        self.subject_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.subject_input.setLayoutDirection(Qt.RightToLeft)
         self.subject_input.setPlaceholderText("אנא הזן מספר אישי")
         add_labeled(self.dynamic_layout, "מספר אישי", self.subject_input)
 
         self.name_input = QLineEdit()
+        self.name_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.name_input.setLayoutDirection(Qt.RightToLeft)
+        self.name_input.setPlaceholderText("הקלד שם מלא")
+        
         self.sex_combo = QComboBox()
+        self.sex_combo.setLayoutDirection(Qt.RightToLeft)
         self.sex_combo.addItems(list(SEX_OPTIONS.keys()))
+        
         self.age_input = QSpinBox()
+        self.age_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.age_input.setLayoutDirection(Qt.RightToLeft)
         self.age_input.setRange(1, 120)
         self.age_input.setValue(18)
 
         profile_box = QGroupBox("פרופיל משתתף חדש")
+        profile_box.setAlignment(Qt.AlignRight)
+        
         profile_layout = QGridLayout(profile_box)
-        profile_layout.addWidget(QLabel("שם מלא"), 0, 0)
-        profile_layout.addWidget(self.name_input, 0, 1)
-        profile_layout.addWidget(QLabel("מין"), 1, 0)
-        profile_layout.addWidget(self.sex_combo, 1, 1)
-        profile_layout.addWidget(QLabel("גיל"), 2, 0)
-        profile_layout.addWidget(self.age_input, 2, 1)
+        
+        name_label = QLabel("שם מלא")
+        name_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        sex_label = QLabel("מין")
+        sex_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        age_label = QLabel("גיל")
+        age_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        
+        # סידור העמודות ב-Grid: עמודה 1 הלייבל (ימין), עמודה 0 תיבת הקלט (שמאל)
+        profile_layout.addWidget(name_label, 0, 1)
+        profile_layout.addWidget(self.name_input, 0, 0)
+        profile_layout.addWidget(sex_label, 1, 1)
+        profile_layout.addWidget(self.sex_combo, 1, 0)
+        profile_layout.addWidget(age_label, 2, 1)
+        profile_layout.addWidget(self.age_input, 2, 0)
+        
+        profile_layout.setColumnStretch(0, 1)
+        profile_layout.setColumnStretch(1, 0)
+        
+        name_label = QLabel("שם מלא")
+        name_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        sex_label = QLabel("מין")
+        sex_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        age_label = QLabel("גיל")
+        age_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        
+        profile_layout.addWidget(self.name_input, 0, 0)
+        profile_layout.addWidget(name_label, 0, 1)
+        profile_layout.addWidget(self.sex_combo, 1, 0)
+        profile_layout.addWidget(sex_label, 1, 1)
+        profile_layout.addWidget(self.age_input, 2, 0)
+        profile_layout.addWidget(age_label, 2, 1)
+        
+        profile_layout.setColumnStretch(0, 1)
+        profile_layout.setColumnStretch(1, 0)
+        
         profile_box.setVisible(False)
         self.dynamic_layout.addWidget(profile_box)
 
@@ -369,7 +414,6 @@ class EnterIdScreen(BaseScreen):
             self.set_error("אנא הזן מספר אישי.")
             return
 
-        # Remove in production the available_ids. The output is currently in place to guide testing with a limited set of mock participants.
         if not is_new_user and not subject_exists(subject_id):
             self.set_error(f"הנבדק שמספרו האישי הוא: {subject_id} לא מופיע במערכת, מספרים אישיים זמינים: {', '.join(map(str, available_ids))}")
             return
@@ -419,6 +463,7 @@ class QuestionnaireScreen(BaseScreen):
     def activate(self):
         clear_layout(self.form_layout)
         research_context = self.app.state.get("research_context")
+        
         fatigue_row, self.fatigue_slider = slider_row("עד כמה אתה עייף כעת?", 0, 10, 5)
         self.form_layout.addWidget(fatigue_row)
 
@@ -486,20 +531,15 @@ class NewUserSleepGateScreen(BaseScreen):
     def activate(self):
         clear_layout(self.form_layout)
         self.error_label.clear()
+        
         sleep_last_row, self.sleep_last_slider = slider_row("כמה שעות ישנת אתמול?", 0, 8, 7)
         sleep_previous_row, self.sleep_previous_slider = slider_row("כמה שעות ישנת שלשום?", 0, 8, 7)
         self.form_layout.addWidget(sleep_last_row)
         self.form_layout.addWidget(sleep_previous_row)
+        
         continue_button = QPushButton("המשך")
         continue_button.clicked.connect(self._continue)
         self.form_layout.addWidget(continue_button, alignment=Qt.AlignLeft)
-
-    def _continue(self):
-        if self.sleep_last_slider.value() >= 7 and self.sleep_previous_slider.value() >= 7:
-            self.app.state["baseline_capture"] = True
-            self.app.navigate("game")
-            return
-        self.set_error("רמת הערנות שלך לא מתאימה לייצירת משתתף חדש, אנא חזור לאחר שישנת במשך שני לילות רצופים שינה מלאה.")
 
 
 class GameScreen(BaseScreen):
@@ -508,8 +548,10 @@ class GameScreen(BaseScreen):
         self.timer = QTimer(self)
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self._tick)
-        # Remove before production. The audio_only mode is currently in place to allow testing the voice session features without needing to start FlightGear, which can be slow and resource intensive.
+        
         self.audio_only = QCheckBox("הרצת בדיקת קול בלבד (ללא הפעלת המשחק)")
+        self.audio_only.setLayoutDirection(Qt.RightToLeft)
+        
         self.start_button = QPushButton("התחל משחק")
         self.stop_button = QPushButton("סיים משחק")
         self.status_label = message("המשחק מוכן")
@@ -710,98 +752,97 @@ class ResultsScreen(BaseScreen):
 
         subject_id = result.get("subject_id", "UNKNOWN")
         score = result.get("score")
+        
+        # כותרת דוח קבועה
         self.content.addWidget(message(f"דוח תוצאות עבור משתתף: {subject_id}"))
 
+        # יצירת מנגנון לשוניות (Tabs) למניעת גלילה במסך התוצאות
+        self.tabs = QTabWidget()
+        self.tabs.setLayoutDirection(Qt.RightToLeft)
+        
+        # 1. לשונית ציון סופי (עם טקסט מוקטן וממורכז לבקשתך)
+        tab_score = QWidget()
+        score_layout = QVBoxLayout(tab_score)
+        score_layout.setContentsMargins(16, 16, 16, 16)
+        
         score_panel = panel()
-        score_panel.setMinimumHeight(260)
-        score_layout = QVBoxLayout(score_panel)
-        score_layout.setContentsMargins(24, 24, 24, 28)
-        score_label = QLabel("ציון עייפות")
+        score_panel_layout = QVBoxLayout(score_panel)
+        score_panel_layout.setContentsMargins(24, 24, 24, 28)
+        
+        score_label = QLabel("ציון עייפות סופי")
         score_label.setAlignment(Qt.AlignCenter)
-        score_label.setFont(QFont("Segoe UI", 24, QFont.Bold))
-        score_label.setStyleSheet("font-size: 20px; font-weight: 800;")
+        score_label.setStyleSheet("font-size: 20px; font-weight: 800; color: #bfd7ff;")
+        
+        # שינוי לבקשתך: הקטנת הטקסט של הציון מ-132px ל-76px
         score_value = QLabel(f"{score:.2f}" if isinstance(score, (int, float)) else "Unavailable")
         score_value.setAlignment(Qt.AlignCenter)
-        score_value.setMinimumHeight(150)
-        score_value.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        score_value.setFont(QFont("Segoe UI", 132, QFont.Bold))
+        
         if isinstance(score, (int, float)):
             score_color = get_score_color(score)
-            score_panel.setStyleSheet(
-                f"""
-                QFrame#panel {{
-                    background: {SURFACE};
-                    border: 3px solid {score_color};
-                    border-radius: 8px;
-                }}
-                """
-            )
-            score_value.setStyleSheet(
-                f"""
-                QLabel {{
-                    color: {score_color};
-                    font-size: 132px;
-                    font-weight: 900;
-                    line-height: 1;
-                }}
-                """
-            )
+            score_panel.setStyleSheet(f"QFrame#panel {{ border: 3px solid {score_color}; border-radius: 8px; background: {SURFACE}; }}")
+            score_value.setStyleSheet(f"color: {score_color}; font-size: 76px; font-weight: 900;")
         else:
-            score_value.setStyleSheet(
-                """
-                QLabel {
-                    font-size: 72px;
-                    font-weight: 900;
-                    line-height: 1;
-                }
-                """
-            )
-        score_layout.addWidget(score_label)
-        score_layout.addWidget(score_value)
-        self.content.addWidget(score_panel)
+            score_value.setStyleSheet("font-size: 54px; font-weight: 900;")
+            
+        score_panel_layout.addWidget(score_label)
+        score_panel_layout.addWidget(score_value)
+        score_layout.addWidget(score_panel)
 
         quality_warning = result.get("quality_warning")
         measurement_warnings = result.get("measurement_warnings") or []
         if quality_warning:
             warning_text = quality_warning
-            details = [
-                f"{warning.get('label')}: {warning.get('detail')}"
-                for warning in measurement_warnings
-                if warning.get("detail")
-            ]
+            details = [f"{w.get('label')}: {w.get('detail')}" for w in measurement_warnings if w.get("detail")]
             if details:
-                warning_text = warning_text + "\n" + "\n".join(details)
-            self.content.addWidget(message(warning_text, "warningText"))
+                warning_text += "\n" + "\n".join(details)
+            score_layout.addWidget(message(warning_text, "warningText"))
+            
+        score_layout.addStretch()
+        self.tabs.addTab(tab_score, "ציון סופי")
 
+        # הפקת נתוני הגרף והטבלה
         export_rows, graph_rows = build_result_export_rows(result)
         ordered_rows = self._ordered_graph_rows(graph_rows)
-        if ordered_rows:
-            self.content.addWidget(self._build_chart(ordered_rows))
-            self.content.addWidget(self._build_table(ordered_rows, export_rows))
-        else:
-            self.content.addWidget(message("No graph data available."))
 
+        if ordered_rows:
+            # 2. לשונית גרף אנליזה
+            tab_chart = QWidget()
+            chart_layout = QVBoxLayout(tab_chart)
+            chart_layout.addWidget(self._build_chart(ordered_rows))
+            self.tabs.addTab(tab_chart, "גרף מדדים")
+
+            # 3. לשונית טבלת נתונים
+            tab_table = QWidget()
+            table_layout = QVBoxLayout(tab_table)
+            table_layout.addWidget(self._build_table(ordered_rows, export_rows))
+            self.tabs.addTab(tab_table, "טבלת מדדים")
+        else:
+            self.tabs.addTab(message("No graph data available."), "מדדים")
+
+        self.content.addWidget(self.tabs)
+
+        # שמירת דוח אוטומטית ברקע
         csv_text = pd.DataFrame(export_rows).to_csv(index=False)
         path = save_report_once(subject_id, csv_text, result=result, controller=self.app.controller)
         if path:
             self.saved_path = path
 
+        # כפתור ניווט תחתון קבוע
         new_button = QPushButton("התחל מפגש חדש")
+        new_button.setMaximumWidth(200)
         new_button.clicked.connect(self._new_session)
         self.content.addWidget(new_button, alignment=Qt.AlignLeft)
 
     def _ordered_graph_rows(self, graph_rows):
         ordered_rows = []
-
         for modality in MODALITY_ORDER:
             for row in graph_rows:
                 if row.get("modality") == modality:
                     ordered_rows.append(row)
-
         return ordered_rows
 
     def _build_chart(self, ordered_rows):
-        figure = Figure(figsize=(11, 5.2), facecolor=BACKGROUND)
+        figure = Figure(figsize=(11, 4.8), facecolor=BACKGROUND)
         axis = figure.add_subplot(111)
         axis.set_facecolor(BACKGROUND)
 
@@ -899,8 +940,8 @@ class ResultsScreen(BaseScreen):
         figure.subplots_adjust(left=0.16, right=0.98, bottom=0.32, top=0.96)
 
         canvas = FigureCanvas(figure)
-        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        canvas.setMinimumHeight(440)
+        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        canvas.setMinimumHeight(380)
         return canvas
 
     def _build_table(self, ordered_rows, export_rows):
@@ -921,6 +962,8 @@ class ResultsScreen(BaseScreen):
 
         table = QTableWidget(len(table_rows), len(headers))
         table.setHorizontalHeaderLabels(headers)
+        table.setLayoutDirection(Qt.RightToLeft)
+        
         for row_idx, (label, key) in enumerate(table_rows):
             label_item = QTableWidgetItem(label)
             label_item.setFlags(label_item.flags() & ~Qt.ItemIsEditable)
@@ -937,7 +980,8 @@ class ResultsScreen(BaseScreen):
 
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.verticalHeader().setVisible(False)
-        table.setMinimumHeight(170)
+        table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        table.setMinimumHeight(180)
         return table
 
     def _new_session(self):
@@ -984,10 +1028,9 @@ class FatigueApp(QMainWindow):
         self.voice_session = None
 
         self.stack = QStackedWidget()
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setWidget(self.stack)
-        self.setCentralWidget(scroll)
+        
+        # הסרת ה-QScrollArea ממסך התוצאות ומסך הבית למניעת גלילה כפולה ולא נחוצה
+        self.setCentralWidget(self.stack)
 
         self.screens = {
             "enter_id": EnterIdScreen(self),

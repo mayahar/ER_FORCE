@@ -84,38 +84,74 @@ QLineEdit, QSpinBox, QComboBox {{
     border: 1px solid {BORDER};
     border-radius: 6px;
     padding: 8px;
+    /* תיקון: יישור מובנה לימין של כל האינפוטים והפלייסהולדרים במערכת */
+    qproperty-alignment: 'AlignRight | AlignVCenter';
 }}
 
-QSlider::groove:horizontal {{
-    height: 8px;
-    background: {SURFACE_DARK};
-    border-radius: 4px;
+QLineEdit:focus, QSpinBox:focus, QComboBox:focus {{
+    border: 1px solid {ACCENT};
 }}
 
-QSlider::handle:horizontal {{
-    width: 18px;
-    margin: -6px 0;
-    border-radius: 9px;
-    background: {ACCENT};
+QGroupBox {{
+    color: {ACCENT};
+    font-weight: 700;
+    border: 1px solid {BORDER};
+    border-radius: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
 }}
 
-QRadioButton, QCheckBox {{
-    spacing: 8px;
+QGroupBox::title {{
+    subcontrol-origin: margin;
+    subcontrol-position: top right;
+    padding: 0 5px;
 }}
 
 QTableWidget {{
     background: {SURFACE_DARK};
-    color: {TEXT};
-    gridline-color: {BORDER};
     border: 1px solid {BORDER};
+    gridline-color: {BORDER};
+    border-radius: 4px;
 }}
 
 QHeaderView::section {{
     background: {SURFACE};
-    color: {TEXT};
-    padding: 7px;
+    color: {MUTED};
+    padding: 6px;
     border: 1px solid {BORDER};
     font-weight: 700;
 }}
-"""
 
+QTableWidget QTableCornerButton::section {{
+    background: {SURFACE};
+    border: 1px solid {BORDER};
+}}
+
+/* עיצוב מודרני והייטקיסטי עבור הלשוניות (Tabs) במסך התוצאות */
+QTabWidget::pane {{
+    border: 1px solid {BORDER};
+    background: {SURFACE_DARK};
+    border-radius: 6px;
+}}
+
+QTabBar::tab {{
+    background: {SURFACE};
+    color: {MUTED};
+    padding: 10px 24px;
+    font-weight: bold;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-left: 2px;
+}}
+
+QTabBar::tab:selected {{
+    background: {PRIMARY};
+    color: {TEXT};
+    border-bottom: 2px solid {ACCENT};
+}}
+
+QTabBar::tab:hover {{
+    background: {PRIMARY_HOVER};
+    color: {TEXT};
+}}
+"""
