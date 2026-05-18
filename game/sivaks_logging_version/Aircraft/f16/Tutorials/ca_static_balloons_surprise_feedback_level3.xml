@@ -121,9 +121,14 @@ This Scenario announces if you hit or miss.
 	var sivaksStartTargetEdge = func() {
 		if (!sivaksLoadTargetEdgeNasal())
 			return;
-		var edge = globals.SivaksTargetEdge;
-		if (edge != nil and contains(edge, "init"))
-			edge.init();
+		# Wait for the main view / canvas desktop to be ready.
+		settimer(func {
+			if (!contains(globals, "SivaksTargetEdge"))
+				return;
+			var edge = globals.SivaksTargetEdge;
+			if (edge != nil and contains(edge, "init"))
+				edge.init();
+		}, 2.0);
 	};
 
 	var sivaksStopTargetEdge = func() {
