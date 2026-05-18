@@ -1,0 +1,5 @@
+﻿subject_id,modality,feature,baseline,current,fatigue_score,relative_change,normalized_effect,raw_sigmoid,weight,direction,expected_change,contribution,weighted_contribution,better_than_baseline
+3,game,score,72.0,48.0,0.8790173438460327,-0.33333333328703707,-2.7428570319782364,0.9395086719230163,0.82,-1,0.25,0.7207942219537468,0.7207942219537468,False
+3,subjective,fatigue_self,0.0,5.0,0.0,,0.0,,0.0,1,,0.0,0.0,False
+3,subjective,sleep_last,7.0,6.0,-0.5,,-0.5,,0.0,-1,,-0.0,-0.0,True
+3,subjective,sleep_previous,7.0,6.0,-0.5,,-0.5,,0.0,-1,,-0.0,-0.0,True

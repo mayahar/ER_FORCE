@@ -15,6 +15,7 @@ from core.modality_features import (
     unused_voice_features,
     voice_features_unused,
 )
+from score.feature_values import coerce_feature_number
 from score.fatigue_scoring import compute_fatigue_score
 
 
@@ -35,6 +36,7 @@ class Controller:
         self.result = None
         self.voice_session_data = None
         self.measurement_warnings = []
+        self.recorded_voice_features = None
         self.recorded_eye_features = None
         self.recorded_game_score = None
 
@@ -68,6 +70,7 @@ class Controller:
         self.result = None
         self.voice_session_data = None
         self.measurement_warnings = []
+        self.recorded_voice_features = None
         self.recorded_eye_features = None
         self.recorded_game_score = None
 
@@ -140,12 +143,8 @@ class Controller:
         }
 
     def _coerce_valid_number(self, modality, feature, value):
-        if value is None or isinstance(value, bool):
-            return self._voice_feature_value("dLPC")
-
-        try:
-            number = float(value)
-        except (TypeError, ValueError):
+        number = coerce_feature_number(value)
+        if number is None:
             return None
 
         if not math.isfinite(number):
@@ -233,7 +232,11 @@ class Controller:
         return eye_features
 
     def _collect_game_features(self):
-        fg_score = self._try_get_latest_flightgear_score()
+        fg_score = (
+            self.recorded_game_score
+            if self.recorded_game_score is not None
+            else self._try_get_latest_flightgear_score()
+        )
         score = self._coerce_valid_number("game", "score", fg_score)
 
         if score is None:
@@ -275,7 +278,7 @@ class Controller:
 
         runs_root = os.environ.get(
             "SIVAKS_FG_RUNS_ROOT",
-            r"C:\Users\srule\OneDrive\Desktop\yan\FlightGear_2020_3\sivaks_logging_version\runs",
+            r"game\sivaks_logging_version\runs",
         )
 
         root = Path(runs_root)
