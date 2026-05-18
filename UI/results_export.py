@@ -68,6 +68,8 @@ def build_result_export_rows(result):
     research_context = result.get("research") or {}
     contributions = result.get("feature_contributions", {})
     current_questionnaire = (result.get("features", {}) or {}).get("questionnaire", {}) or {}
+    invalid_measurements = result.get("invalid_measurements") or []
+    baseline = result.get("baseline") or {}
 
     export_rows = []
     graph_rows = []
@@ -92,6 +94,10 @@ def build_result_export_rows(result):
                 "contribution": contribution_value,
                 "weighted_contribution": contribution_value,
                 "better_than_baseline": data.get("better_than_baseline"),
+                "valid_measurement": True,
+                "measurement_status": "included",
+                "valid_range": None,
+                "invalid_reason": None,
             }
 
             if research_context:
@@ -115,6 +121,50 @@ def build_result_export_rows(result):
                 }
             )
 
+    for invalid in invalid_measurements:
+        modality = invalid.get("modality")
+        fname = invalid.get("feature")
+        if not modality or not fname:
+            continue
+        if (modality, fname) in exported_features:
+            continue
+
+        export_row = {
+            "subject_id": subject_id,
+            "modality": modality,
+            "feature": fname,
+            "baseline": (baseline.get(modality) or {}).get(fname),
+            "current": invalid.get("value"),
+            "fatigue_score": None,
+            "relative_change": None,
+            "normalized_effect": None,
+            "raw_sigmoid": None,
+            "weight": None,
+            "direction": None,
+            "expected_change": None,
+            "contribution": None,
+            "weighted_contribution": None,
+            "better_than_baseline": None,
+            "valid_measurement": False,
+            "measurement_status": "excluded_invalid_measurement",
+            "valid_range": invalid.get("valid_range"),
+            "invalid_reason": invalid.get("reason"),
+        }
+
+        if research_context:
+            export_row.update(
+                {
+                    "study_id": research_context.get("study_id"),
+                    "research_day": research_context.get("day_number"),
+                    "research_condition": research_context.get("condition"),
+                    "sleep_last": research_context.get("sleep_last"),
+                    "sleep_previous": research_context.get("sleep_previous"),
+                }
+            )
+
+        export_rows.append(export_row)
+        exported_features.add((modality, fname))
+
     for fname, current_value in current_questionnaire.items():
         if ("subjective", fname) in exported_features:
             continue
@@ -135,6 +185,10 @@ def build_result_export_rows(result):
             "contribution": None,
             "weighted_contribution": None,
             "better_than_baseline": None,
+            "valid_measurement": None,
+            "measurement_status": "questionnaire",
+            "valid_range": None,
+            "invalid_reason": None,
         }
 
         if research_context:

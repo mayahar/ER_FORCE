@@ -36,6 +36,7 @@ class Controller:
         self.result = None
         self.voice_session_data = None
         self.measurement_warnings = []
+        self.invalid_measurements = []
         self.recorded_voice_features = None
         self.recorded_eye_features = None
         self.recorded_game_score = None
@@ -70,6 +71,7 @@ class Controller:
         self.result = None
         self.voice_session_data = None
         self.measurement_warnings = []
+        self.invalid_measurements = []
         self.recorded_voice_features = None
         self.recorded_eye_features = None
         self.recorded_game_score = None
@@ -94,16 +96,38 @@ class Controller:
             raise ValueError("No subject loaded")
 
         self.measurement_warnings = []
-        voice_features, voice_events = self._collect_voice_features()
-        eye_features = self._collect_eye_features()
-        game_features = self._collect_game_features()
+        self.invalid_measurements = []
+        voice_events = []
 
         if self.recorded_voice_features is not None:
-            voice_features = (
-                self.recorded_voice_features
-                if not voice_features_unused(self.recorded_voice_features)
-                else unused_voice_features()
-            )
+            if voice_features_unused(self.recorded_voice_features):
+                self._warn_measurement("voice", "voice recording did not produce valid numeric feature values")
+                voice_features = self._validate_modality_features("voice", {})[0]
+            else:
+                voice_features, invalid = self._validate_modality_features(
+                    "voice",
+                    self.recorded_voice_features
+                )
+                if invalid:
+                    self._warn_measurement(
+                        "voice",
+                        f"invalid voice feature values ignored: {', '.join(invalid)}"
+                    )
+        else:
+            voice_features, voice_events = self._collect_voice_features()
+
+        if has_eye_features(self.recorded_eye_features):
+            compact_eye = compact_eye_features(self.recorded_eye_features)
+            eye_features, invalid = self._validate_modality_features("eye", compact_eye)
+            if invalid:
+                self._warn_measurement(
+                    "eye",
+                    f"invalid eye feature values ignored: {', '.join(invalid)}"
+                )
+        else:
+            eye_features = self._collect_eye_features()
+
+        game_features = self._collect_game_features()
 
         self.features = {
             "voice": {**voice_features, "events": voice_events},
@@ -111,9 +135,6 @@ class Controller:
             "game": game_features,
             "questionnaire": self.questionnaire.copy()
         }
-
-        if has_eye_features(self.recorded_eye_features):
-            self.features["eye"] = compact_eye_features(self.recorded_eye_features)
 
     def attach_voice_session_result(self, session_data):
         self.voice_session_data = session_data or {}
@@ -143,52 +164,68 @@ class Controller:
         }
 
     def _coerce_valid_number(self, modality, feature, value):
+        number, _reason = self._validate_feature_value(feature, value)
+        return number
+
+    def _validate_feature_value(self, feature, value):
         number = coerce_feature_number(value)
         if number is None:
-            return None
+            return None, "missing_or_not_numeric"
 
         if not math.isfinite(number):
-            return None
+            return None, "not_finite"
 
         valid_range = FEATURES[feature].get("MEASUREMENT_VALID_RANGES")
         if valid_range is None:
-            return number
+            return number, None
 
         minimum, maximum = valid_range
         if number < minimum or number > maximum:
-            return None
+            return None, "out_of_range"
 
-        return number
+        return number, None
+
+    def _record_invalid_measurement(self, modality, feature, value, reason):
+        valid_range = FEATURES[feature].get("MEASUREMENT_VALID_RANGES")
+        self.invalid_measurements.append(
+            {
+                "modality": modality,
+                "feature": feature,
+                "value": value,
+                "reason": reason,
+                "valid_range": valid_range,
+            }
+        )
 
     def _validate_modality_features(self, modality, values):
         validated = {}
         invalid = []
 
         for feature in self._measurement_features(modality):
-            value = self._coerce_valid_number(
-                modality,
-                feature,
-                values.get(feature)
-            )
+            raw_value = values.get(feature)
+            value, reason = self._validate_feature_value(feature, raw_value)
             if value is None:
                 invalid.append(feature)
+                self._record_invalid_measurement(
+                    modality,
+                    feature,
+                    raw_value,
+                    reason
+                )
             validated[feature] = value
 
-        if invalid:
-            return None, invalid
-
-        return validated, []
+        return validated, invalid
 
     def _collect_voice_features(self):
         voice_events = []
 
         if not self.voice_session_data:
             self._warn_measurement("voice", "voice recording was not started or no voice session data was attached")
-            return self._none_features("voice"), voice_events
+            return self._validate_modality_features("voice", {})[0], voice_events
 
         if self.voice_session_data.get("error"):
             self._warn_measurement("voice", self.voice_session_data["error"])
-            return self._none_features("voice"), self.voice_session_data.get("events", [])
+            return self._validate_modality_features("voice", {})[0], self.voice_session_data.get("events", [])
 
         voice_summary = self.voice_session_data.get("summary") or {}
         voice_events = self.voice_session_data.get("events", [])
@@ -197,12 +234,11 @@ class Controller:
             voice_summary
         )
 
-        if voice_features is None:
+        if invalid:
             self._warn_measurement(
                 "voice",
-                f"invalid or missing voice feature values: {', '.join(invalid)}"
+                f"invalid or missing voice feature values ignored: {', '.join(invalid)}"
             )
-            return self._none_features("voice"), voice_events
 
         return voice_features, voice_events
 
@@ -215,19 +251,18 @@ class Controller:
             }
         except Exception as exc:
             self._warn_measurement("eye", f"eye tracking measurement failed: {exc}")
-            return self._none_features("eye")
+            return self._validate_modality_features("eye", {})[0]
 
         eye_features, invalid = self._validate_modality_features(
             "eye",
             raw_eye_features
         )
 
-        if eye_features is None:
+        if invalid:
             self._warn_measurement(
                 "eye",
-                f"eye tracker missing, script inactive, or invalid values: {', '.join(invalid)}"
+                f"eye tracker missing, script inactive, or invalid values ignored: {', '.join(invalid)}"
             )
-            return self._none_features("eye")
 
         return eye_features
 
@@ -244,7 +279,13 @@ class Controller:
                 self._warn_measurement("game", "game was not started or no FlightGear score was found")
             else:
                 self._warn_measurement("game", f"invalid game score value: {fg_score}")
-            return self._none_features("game")
+            self._record_invalid_measurement(
+                "game",
+                "score",
+                fg_score,
+                "missing_or_not_numeric" if fg_score is None else "out_of_range"
+            )
+            return {"score": None}
 
         return {"score": score}
 
@@ -275,71 +316,6 @@ class Controller:
                         return max(0, min(100, score))
                 except OSError:
                     pass
-
-        runs_root = os.environ.get(
-            "SIVAKS_FG_RUNS_ROOT",
-            r"game\sivaks_logging_version\runs",
-        )
-
-        root = Path(runs_root)
-
-        if not root.exists() or not root.is_dir():
-            return None
-
-        sessions = [p for p in root.glob("session_*") if p.is_dir()]
-
-        if not sessions:
-            return None
-
-        min_ts = None
-
-        try:
-            raw_min_ts = os.environ.get("SIVAKS_FG_MIN_START_TS")
-
-            if raw_min_ts:
-                min_ts = float(raw_min_ts)
-
-        except Exception:
-            min_ts = None
-
-        if min_ts is not None:
-            sessions = [
-                p for p in sessions
-                if p.stat().st_mtime >= (min_ts - 1.0)
-            ]
-
-            if not sessions:
-                return None
-
-        sessions.sort(
-            key=lambda p: p.stat().st_mtime,
-            reverse=True
-        )
-
-        for session in sessions[:10]:
-
-            report = session / "final_score.txt"
-
-            if not report.exists():
-                continue
-
-            try:
-                text = report.read_text(
-                    encoding="utf-8",
-                    errors="ignore"
-                )
-
-            except OSError:
-                continue
-
-            m = re.search(
-                r"Score:\s*(\d+)\s*/\s*100",
-                text
-            )
-
-            if m:
-                score = int(m.group(1))
-                return max(0, min(100, score))
 
         return None
 
@@ -387,6 +363,7 @@ class Controller:
                 {}
             ),
             "measurement_warnings": self.measurement_warnings.copy(),
+            "invalid_measurements": self.invalid_measurements.copy(),
             "quality_warning": quality_warning,
             "features": self.features,
             "baseline": b
@@ -440,6 +417,7 @@ class Controller:
             "score": None,
             "scores": {},
             "measurement_warnings": self.measurement_warnings.copy(),
+            "invalid_measurements": self.invalid_measurements.copy(),
             "quality_warning": self._build_quality_warning(),
             "features": self.features,
             "baseline": (

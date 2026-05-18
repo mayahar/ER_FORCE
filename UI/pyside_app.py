@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
     QStackedWidget,
     QTableWidget,
     QTableWidgetItem,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -49,23 +50,20 @@ from core.subject_repository import (
     subject_exists,
     update_subject_baseline,
 )
-from score.eye_features import apply_controller_eye_features
-
-from .eye_tracking_runtime import EyeTrackingRuntime
-from .game_runtime import (
+from score.eye_features import apply_eye_features_fallback
+from ui.eye_runtime import EyeTrackingRuntime, get_camera_index
+from ui.game_runtime import (
     create_voice_session,
     finalize_voice_session,
     is_pid_running,
     start_flightgear_session,
     terminate_session_process,
 )
-from .results_export import build_result_export_rows, export_result_csv, save_report_once
-from .theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
-
+from ui.results_export import build_result_export_rows, export_result_csv, save_report_once
+from ui.theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
 
 MODALITY_ORDER = ["game", "eye", "voice"]
 MODALITY_LABELS = {"game": "משחק", "eye": "עיניים", "voice": "קול"}
-
 
 
 def get_score_color(score):
@@ -123,9 +121,16 @@ def panel(object_name="panel"):
 
 
 def add_labeled(parent_layout, label_text, widget):
+    row_layout = QHBoxLayout()
+    
     label = QLabel(label_text)
-    parent_layout.addWidget(label)
-    parent_layout.addWidget(widget)
+    label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+    label.setMinimumWidth(90)
+    
+    # הוספת הוידג'ט קודם ואז הלייבל כדי שויזואלית הלייבל יהיה מימין
+    row_layout.addWidget(widget, 1)
+    row_layout.addWidget(label)
+    parent_layout.addLayout(row_layout)
 
 
 class SliderTickRuler(QWidget):
@@ -175,51 +180,40 @@ def slider_row(label_text, minimum, maximum, value):
     layout.setContentsMargins(0, 5, 0, 15)
     layout.setSpacing(4)
 
-    # 1. לייבל לבן עם הערך צמוד לפרומפט
     label = QLabel(f"{label_text}: {value}")
-    label.setStyleSheet("font-size: 14px; font-weight: bold; color: white;")
+    label.setAlignment(Qt.AlignCenter)
+    label.setStyleSheet("font-size: 15px; font-weight: bold; color: white;")
 
     slider = QSlider(Qt.Horizontal)
     slider.setRange(minimum, maximum)
     slider.setValue(value)
-    
-    # 2. הגדרות טכניות לשנתות (שיהיו קיימות ברקע)
     slider.setTickPosition(QSlider.NoTicks)
     slider.setTickInterval(1)
-    
-    # 3. עיצוב מתקדם (CSS) - יצירת שנתות ויזואליות בתוך המסילה
-    # השתמשתי ב-repeating-linear-gradient כדי לצייר את הקווים
-    slider.setStyleSheet("""
+    slider.setStyleSheet(
+        """
         QSlider {
             min-height: 50px;
         }
         QSlider::groove:horizontal {
             height: 6px;
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                        stop:0 #444, stop:1 #444); /* צבע המסילה */
+            background: #444;
             border-radius: 3px;
-            /* יצירת השנתות כקווקוו לבן על המסילה */
-            background-image: repeating-linear-gradient(to right, 
-                              white, white 1px, 
-                              transparent 1px, transparent 10%); 
         }
         QSlider::handle:horizontal {
-            background: #38bdf8; /* צבע תכלת מודרני */
+            background: #66aaff;
             border: 2px solid white;
             width: 16px;
             height: 16px;
-            margin: -6px 0;
+            margin: -5px 0;
             border-radius: 9px;
         }
-    """)
-    
-    # עדכון הטקסט בזמן אמת
+    """
+    )
     slider.valueChanged.connect(lambda v: label.setText(f"{label_text}: {v}"))
 
     layout.addWidget(label)
     layout.addWidget(slider)
     layout.addWidget(slider_tick_ruler(slider))
-    
     return container, slider
 
 
@@ -248,16 +242,38 @@ class EnterIdScreen(BaseScreen):
         super().__init__(app_window)
         self.mode_group = QButtonGroup(self)
         self.subject_combo = QComboBox()
+        self.subject_combo.setLayoutDirection(Qt.RightToLeft)
+        
         self.subject_input = QLineEdit()
+        self.subject_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.subject_input.setLayoutDirection(Qt.RightToLeft)
+        
         self.name_input = QLineEdit()
+        self.name_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.name_input.setLayoutDirection(Qt.RightToLeft)
+        
         self.sex_combo = QComboBox()
+        self.sex_combo.setLayoutDirection(Qt.RightToLeft)
+        
         self.age_input = QSpinBox()
+        self.age_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.age_input.setLayoutDirection(Qt.RightToLeft)
+        
         self.dynamic_panel = panel()
         self.dynamic_layout = QVBoxLayout(self.dynamic_panel)
         self.error_label = message("", "errorText")
 
         self.root.addWidget(title("התחלת מפגש חדש"))
-        self.root.addWidget(self.dynamic_panel)
+        
+        # מרכוס של האלמנטים למראה הייטקיסטי מהודק
+        center_wrapper = QHBoxLayout()
+        center_wrapper.addStretch()
+        self.dynamic_panel.setMinimumWidth(450)
+        self.dynamic_panel.setMaximumWidth(550)
+        center_wrapper.addWidget(self.dynamic_panel)
+        center_wrapper.addStretch()
+        
+        self.root.addLayout(center_wrapper)
         self.root.addWidget(self.error_label)
         self.root.addStretch()
 
@@ -279,12 +295,15 @@ class EnterIdScreen(BaseScreen):
             self.dynamic_layout.addWidget(message("הסדנה עוד לא התחילה.", "errorText"))
             return
         if not participant_ids:
-            self.dynamic_layout.addWidget(message("לא הוכנסו משתתפים לסדנה, פנה לגף פיזיולוגיה תעופתית.", "errorText"))
+            self.dynamic_layout.addWidget(
+                message("לא הוכנסו משתתפים לסדנה, פנה לגף פיזיולוגיה תעופתית.", "errorText")
+            )
             return
 
         self.subject_combo = QComboBox()
+        self.subject_combo.setLayoutDirection(Qt.RightToLeft)
         self.subject_combo.addItems([str(pid) for pid in participant_ids])
-        add_labeled(self.dynamic_layout, "Participant ID", self.subject_combo)
+        add_labeled(self.dynamic_layout, "מספר אישי", self.subject_combo)
         self.dynamic_layout.addWidget(
             message(
                 f"יום הסדנה: {research_day['day_number']} | "
@@ -297,63 +316,108 @@ class EnterIdScreen(BaseScreen):
         self.dynamic_layout.addWidget(continue_button, alignment=Qt.AlignLeft)
 
     def _continue_research(self, research_day):
-        subject_id = self.subject_combo.currentText()
-        participant = get_research_participant(subject_id)
-        if not participant:
-            self.set_error("המשתתף שנבחר לא נמצא.")
+        participant_id = self.subject_combo.currentText()
+        if not participant_id:
+            self.set_error("No participant selected.")
             return
 
+        participant_profile = get_research_participant(participant_id)
+        if not participant_profile:
+            self.set_error(f"Could not load research profile for participant {participant_id}")
+            return
+
+        subject_id = str(participant_id)
         create_or_update_subject_profile(
             subject_id,
-            name=participant.get("name"),
-            sex=participant.get("sex", "unknown"),
-            age=participant.get("age", 0),
+            name=participant_profile.get("name", f"Participant {subject_id}"),
+            sex=participant_profile.get("sex", "male"),
+            age=participant_profile.get("age", 20),
         )
 
         if self.app.controller.load_subject(subject_id):
+            is_new_user = not self.app.controller.has_baseline()
+            research_context = {
+                "day_number": research_day["day_number"],
+                "condition": research_day["condition"],
+                "study_id": research_day.get("study_id", 1),
+                "sleep_last": participant_profile.get(f"sleep_day_{research_day['day_number']}_last", 0),
+                "sleep_previous": participant_profile.get(
+                    f"sleep_day_{research_day['day_number']}_previous", 0
+                ),
+            }
             self.app.state = {
-                "screen": "questionnaire",
+                "screen": "new_user_sleep_gate" if is_new_user else "questionnaire",
                 "session_id": subject_id,
-                "research_context": research_day,
-                "baseline_capture": research_day["is_baseline_day"],
+                "baseline_capture": is_new_user,
+                "research_context": research_context,
             }
             self.app.result = None
-            self.app.navigate("questionnaire")
+            self.app.navigate(self.app.state["screen"])
 
     def _build_manual_mode(self):
         available_ids = get_all_subject_ids()
 
         mode_box = QGroupBox("בחר מצב הפעלה")
+        mode_box.setAlignment(Qt.AlignRight)
         mode_layout = QHBoxLayout(mode_box)
+        
         existing_button = QRadioButton(EXISTING_USER_MODE)
         new_button = QRadioButton(NEW_USER_MODE)
         existing_button.setChecked(True)
         self.mode_group = QButtonGroup(self)
         self.mode_group.addButton(existing_button)
         self.mode_group.addButton(new_button)
-        mode_layout.addWidget(existing_button)
+        
+        # סידור כפתורי הרדיו מימין לשמאל ללא שימוש ב-setDirection
+        mode_layout.addStretch()
         mode_layout.addWidget(new_button)
+        mode_layout.addWidget(existing_button)
         self.dynamic_layout.addWidget(mode_box)
 
         self.subject_input = QLineEdit()
+        self.subject_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.subject_input.setLayoutDirection(Qt.RightToLeft)
         self.subject_input.setPlaceholderText("אנא הזן מספר אישי")
         add_labeled(self.dynamic_layout, "מספר אישי", self.subject_input)
 
         self.name_input = QLineEdit()
+        self.name_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.name_input.setLayoutDirection(Qt.RightToLeft)
+        self.name_input.setPlaceholderText("הקלד שם מלא")
+        
         self.sex_combo = QComboBox()
+        self.sex_combo.setLayoutDirection(Qt.RightToLeft)
         self.sex_combo.addItems(list(SEX_OPTIONS.keys()))
+        
         self.age_input = QSpinBox()
+        self.age_input.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.age_input.setLayoutDirection(Qt.RightToLeft)
         self.age_input.setRange(1, 120)
         self.age_input.setValue(18)
 
         profile_box = QGroupBox("פרופיל משתתף חדש")
+        profile_box.setAlignment(Qt.AlignRight)
+        
         profile_layout = QGridLayout(profile_box)
-        profile_layout.addWidget(QLabel("שם מלא"), 0, 0)
-        profile_layout.addWidget(self.name_input, 0, 1)
-        profile_layout.addWidget(QLabel("מין"), 1, 0)
-        profile_layout.addWidget(self.sex_combo, 1, 1)
-        profile_layout.addWidget(QLabel("גיל"), 2, 0)
-        profile_layout.addWidget(self.age_input, 2, 1)
+        
+        name_label = QLabel("שם מלא")
+        name_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        sex_label = QLabel("מין")
+        sex_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        age_label = QLabel("גיל")
+        age_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        
+        # סידור תקין ב-Grid (הלייבל בעמודה הימנית)
+        profile_layout.addWidget(name_label, 0, 1)
+        profile_layout.addWidget(self.name_input, 0, 0)
+        profile_layout.addWidget(sex_label, 1, 1)
+        profile_layout.addWidget(self.sex_combo, 1, 0)
+        profile_layout.addWidget(age_label, 2, 1)
+        profile_layout.addWidget(self.age_input, 2, 0)
+        
+        profile_layout.setColumnStretch(0, 1)
+        profile_layout.setColumnStretch(1, 0)
+        
         profile_box.setVisible(False)
         self.dynamic_layout.addWidget(profile_box)
 
@@ -364,7 +428,9 @@ class EnterIdScreen(BaseScreen):
         new_button.toggled.connect(toggle_profile)
 
         continue_button = QPushButton("המשך")
-        continue_button.clicked.connect(lambda: self._continue_manual(new_button.isChecked(), available_ids))
+        continue_button.clicked.connect(
+            lambda: self._continue_manual(new_button.isChecked(), available_ids)
+        )
         self.dynamic_layout.addWidget(continue_button, alignment=Qt.AlignLeft)
 
     def _continue_manual(self, is_new_user, available_ids):
@@ -373,9 +439,10 @@ class EnterIdScreen(BaseScreen):
             self.set_error("אנא הזן מספר אישי.")
             return
 
-        # Remove in production the available_ids. The output is currently in place to guide testing with a limited set of mock participants.
         if not is_new_user and not subject_exists(subject_id):
-            self.set_error(f"הנבדק שמספרו האישי הוא: {subject_id} לא מופיע במערכת, מספרים אישיים זמינים: {', '.join(map(str, available_ids))}")
+            self.set_error(
+                f"הנבדק שמספרו האישי הוא: {subject_id} לא מופיע במערכת, מספרים אישיים זמינים: {', '.join(map(str, available_ids))}"
+            )
             return
 
         if is_new_user:
@@ -423,6 +490,7 @@ class QuestionnaireScreen(BaseScreen):
     def activate(self):
         clear_layout(self.form_layout)
         research_context = self.app.state.get("research_context")
+
         fatigue_row, self.fatigue_slider = slider_row("עד כמה אתה עייף כעת?", 0, 10, 5)
         self.form_layout.addWidget(fatigue_row)
 
@@ -490,20 +558,28 @@ class NewUserSleepGateScreen(BaseScreen):
     def activate(self):
         clear_layout(self.form_layout)
         self.error_label.clear()
+
         sleep_last_row, self.sleep_last_slider = slider_row("כמה שעות ישנת אתמול?", 0, 8, 7)
         sleep_previous_row, self.sleep_previous_slider = slider_row("כמה שעות ישנת שלשום?", 0, 8, 7)
         self.form_layout.addWidget(sleep_last_row)
         self.form_layout.addWidget(sleep_previous_row)
+
         continue_button = QPushButton("המשך")
         continue_button.clicked.connect(self._continue)
         self.form_layout.addWidget(continue_button, alignment=Qt.AlignLeft)
 
     def _continue(self):
-        if self.sleep_last_slider.value() >= 7 and self.sleep_previous_slider.value() >= 7:
-            self.app.state["baseline_capture"] = True
-            self.app.navigate("game")
+        last = self.sleep_last_slider.value()
+        prev = self.sleep_previous_slider.value()
+        if last < 6 or prev < 6:
+            self.set_error(
+                f"על מנת לבצע מדידת ייחוס (Baseline), על המשתתף לישון לפחות 6 שעות ביומיים האחרונים.\nנתוני המשתתף: אתמול {last} שעות, שלשום {prev} שעות."
+            )
             return
-        self.set_error("רמת הערנות שלך לא מתאימה לייצירת משתתף חדש, אנא חזור לאחר שישנת במשך שני לילות רצופים שינה מלאה.")
+
+        questionnaire = {"fatigue_self": 0, "sleep_last": last, "sleep_previous": prev}
+        self.app.controller.dispatch("QUESTIONNAIRE_DONE", questionnaire)
+        self.app.navigate("game")
 
 
 class GameScreen(BaseScreen):
@@ -512,23 +588,23 @@ class GameScreen(BaseScreen):
         self.timer = QTimer(self)
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self._tick)
-        # Remove before production. The audio_only mode is currently in place to allow testing the voice session features without needing to start FlightGear, which can be slow and resource intensive.
+
         self.audio_only = QCheckBox("הרצת בדיקת קול בלבד (ללא הפעלת המשחק)")
-        self.calibrate_button = QPushButton("כיול עיניים (Tobii)")
+        self.audio_only.setLayoutDirection(Qt.RightToLeft)
+
         self.start_button = QPushButton("התחל משחק")
         self.stop_button = QPushButton("סיים משחק")
-        self.calibration_status = message(
-            "מעקב עיניים אופציונלי: לחץ «כיול עיניים» רק אם רוצים להקליט מבט.\n"
-            "ניתן להתחיל משחק בלי עוקב עיניים או בלי כיול."
-        )
-        self.calibration_preview_label = QLabel()
-        self.calibration_preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.calibration_preview_label.setVisible(False)
         self.status_label = message("המשחק מוכן")
-        self.eye_label = message("")
         self.voice_label = message("")
+        self.eye_status_label = message("מצלמה: לא פעילה")
         self.error_label = message("", "errorText")
-        self.started_at = None
+
+        # רכיב תצוגה מקדימה למצלמה
+        self.camera_preview = QLabel()
+        self.camera_preview.setFixedSize(320, 240)
+        self.camera_preview.setAlignment(Qt.AlignCenter)
+        self.camera_preview.setStyleSheet("border: 2px dashed #004466; background-color: #001a33;")
+        self.camera_preview.setText("תצוגה מקדימה של המצלמה")
 
         self.root.addWidget(title("הפעלת משחק"))
         info_panel = panel()
@@ -538,19 +614,21 @@ class GameScreen(BaseScreen):
                 "המשחק יופעל במצב מסך מלא. במהלך הטעינה תופעל הנחיה קולית להשמעת קול כחלק ממדידת העייפות."
             )
         )
-        info_layout.addWidget(message(
-            "בתחילת ההטסה אף המטוס מוטה מטה, נדרש למשוך את הסטיק באופן מיידי על מנת להמנע מהתרסקות.", "warningText"
+        info_layout.addWidget(
+            message(
+                "בתחילת ההטסה אף המטוס מוטה מטה, נדרש למשוך את הסטיק באופן מיידי על מנת להמנע מהתרסקות.",
+                "warningText",
             )
         )
         self.root.addWidget(info_panel)
         self.root.addWidget(self.audio_only)
-        self.root.addWidget(self.calibration_status)
-        self.root.addWidget(self.calibration_preview_label)
 
-        cal_row = QHBoxLayout()
-        cal_row.addWidget(self.calibrate_button)
-        cal_row.addStretch()
-        self.root.addLayout(cal_row)
+        # הוספת התצוגה המקדימה למרכז הפריסה
+        preview_layout = QHBoxLayout()
+        preview_layout.addStretch()
+        preview_layout.addWidget(self.camera_preview)
+        preview_layout.addStretch()
+        self.root.addLayout(preview_layout)
 
         buttons = QHBoxLayout()
         buttons.addWidget(self.start_button)
@@ -558,98 +636,58 @@ class GameScreen(BaseScreen):
         buttons.addStretch()
         self.root.addLayout(buttons)
         self.root.addWidget(self.status_label)
-        self.root.addWidget(self.eye_label)
         self.root.addWidget(self.voice_label)
+        self.root.addWidget(self.eye_status_label)
         self.root.addWidget(self.error_label)
         self.root.addStretch()
 
         self.start_button.clicked.connect(self.start_session)
         self.stop_button.clicked.connect(self.stop_session)
-        self.calibrate_button.clicked.connect(self.run_calibration)
 
     def activate(self):
         self.error_label.clear()
-        self.app.eye_runtime.reset_calibration()
-        self.calibration_preview_label.clear()
-        self.calibration_preview_label.setVisible(False)
         self._sync_buttons()
+
+        # הפעלת תצוגה מקדימה של המצלמה בעת כניסה למסך
+        cam_idx = get_camera_index()
+        self.app.eye_runtime.start_preview(cam_idx, self._on_preview_frame)
+
         if self.app.fg_pid or self.app.voice_only_running:
             self.timer.start()
         else:
             self.timer.stop()
             self.status_label.setText("Ready")
-            self.eye_label.clear()
             self.voice_label.clear()
+            self.eye_status_label.setText("מצלמה: מוכנה להקלטה")
 
-    def _start_eye_tracking(self) -> bool:
-        apply_controller_eye_features(self.app.controller, None)
-        started, error = self.app.eye_runtime.start()
-        if error:
-            self.app.eye_runtime.last_error = error
-        return started
-
-    def _stop_eye_tracking(self) -> None:
-        _features, error = self.app.eye_runtime.stop(self.app.controller)
-        if error:
-            self.app.eye_runtime.last_error = error
-
-    def _finish_session(self) -> None:
-        self._stop_eye_tracking()
-        finalize_voice_session(self.app.controller, self.app.voice_session)
-        self.app.voice_session = None
-        if self.app.fg_pid:
-            terminate_session_process(self.app.fg_pid)
-        self.app.fg_pid = 0
-        self.app.voice_only_running = False
-        self.app.fg_started_at = None
-        self.app.result = None
-        self.timer.stop()
-        self.app.navigate("result")
-
-    def run_calibration(self):
-        self.error_label.clear()
-        screen = self.window().screen() if self.window() else QGuiApplication.primaryScreen()
-        success, message = self.app.eye_runtime.run_calibration(
-            parent=self.window(),
-            screen=screen,
-            controller=self.app.controller,
+    def _on_preview_frame(self, qimg):
+        # פונקציית היזון חוזר לעדכון ה-QLabel בפריימים מהמצלמה
+        pix = QPixmap.fromImage(qimg)
+        self.camera_preview.setPixmap(
+            pix.scaled(self.camera_preview.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
         )
-        if success:
-            self.calibration_status.setText(
-                f"כיול עבר ✓ ({self.app.eye_runtime.tracker_label})"
-            )
-            preview_path = self.app.eye_runtime.calibration_preview_path
-            if preview_path:
-                pixmap = QPixmap(preview_path)
-                if not pixmap.isNull():
-                    scaled = pixmap.scaled(
-                        400,
-                        250,
-                        Qt.AspectRatioMode.KeepAspectRatio,
-                        Qt.TransformationMode.SmoothTransformation,
-                    )
-                    self.calibration_preview_label.setPixmap(scaled)
-                    self.calibration_preview_label.setVisible(True)
-        else:
-            self.calibration_status.setText(message)
-            self.calibration_preview_label.clear()
-            self.calibration_preview_label.setVisible(False)
-            self.set_error(message)
-        self._sync_buttons()
 
     def start_session(self):
         self.error_label.clear()
-        runtime = self.app.eye_runtime
-        self.app.eye_runtime.reset()
-        apply_controller_eye_features(self.app.controller, None)
-        if runtime.calibration_passed:
-            self._start_eye_tracking()
+
+        # עצירת התצוגה המקדימה לפני תחילת ההקלטה הממשית
+        self.app.eye_runtime.stop_preview()
+        self.camera_preview.clear()
+        self.camera_preview.setText("מקליט...")
+
+        # הפעלת הקלטת מעקב עיניים במקביל
+        cam_idx = get_camera_index()
+        subject_id = self.app.state.get("session_id", "unknown")
+        eye_ok = self.app.eye_runtime.start_recording(cam_idx, subject_id)
+        if not eye_ok:
+            self.eye_status_label.setText("מעקב עיניים: נכשל באתחול (נעשה שימוש בגיבוי)")
 
         if self.audio_only.isChecked():
             try:
                 self.app.voice_session = create_voice_session(self.app.controller)
             except Exception as exc:
                 self.set_error(f"Failed to start voice session: {exc}")
+                self.app.eye_runtime.stop_recording()
                 return
             self.app.voice_only_running = True
             self.app.fg_started_at = time.time()
@@ -660,12 +698,14 @@ class GameScreen(BaseScreen):
         pid, error = start_flightgear_session(self.app.controller)
         if error:
             self.set_error(error)
+            self.app.eye_runtime.stop_recording()
             return
 
         try:
             self.app.voice_session = create_voice_session(self.app.controller)
         except Exception as exc:
             terminate_session_process(pid)
+            self.app.eye_runtime.stop_recording()
             self.set_error(f"FlightGear started, but voice session failed: {exc}")
             return
 
@@ -676,7 +716,34 @@ class GameScreen(BaseScreen):
         self._sync_buttons()
 
     def stop_session(self):
-        self._finish_session()
+        # עצירת הקלטת העיניים ועיבוד הנתונים
+        self.eye_status_label.setText("מעקב עיניים: מעבד נתונים...")
+        QGuiApplication.processEvents()
+
+        eye_features = self.app.eye_runtime.stop_recording()
+        if eye_features:
+            self.app.controller.set_eye_features(eye_features)
+            self.eye_status_label.setText("מעקב עיניים: העיבוד הושלם בהצלחה")
+        else:
+            apply_eye_features_fallback(self.app.controller)
+            self.eye_status_label.setText(
+                "מעקב עיניים: לא הופקו נתונים מספקים (הופעלו ערכי גיבוי)"
+            )
+
+        if self.app.fg_pid:
+            ok, error = terminate_session_process(self.app.fg_pid)
+            if not ok:
+                self.set_error(f"Failed to stop session: {error}")
+                return
+
+        finalize_voice_session(self.app.controller, self.app.voice_session)
+        self.app.voice_session = None
+        self.app.fg_pid = 0
+        self.app.voice_only_running = False
+        self.app.fg_started_at = None
+        self.app.result = None
+        self.timer.stop()
+        self.app.navigate("result")
 
     def _tick(self):
         if self.app.voice_session is not None:
@@ -688,47 +755,34 @@ class GameScreen(BaseScreen):
 
         fg_running = is_pid_running(self.app.fg_pid)
         if self.app.fg_pid and not fg_running:
+            # הטיפול המקבילי בעצירת המשחק
+            self.eye_status_label.setText("מעקב עיניים: מעבד נתונים...")
+            QGuiApplication.processEvents()
+            eye_features = self.app.eye_runtime.stop_recording()
+            if eye_features:
+                self.app.controller.set_eye_features(eye_features)
+            else:
+                apply_eye_features_fallback(self.app.controller)
+
             elapsed = time.time() - float(self.app.fg_started_at or time.time())
             if elapsed < 8.0:
-                self._stop_eye_tracking()
+                self.app.fg_pid = 0
+                self.app.fg_started_at = None
+                self.set_error(
+                    "FlightGear closed too quickly. Check the FlightGear path and run logging_fg_start_ver5.py from a terminal for details."
+                )
+            else:
                 finalize_voice_session(self.app.controller, self.app.voice_session)
                 self.app.voice_session = None
                 self.app.fg_pid = 0
                 self.app.fg_started_at = None
-                self.app.voice_only_running = False
                 self.timer.stop()
-                self.set_error(
-                    "FlightGear closed too quickly. Check the FlightGear path and run "
-                    "logging_fg_start_ver5.py from a terminal for details."
-                )
-            else:
-                self._finish_session()
+                self.app.navigate("result")
                 return
 
         runtime = int(time.time() - self.app.fg_started_at) if self.app.fg_started_at else 0
         mode = "Audio only" if self.app.voice_only_running else "Game running"
         self.status_label.setText(f"{mode} | {runtime} seconds")
-
-        if self.app.eye_runtime.active:
-            sample_count = 0
-            if self.app.eye_runtime.recorder is not None:
-                sample_count = len(self.app.eye_runtime.recorder.get_collected_data())
-            self.eye_label.setText(
-                f"Eye recording active ({sample_count} samples; timestamps saved in ms)"
-            )
-        elif self.app.eye_runtime.export_paths:
-            paths = self.app.eye_runtime.export_paths
-            self.eye_label.setText(
-                "Eye data saved in session/eye:\n"
-                f"  raw CSV: {paths.get('csv', '')}\n"
-                f"  raw JSON: {paths.get('json', '')}\n"
-                f"  features: {paths.get('features_json', '')}\n"
-                f"  events: {paths.get('events_json', '')}"
-            )
-        elif self.app.eye_runtime.last_error:
-            self.eye_label.setText(f"Eye: {self.app.eye_runtime.last_error}")
-        else:
-            self.eye_label.clear()
 
         voice_session = self.app.voice_session
         if voice_session is not None:
@@ -743,7 +797,6 @@ class GameScreen(BaseScreen):
     def _sync_buttons(self):
         running = bool(self.app.voice_only_running or is_pid_running(self.app.fg_pid))
         self.start_button.setDisabled(running)
-        self.calibrate_button.setDisabled(running)
         self.stop_button.setVisible(running)
         self.audio_only.setDisabled(running)
 
@@ -807,98 +860,121 @@ class ResultsScreen(BaseScreen):
 
         subject_id = result.get("subject_id", "UNKNOWN")
         score = result.get("score")
+
+        # כותרת דוח קבועה
         self.content.addWidget(message(f"דוח תוצאות עבור משתתף: {subject_id}"))
 
+        # יצירת מנגנון לשוניות (Tabs) למניעת גלילה במסך התוצאות
+        self.tabs = QTabWidget()
+        self.tabs.setLayoutDirection(Qt.RightToLeft)
+
+        # 1. לשונית ציון סופי
+        tab_score = QWidget()
+        score_layout = QVBoxLayout(tab_score)
+        score_layout.setContentsMargins(16, 16, 16, 16)
+
         score_panel = panel()
-        score_panel.setMinimumHeight(260)
-        score_layout = QVBoxLayout(score_panel)
-        score_layout.setContentsMargins(24, 24, 24, 28)
-        score_label = QLabel("ציון עייפות")
+        score_panel_layout = QVBoxLayout(score_panel)
+        score_panel_layout.setContentsMargins(24, 24, 24, 28)
+
+        score_label = QLabel("ציון עייפות סופי")
         score_label.setAlignment(Qt.AlignCenter)
-        score_label.setFont(QFont("Segoe UI", 24, QFont.Bold))
-        score_label.setStyleSheet("font-size: 20px; font-weight: 800;")
+        score_label.setStyleSheet("font-size: 20px; font-weight: 800; color: #bfd7ff;")
+
+        # שינוי לבקשתך: הטקסט של הציון מוקטן ל-76px וממורכז באופן מושלם
         score_value = QLabel(f"{score:.2f}" if isinstance(score, (int, float)) else "Unavailable")
         score_value.setAlignment(Qt.AlignCenter)
-        score_value.setMinimumHeight(150)
-        score_value.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        score_value.setFont(QFont("Segoe UI", 132, QFont.Bold))
+
         if isinstance(score, (int, float)):
             score_color = get_score_color(score)
             score_panel.setStyleSheet(
-                f"""
-                QFrame#panel {{
-                    background: {SURFACE};
-                    border: 3px solid {score_color};
-                    border-radius: 8px;
-                }}
-                """
+                f"QFrame#panel {{ border: 3px solid {score_color}; border-radius: 8px; background: {SURFACE}; }}"
             )
-            score_value.setStyleSheet(
-                f"""
-                QLabel {{
-                    color: {score_color};
-                    font-size: 132px;
-                    font-weight: 900;
-                    line-height: 1;
-                }}
-                """
-            )
+            score_value.setStyleSheet(f"color: {score_color}; font-size: 76px; font-weight: 900;")
         else:
-            score_value.setStyleSheet(
-                """
-                QLabel {
-                    font-size: 72px;
-                    font-weight: 900;
-                    line-height: 1;
-                }
-                """
-            )
-        score_layout.addWidget(score_label)
-        score_layout.addWidget(score_value)
-        self.content.addWidget(score_panel)
+            score_value.setStyleSheet("font-size: 54px; font-weight: 900;")
+
+        score_panel_layout.addWidget(score_label)
+        score_panel_layout.addWidget(score_value)
+        score_layout.addWidget(score_panel)
 
         quality_warning = result.get("quality_warning")
         measurement_warnings = result.get("measurement_warnings") or []
         if quality_warning:
             warning_text = quality_warning
             details = [
-                f"{warning.get('label')}: {warning.get('detail')}"
-                for warning in measurement_warnings
-                if warning.get("detail")
+                f"{w.get('label')}: {w.get('detail')}" for w in measurement_warnings if w.get("detail")
             ]
             if details:
-                warning_text = warning_text + "\n" + "\n".join(details)
-            self.content.addWidget(message(warning_text, "warningText"))
+                warning_text += "\n" + "\n".join(details)
+            score_layout.addWidget(message(warning_text, "warningText"))
 
+        score_layout.addStretch()
+        self.tabs.addTab(tab_score, "ציון סופי")
+
+        # הפקת נתוני הגרף והטבלה
         export_rows, graph_rows = build_result_export_rows(result)
         ordered_rows = self._ordered_graph_rows(graph_rows)
-        if ordered_rows:
-            self.content.addWidget(self._build_chart(ordered_rows))
-            self.content.addWidget(self._build_table(ordered_rows, export_rows))
-        else:
-            self.content.addWidget(message("No graph data available."))
+        table_rows = self._ordered_table_rows(export_rows)
 
+        if ordered_rows:
+            # 2. לשונית גרף מדדים
+            tab_chart = QWidget()
+            chart_layout = QVBoxLayout(tab_chart)
+            chart_layout.addWidget(self._build_chart(ordered_rows))
+            self.tabs.addTab(tab_chart, "גרף מדדים")
+
+            # 3. לשונית טבלת נתונים
+            tab_table = QWidget()
+            table_layout = QVBoxLayout(tab_table)
+            table_layout.addWidget(self._build_table(table_rows))
+            self.tabs.addTab(tab_table, "טבלת מדדים")
+        else:
+            self.tabs.addTab(message("No graph data available."), "מדדים")
+
+        if table_rows and not ordered_rows:
+            tab_table = QWidget()
+            table_layout = QVBoxLayout(tab_table)
+            table_layout.addWidget(self._build_table(table_rows))
+            self.tabs.addTab(tab_table, "מדדים")
+
+        self.content.addWidget(self.tabs)
+
+        # שמירת דוח אוטומטית ברקע
         csv_text = pd.DataFrame(export_rows).to_csv(index=False)
         path = save_report_once(subject_id, csv_text, result=result, controller=self.app.controller)
         if path:
             self.saved_path = path
 
+        # כפתור ניווט תחתון קבוע
         new_button = QPushButton("התחל מפגש חדש")
+        new_button.setMaximumWidth(200)
         new_button.clicked.connect(self._new_session)
         self.content.addWidget(new_button, alignment=Qt.AlignLeft)
 
     def _ordered_graph_rows(self, graph_rows):
         ordered_rows = []
-
         for modality in MODALITY_ORDER:
             for row in graph_rows:
                 if row.get("modality") == modality:
                     ordered_rows.append(row)
+        return ordered_rows
+
+    def _ordered_table_rows(self, export_rows):
+        ordered_rows = []
+        seen = set()
+
+        for modality in MODALITY_ORDER:
+            for row in export_rows:
+                key = (row.get("modality"), row.get("feature"))
+                if row.get("modality") == modality and key not in seen:
+                    ordered_rows.append(row)
+                    seen.add(key)
 
         return ordered_rows
 
     def _build_chart(self, ordered_rows):
-        figure = Figure(figsize=(11, 5.2), facecolor=BACKGROUND)
+        figure = Figure(figsize=(11, 4.8), facecolor=BACKGROUND)
         axis = figure.add_subplot(111)
         axis.set_facecolor(BACKGROUND)
 
@@ -996,28 +1072,23 @@ class ResultsScreen(BaseScreen):
         figure.subplots_adjust(left=0.16, right=0.98, bottom=0.32, top=0.96)
 
         canvas = FigureCanvas(figure)
-        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        canvas.setMinimumHeight(440)
+        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        canvas.setMinimumHeight(380)
         return canvas
 
-    def _build_table(self, ordered_rows, export_rows):
-        row_lookup = {
-            (row.get("modality"), row.get("feature")): row
-            for row in export_rows
-        }
-        feature_rows = [
-            row_lookup.get((row.get("modality"), row.get("feature")), row)
-            for row in ordered_rows
-        ]
+    def _build_table(self, feature_rows):
         headers = [""] + [feature_display_name(row.get("feature")) for row in feature_rows]
         table_rows = [
             ("מצב ערנות", "baseline"),
             ("מצב נוכחי", "current"),
             ("תרומה לציון", "weighted_contribution"),
+            ("סטטוס", "measurement_status"),
         ]
 
         table = QTableWidget(len(table_rows), len(headers))
         table.setHorizontalHeaderLabels(headers)
+        table.setLayoutDirection(Qt.RightToLeft)
+
         for row_idx, (label, key) in enumerate(table_rows):
             label_item = QTableWidgetItem(label)
             label_item.setFlags(label_item.flags() & ~Qt.ItemIsEditable)
@@ -1028,13 +1099,21 @@ class ResultsScreen(BaseScreen):
                     value = f"{value:.3f}"
                 elif value is None:
                     value = "-"
+                elif key == "measurement_status" and value == "included":
+                    value = "נכלל בציון"
+                elif key == "measurement_status" and value == "excluded_invalid_measurement":
+                    value = "מחוץ לטווח - לא חושב"
                 item = QTableWidgetItem(str(value))
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                if row.get("valid_measurement") is False:
+                    item.setBackground(QColor("#3a2222"))
+                    item.setForeground(QColor("#ffd6d6"))
                 table.setItem(row_idx, col_idx, item)
 
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.verticalHeader().setVisible(False)
-        table.setMinimumHeight(170)
+        table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        table.setMinimumHeight(180)
         return table
 
     def _new_session(self):
@@ -1082,10 +1161,9 @@ class FatigueApp(QMainWindow):
         self.eye_runtime = EyeTrackingRuntime()
 
         self.stack = QStackedWidget()
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setWidget(self.stack)
-        self.setCentralWidget(scroll)
+        
+        # הסרנו את ה-QScrollArea החיצוני כדי למנוע גלילה לא נחוצה וכפולה
+        self.setCentralWidget(self.stack)
 
         self.screens = {
             "enter_id": EnterIdScreen(self),
@@ -1111,10 +1189,11 @@ def main():
     from eye_tracking_analysis.stdout_safe import install_safe_stdio
 
     install_safe_stdio()
+
     app = QApplication(sys.argv)
     app.setApplicationName("ER Force")
     window = FatigueApp()
-    window.showFullScreen()
+    window.show()
     return app.exec()
 
 
