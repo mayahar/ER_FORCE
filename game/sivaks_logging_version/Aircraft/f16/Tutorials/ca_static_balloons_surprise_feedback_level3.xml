@@ -162,7 +162,7 @@ This Scenario announces if you hit or miss.
 	var BALLOON_per_level = 1;
 
 	# Total balloons required to finish the game
-	var MAX_BALLOONS = 8;
+	var MAX_BALLOONS = 12;
 
 	# How many balloons exist simultaneously (the script will move them forward as you pass).
  	var balloon_count = 1;
@@ -293,7 +293,7 @@ This Scenario announces if you hit or miss.
 	# Hit slant-range (ft) matches required_hit_distance below.
 	var HIT_RADIUS_BASE_FT = 180;
 	var HIT_RADIUS_MIN_FT = 85;
-	var HIT_RADIUS_PER_LEVEL_FT = 20;
+	var HIT_RADIUS_PER_LEVEL_FT = 10;
 	# Visual scale at level 0 (full hitbox); shrinks with level via /algorithm/game/*-visual-scale.
 	var BULLSEYE_SCALE_AT_BASE_HIT = 3.2;
 	var AIM_DOT_SCALE_RATIO = 0.42;
@@ -534,7 +534,7 @@ This Scenario announces if you hit or miss.
 	var hardness_lon_update_balloons_count =
 		BALLOON_per_level;
 
-	var hardness_lon_max_levels = 8;
+	var hardness_lon_max_levels = 12;
 
 	# 0 = balloons stay fixed between spawns (no gust / drift / wave).
 	var BALLOON_DRIFT_ENABLED = 0;

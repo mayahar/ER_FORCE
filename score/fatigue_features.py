@@ -135,9 +135,14 @@ FEATURES = {
     }
 }
 
+# =========================
+# MODALITY AGGREGATION WEIGHTS
+# Relative weight of each modality in the final fatigue score.
+# Adjust here to rebalance the modalities globally.
+# =========================
 MODALITY_WEIGHTS = {
-    "voice": 0.768,
-    "eye": 0.825,
-    "game": 0.82,
-    "subjective": 0.1
+    "voice":      0.768,
+    "eye":        0.825,
+    "game":       0.82,
+    "subjective": 0.1,
 }

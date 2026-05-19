@@ -1,6 +1,6 @@
 """Compatibility wrapper for the PySide game screen eye runtime calls."""
 
-from ui.eye_tracking_runtime import EyeTrackingRuntime as TobiiEyeTrackingRuntime
+from UI.eye_tracking_runtime import EyeTrackingRuntime as TobiiEyeTrackingRuntime
 
 
 def get_camera_index() -> int:

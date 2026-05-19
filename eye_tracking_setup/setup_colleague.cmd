@@ -24,7 +24,8 @@ set "RC=%ERRORLEVEL%"
 echo.
 if "%RC%"=="0" (
     echo SUCCESS. Start the fatigue app:
-    echo   eye_tracking_setup\run_app.cmd
+    echo   ER_FORCE.exe
+    echo   or eye_tracking_setup\run_app.cmd
     echo.
     echo In-game: blue "eye recording active" after start.
     echo Raw gaze files: eye_tracking_analysis\recordings\

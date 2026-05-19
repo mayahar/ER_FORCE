@@ -201,3 +201,19 @@ game/data/AI/Aircraft/tu154b
 game/data/AI/Aircraft/vulcanb2
 game/data/AI/Aircraft/fallback_models.xml
 game/data/AI/Aircraft/performancedb.xml
+
+# =========================
+# Packaging / build output
+# =========================
+build/pyinstaller-er-force/
+dist/
+ER_FORCE.exe
+install/ER_FORCE.spec
+
+# =========================
+# Runtime data (per-session outputs)
+# =========================
+sessions/
+scores_reports/
+UI/scores_reports/
+*.log

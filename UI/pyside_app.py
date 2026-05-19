@@ -51,16 +51,16 @@ from core.subject_repository import (
     update_subject_baseline,
 )
 from score.eye_features import apply_eye_features_fallback
-from ui.eye_runtime import EyeTrackingRuntime, get_camera_index
-from ui.game_runtime import (
+from UI.eye_runtime import EyeTrackingRuntime, get_camera_index
+from UI.game_runtime import (
     create_voice_session,
     finalize_voice_session,
     is_pid_running,
     start_flightgear_session,
     terminate_session_process,
 )
-from ui.results_export import build_result_export_rows, export_result_csv, save_report_once
-from ui.theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
+from UI.results_export import build_result_export_rows, export_result_csv, save_report_once
+from UI.theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
 
 MODALITY_ORDER = ["game", "eye", "voice", "subjective"]
 MODALITY_LABELS = {"game": "משחק", "eye": "עיניים", "voice": "קול", "subjective": "שאלון"}
@@ -1137,6 +1137,11 @@ class ResultsScreen(BaseScreen):
         return table
 
     def _new_session(self):
+        try:
+            self.app.eye_runtime.reset_calibration()
+            self.app.eye_runtime.reset()
+        except Exception:
+            pass
         self.app.state = {"screen": "enter_id"}
         self.app.result = None
         self.app.navigate("enter_id")
@@ -1158,6 +1163,11 @@ class BaselineSavedScreen(BaseScreen):
         self.root.addStretch()
 
     def _back(self):
+        try:
+            self.app.eye_runtime.reset_calibration()
+            self.app.eye_runtime.reset()
+        except Exception:
+            pass
         self.app.state = {"screen": "enter_id"}
         self.app.result = None
         self.app.navigate("enter_id")
