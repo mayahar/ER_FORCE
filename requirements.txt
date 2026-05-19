@@ -1,9 +1,8 @@
-librosa
-matplotlib
-pandas
-numpy
-scipy
-sounddevice
-soundfile
-tobii_research
-PySide6
+librosa>=0.10.0
+matplotlib>=3.8.0
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.11.0
+sounddevice>=0.4.5
+soundfile>=0.12.1
+PySide6>=6.5.0

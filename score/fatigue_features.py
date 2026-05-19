@@ -134,3 +134,10 @@ FEATURES = {
         "MEASUREMENT_VALID_RANGES": (0.0, 16.0)
     }
 }
+
+MODALITY_WEIGHTS = {
+    "voice": 0.768,
+    "eye": 0.825,
+    "game": 0.82,
+    "subjective": 0.1
+}
