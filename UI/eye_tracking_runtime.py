@@ -11,7 +11,10 @@ import numpy as np
 
 from eye_tracking_analysis.eye_movement_analyzer import EyeMovementAnalyzer
 from eye_tracking_analysis.eye_tracker_recorder import EyeTrackerRecorder
-from eye_tracking_analysis.gaze_raw_export import export_eye_session_recording
+from eye_tracking_analysis.gaze_raw_export import (
+    export_eye_session_recording,
+    export_raw_gaze_recording,
+)
 from score.eye_features import apply_controller_eye_features
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -166,17 +169,19 @@ class EyeTrackingRuntime:
         if self.recorder.is_recording and not self.recorder.stop_recording():
             gaze_data = self.recorder.get_collected_data()
             if not gaze_data:
+                self.last_error = "שגיאה בהפסקת הקלטת תנועות העיניים."
                 apply_controller_eye_features(controller, None)
-                return None, "שגיאה בהפסקת הקלטת תנועות העיניים."
+                return None, self.last_error
 
         gaze_data = self.recorder.get_collected_data()
         sample_count = len(gaze_data)
         self.raw_sample_count = sample_count
 
         if sample_count == 0:
+            self.last_error = "לא נאספו נתוני עיניים (0 דגימות מהמכשיר)."
             apply_controller_eye_features(controller, None)
             if was_active:
-                return None, "לא נאספו נתוני עיניים (0 דגימות מהמכשיר)."
+                return None, self.last_error
             return None, ""
 
         output_dir = DEFAULT_RECORDINGS_DIR
@@ -194,9 +199,6 @@ class EyeTrackingRuntime:
         features, fixations, saccades, metrics, analyze_error = self._analyze_gaze(
             gaze_data
         )
-        if analyze_error:
-            apply_controller_eye_features(controller, None)
-            return None, analyze_error
 
         try:
             export_result = export_eye_session_recording(
@@ -217,8 +219,37 @@ class EyeTrackingRuntime:
             self.export_paths["directory"] = str(export_result["directory"])
             self.raw_sample_count = int(export_result["sample_count"])
         except Exception as exc:
+            try:
+                raw_export = export_raw_gaze_recording(
+                    self.recorder,
+                    output_dir=output_dir,
+                    subject_id=subject_id,
+                    session_id=session_id,
+                )
+                self.export_paths = {
+                    key: str(path)
+                    for key, path in raw_export.items()
+                    if key != "sample_count" and key != "directory"
+                }
+                self.export_paths["directory"] = str(raw_export["directory"])
+                self.raw_sample_count = int(raw_export["sample_count"])
+            except Exception as raw_exc:
+                self.last_error = (
+                    f"שמירת נתוני עיניים נכשלה: {exc}; raw export also failed: {raw_exc}"
+                )
+                apply_controller_eye_features(controller, None)
+                return None, self.last_error
+
+            self.last_error = (
+                f"שגיאה בשמירת תוצאות אנליזת עיניים: {exc}; שמרנו נתוני גייס גולמיים בלבד."
+            )
             apply_controller_eye_features(controller, None)
-            return None, f"שמירת נתוני עיניים נכשלה: {exc}"
+            return None, self.last_error
+
+        if analyze_error:
+            self.last_error = analyze_error
+            apply_controller_eye_features(controller, None)
+            return None, analyze_error
 
         apply_controller_eye_features(controller, features)
         return features, ""
@@ -274,3 +305,104 @@ class EyeTrackingRuntime:
             },
         }
         return features, fixations, saccades, metrics, ""
+
+    def _analyze_gaze(self, gaze_data):
+        eye_x = []
+        eye_y = []
+        timestamps = []
+
+        for sample in gaze_data:
+            x = sample.left_x if sample.left_x is not None else sample.right_x
+            y = sample.left_y if sample.left_y is not None else sample.right_y
+            eye_x.append(np.nan if x is None else x)
+            eye_y.append(np.nan if y is None else y)
+            timestamps.append(sample.timestamp)
+
+        timestamps = np.array(timestamps, dtype=float)
+        if timestamps.size == 0:
+            return None, None, None, None, "No valid timestamps in eye data."
+
+        if np.nanmax(timestamps) > 1e5:
+            timestamps = timestamps / 1_000_000
+        timestamps = timestamps - timestamps[0]
+
+        gaze_x = np.array(eye_x, dtype=float)
+        gaze_y = np.array(eye_y, dtype=float)
+
+        if self.analyzer is None:
+            return None, None, None, None, "Eye movement analyzer is unavailable."
+
+        try:
+            analysis_result = self.analyzer.analyze_gaze_data(
+                gaze_x=gaze_x,
+                gaze_y=gaze_y,
+                timestamps=timestamps,
+            )
+        except Exception as exc:
+            return None, None, None, None, f"Eye movement analysis failed: {exc}"
+
+        fixations = None
+        saccades = None
+        metrics = analysis_result
+        if isinstance(analysis_result, tuple):
+            if len(analysis_result) == 3:
+                fixations, saccades, metrics = analysis_result
+            else:
+                return None, None, None, None, "Unsupported eye analysis result format."
+
+        if metrics is None:
+            return None, None, None, None, "Could not compute eye movement metrics."
+
+        fixation_duration = self._metric_value(
+            metrics,
+            "fixation_duration",
+            "mean_fixation_duration",
+        )
+        fixation_count = self._metric_value(
+            metrics,
+            "fixation_count",
+            "num_fixations",
+        )
+        saccade_count = self._metric_value(
+            metrics,
+            "saccade_count",
+            "num_saccades",
+        )
+        total_duration = float(timestamps[-1] - timestamps[0]) if timestamps.size > 1 else 0.0
+
+        features = {
+            "fixation_duration": float(fixation_duration),
+            "fixation_count": float(fixation_count),
+            "saccade_count": float(saccade_count),
+            "analysis": {
+                "total_duration": self._metric_value(
+                    metrics,
+                    "total_duration",
+                    default=total_duration,
+                ),
+                "fixations_per_minute": float(fixation_count),
+                "saccades_per_minute": float(saccade_count),
+                "fixation_duration_per_minute": float(fixation_duration),
+                "mean_fixation_duration": self._metric_value(
+                    metrics,
+                    "mean_fixation_duration",
+                ),
+                "mean_saccade_velocity": self._metric_value(
+                    metrics,
+                    "mean_saccade_velocity",
+                ),
+            },
+        }
+        return features, fixations, saccades, metrics, ""
+
+    @staticmethod
+    def _metric_value(metrics, *names, default=0.0) -> float:
+        for name in names:
+            if hasattr(metrics, name):
+                try:
+                    value = float(getattr(metrics, name))
+                except (TypeError, ValueError):
+                    continue
+                if np.isfinite(value):
+                    return value
+        return float(default)

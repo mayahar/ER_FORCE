@@ -66,7 +66,7 @@ FEATURES = {
         "direction": 1,             # עליה במדד מצביעה על הגברת עייפות
         "std": 0.08,                # שבריר סטיית התקן מהממוצע בערנות (1.52 / 18.70)
         "expected_change": 0.63,    # האחוז בו המדד משתנה פיזית (62.56%)
-        "MEASUREMENT_VALID_RANGES": (5.0, 50.0)  # שניות לדקה
+        "MEASUREMENT_VALID_RANGES": (0.1, 500.0)  # קצב לדקה
     },
 
     "saccade_count": {
@@ -75,7 +75,7 @@ FEATURES = {
         "direction": 1,             # עליה במדד מצביעה על הגברת עייפות
         "std": 0.08,                # שבריר סטיית התקן מהממוצע בערנות (3.65 / 43.33)
         "expected_change": 0.39,    # האחוז בו המדד משתנה פיזית (38.98%)
-        "MEASUREMENT_VALID_RANGES": (10.0, 120.0) # קצב לדקה
+        "MEASUREMENT_VALID_RANGES": (1.0, 1000.0) # קצב לדקה
     },
 
     "fixation_count": {
@@ -84,7 +84,7 @@ FEATURES = {
         "direction": 1,             # עליה במדד מצביעה על הגברת עייפות
         "std": 0.07,                # שבריר סטיית התקן מהממוצע בערנות (5.49 / 74.01)
         "expected_change": 0.28,    # האחוז בו המדד משתנה פיזית (27.69%)
-        "MEASUREMENT_VALID_RANGES": (20.0, 150.0) # קצב לדקה
+        "MEASUREMENT_VALID_RANGES": (1.0, 1000.0) # קצב לדקה
     },
 
     # =====================================================
@@ -106,46 +106,31 @@ FEATURES = {
 
     "fatigue_self": {
         "modality": "subjective",
-        "weight": 1,
-        "direction": 1,
-        "std": None,
-        "expected_change": None,
+        "weight": 0.78,                  # מתאם גבוה (r ~ 0.75) לפי סולם KSS
+        "direction": 1,                  # 1 מסמל עלייה בעייפות ככל שהציון עולה
+        "std": 1.5,                      # שונות מקובלת באוכלוסייה בסולם KSS
+        "expected_change": 0.40,         # עלייה צפויה של 4 יחידות מתוך 10 במצב עייפות
         "scoring": "absolute",
-        "min": 0.0,
-        "max": 10.0
+        "MEASUREMENT_VALID_RANGES": (1.0, 10.0)
     },
 
     "sleep_last": {
         "modality": "subjective",
-        "weight": 1,
-        "direction": -1,
-        "std": None,
-        "expected_change": None,
+        "weight": 0.85,                  # הלילה האחרון הוא הניבוי החזק והמשפיע ביותר
+        "direction": -1,                 # -1 מסמל ירידה בשעות השינה ככל שהסיכון לעייפות עולה
+        "std": 1.2,                      # סטיית תקן בשעות שינה בלילה בודד
+        "expected_change": 0.50,         # חסך אקוטי בלילה האחרון מוגדר כירידה של כ-50% מהנורמה (למשל מ-8 ל-4 שעות)
         "scoring": "absolute",
-        "min": 0.0,
-        "max": 8.0
+        "MEASUREMENT_VALID_RANGES": (0.0, 16.0)
     },
 
     "sleep_previous": {
         "modality": "subjective",
-        "weight": 0.8,
-        "direction": -1,
-        "std": None,
-        "expected_change": None,
+        "weight": 0.55,                  # שלשום בלילה משפיע פחות, ולכן מקבל משקל נמוך משמעותית
+        "direction": -1,                 # -1 מסמל ירידה בשעות השינה ככל שהסיכון לעייפות עולה
+        "std": 1.2,                      # סטיית תקן בשעות שינה באוכלוסייה
+        "expected_change": 0.25,         # שינוי צפוי מתון יותר (ירידה של כ-25% משעות השינה התקניות)
         "scoring": "absolute",
-        "min": 0.0,
-        "max": 8.0
+        "MEASUREMENT_VALID_RANGES": (0.0, 16.0)
     }
-}
-
-
-# =========================
-# MODALITY WEIGHTS
-# =========================
-
-MODALITY_WEIGHTS = {
-    "voice": 0.768,
-    "eye": 0.825,
-    "game": 0.82,
-    "subjective": 0.1
 }

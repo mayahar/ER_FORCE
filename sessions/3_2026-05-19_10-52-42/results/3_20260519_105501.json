@@ -1,0 +1,279 @@
+{
+  "subject_id": 3,
+  "subject_info": {
+    "name": "מיה הראל",
+    "sex": "female",
+    "age": 24
+  },
+  "score": 46.08301944836812,
+  "scores": {
+    "voice": 16.771824067705143,
+    "game": 89.13734558699046,
+    "subjective": 33.260233918128655,
+    "eye": 32.12996389891697
+  },
+  "feature_contributions": {
+    "voice": {
+      "dLPC": {
+        "weighted_contribution": 0.10770353815399397,
+        "fatigue_score": 0.13462942269249245,
+        "relative_change": 0.09481624468787209,
+        "normalized_effect": 0.27090354851096177,
+        "raw_sigmoid": 0.5673147113462462,
+        "better_than_baseline": false,
+        "weight": 0.8,
+        "direction": 1,
+        "expected_change": 0.35,
+        "std": null,
+        "baseline": 0.12,
+        "current": 0.1313779503107071
+      },
+      "PARCOR": {
+        "weighted_contribution": 0.3801028904525265,
+        "fatigue_score": 0.4936401174708136,
+        "relative_change": -0.2379792478447103,
+        "normalized_effect": -1.0817238046703286,
+        "raw_sigmoid": 0.7468200587354068,
+        "better_than_baseline": false,
+        "weight": 0.77,
+        "direction": -1,
+        "expected_change": 0.22,
+        "std": null,
+        "baseline": 0.45,
+        "current": 0.3429093360900879
+      },
+      "Pitch": {
+        "weighted_contribution": -0.7599999999988718,
+        "fatigue_score": -0.9999999999985155,
+        "relative_change": 0.2775453185896383,
+        "normalized_effect": 27.929084928690994,
+        "raw_sigmoid": 7.422539729594858e-13,
+        "better_than_baseline": true,
+        "weight": 0.76,
+        "direction": -1,
+        "expected_change": 0.075,
+        "std": {
+          "male": 18.5,
+          "female": 26.5
+        },
+        "baseline": 200.0,
+        "current": 255.50906372070312
+      },
+      "MFCC": {
+        "weighted_contribution": 0.6931362008915906,
+        "fatigue_score": 0.9901945727022723,
+        "relative_change": -0.5600842156132727,
+        "normalized_effect": -5.313051649892916,
+        "raw_sigmoid": 0.9950972863511361,
+        "better_than_baseline": false,
+        "weight": 0.7,
+        "direction": -1,
+        "expected_change": 0.275,
+        "std": 11.5,
+        "baseline": 30.0,
+        "current": 13.197473526000977
+      },
+      "LPC": {
+        "weighted_contribution": 0.19626049619231006,
+        "fatigue_score": 0.30193922491124625,
+        "relative_change": -0.0623304036454178,
+        "normalized_effect": -0.6233039741237806,
+        "raw_sigmoid": 0.6509696124556231,
+        "better_than_baseline": false,
+        "weight": 0.65,
+        "direction": -1,
+        "expected_change": 0.1,
+        "std": null,
+        "baseline": 1500.0,
+        "current": 1406.50439453125
+      }
+    },
+    "game": {
+      "score": {
+        "weighted_contribution": 0.7309262338133218,
+        "fatigue_score": 0.8913734558699047,
+        "relative_change": -0.34722222217399695,
+        "normalized_effect": -2.857142741643996,
+        "raw_sigmoid": 0.9456867279349523,
+        "better_than_baseline": false,
+        "weight": 0.82,
+        "direction": -1,
+        "expected_change": 0.25,
+        "std": 35.0,
+        "baseline": 72.0,
+        "current": 47.0
+      }
+    },
+    "subjective": {
+      "fatigue_self": {
+        "weighted_contribution": 0.43333333333333335,
+        "fatigue_score": 0.5555555555555556,
+        "relative_change": null,
+        "normalized_effect": 0.5555555555555556,
+        "raw_sigmoid": 0.7777777777777778,
+        "better_than_baseline": false,
+        "weight": 0.78,
+        "direction": 1,
+        "expected_change": 0.4,
+        "std": 1.5,
+        "baseline": 0.0,
+        "current": 8.0
+      },
+      "sleep_last": {
+        "weighted_contribution": -0.0,
+        "fatigue_score": -0.0,
+        "relative_change": null,
+        "normalized_effect": -0.0,
+        "raw_sigmoid": 0.5,
+        "better_than_baseline": false,
+        "weight": 0.85,
+        "direction": -1,
+        "expected_change": 0.375,
+        "std": 1.2,
+        "baseline": 7.0,
+        "current": 4.0
+      },
+      "sleep_previous": {
+        "weighted_contribution": 0.325,
+        "fatigue_score": 0.5,
+        "relative_change": null,
+        "normalized_effect": 0.5,
+        "raw_sigmoid": 0.75,
+        "better_than_baseline": false,
+        "weight": 0.65,
+        "direction": -1,
+        "expected_change": 0.25,
+        "std": 1.2,
+        "baseline": 7.0,
+        "current": 2.0
+      }
+    },
+    "eye": {
+      "fixation_duration": {
+        "weighted_contribution": 1.0,
+        "fatigue_score": 1.0,
+        "relative_change": 164.86910796759858,
+        "normalized_effect": 917.1366539137182,
+        "raw_sigmoid": 1.0,
+        "better_than_baseline": false,
+        "weight": 1.0,
+        "direction": 1,
+        "expected_change": 0.63,
+        "std": 0.08,
+        "baseline": 0.28036600936790407,
+        "current": 46.50406152698071
+      },
+      "saccade_count": {
+        "weighted_contribution": -0.94,
+        "fatigue_score": -1.0,
+        "relative_change": -0.5019040982646436,
+        "normalized_effect": -3080.960830434109,
+        "raw_sigmoid": 0.0,
+        "better_than_baseline": true,
+        "weight": 0.94,
+        "direction": 1,
+        "expected_change": 0.39,
+        "std": 0.08,
+        "baseline": 191.52262896920035,
+        "current": 95.3966365741209
+      },
+      "fixation_count": {
+        "weighted_contribution": 0.83,
+        "fatigue_score": 1.0,
+        "relative_change": 0.09025600887358565,
+        "normalized_effect": 664.0209130872313,
+        "raw_sigmoid": 1.0,
+        "better_than_baseline": false,
+        "weight": 0.83,
+        "direction": 1,
+        "expected_change": 0.28,
+        "std": 0.07,
+        "baseline": 144.1988448526657,
+        "current": 157.21365707415126
+      }
+    }
+  },
+  "raw_score": 46.08301944836812,
+  "modality_contributions": {
+    "voice": {
+      "score": 0.16771824067705143,
+      "weight": 0.768,
+      "weighted_contribution": 0.1288076088399755
+    },
+    "eye": {
+      "score": 0.3212996389891697,
+      "weight": 0.825,
+      "weighted_contribution": 0.265072202166065
+    },
+    "game": {
+      "score": 0.8913734558699047,
+      "weight": 0.82,
+      "weighted_contribution": 0.7309262338133218
+    },
+    "subjective": {
+      "score": 0.33260233918128657,
+      "weight": 0.1,
+      "weighted_contribution": 0.03326023391812866
+    }
+  },
+  "measurement_warnings": [],
+  "invalid_measurements": [],
+  "quality_warning": null,
+  "features": {
+    "voice": {
+      "dLPC": 0.1313779503107071,
+      "PARCOR": 0.3429093360900879,
+      "Pitch": 255.50906372070312,
+      "MFCC": 13.197473526000977,
+      "LPC": 1406.50439453125,
+      "events": [
+        {
+          "event_id": "voice_phrase_1",
+          "prompt_text": "Sustained vowel 'Ah'",
+          "prompt_type": "phrase",
+          "event_type": "phrase",
+          "status": "completed",
+          "timestamp": 1779177225.3534622,
+          "duration": 10.0,
+          "audio_path": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\3_2026-05-19_10-52-42\\voice\\voice_phrase_1.wav",
+          "error": null
+        }
+      ]
+    },
+    "eye": {
+      "fixation_duration": 46.50406152698071,
+      "saccade_count": 95.3966365741209,
+      "fixation_count": 157.21365707415126
+    },
+    "game": {
+      "score": 47.0
+    },
+    "questionnaire": {
+      "fatigue_self": 8,
+      "sleep_last": 4,
+      "sleep_previous": 2
+    }
+  },
+  "baseline": {
+    "voice": {
+      "dLPC": 0.12,
+      "PARCOR": 0.45,
+      "LPC": 1500,
+      "Pitch": 200,
+      "MFCC": 30
+    },
+    "eye": {
+      "fixation_duration": 0.28036600936790407,
+      "fixation_count": 144.1988448526657,
+      "saccade_count": 191.52262896920035
+    },
+    "game": {
+      "score": 72
+    },
+    "questionnaire": {
+      "fatigue_self": 0,
+      "sleep_last": 7,
+      "sleep_previous": 7
+    }
+  }
+}

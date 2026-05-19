@@ -1,0 +1,666 @@
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:554: Created multi-app mutex, we are in writeable mode
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:609: FlightGear:  Version 2020.3.19
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:610: FlightGear:  Build Type Release
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:611: Built with Microsoft Visual C++ version 1900
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:613: Jenkins number/ID 349:349
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:3036: platform default fg_root = Path "../data"
+    0.00 [INFO]:input     C:\Jenkins\workspace\Windows-release\flightgear\src\Main\globals.cxx:849: Reading user settings from Path "C:/Users/לינוי/AppData/Roaming/flightgear.org/autosave_2020_3.xml"
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:1510: init package root at:Path "C:/Users/לינוי/FlightGear/Downloads/Aircraft"
+    0.00 [INFO]:input     C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2276: aircraft = f16-block-52
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:234: found aircraft in dir: C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16
+    0.00 [ALRT]:input     C:\Jenkins\workspace\Windows-release\simgear\simgear\props\props_io.cxx:221: Not overwriting write-protected property /sim/version/compositor-support
+ at C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/f16-base.xml,
+line 25, column 12
+    0.00 [INFO]:aircraft  C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\initialstate.cxx:94: Applying aircraft state:take-off
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:127: User langauge 0:he-IL
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:127: User langauge 1:en-US
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:177: Found language resource for: en
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:329: Reading localized strings for 'en' from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Translations/default/sys.xml"
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:329: Reading localized strings for 'en' from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Translations/default/atc.xml"
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:329: Reading localized strings for 'en' from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Translations/default/tips.xml"
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:329: Reading localized strings for 'en' from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Translations/default/weather-scenarios.xml"
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:fg-aircraft = C:\Users\לינוי\Documents\ער FORCE\Main\game\data\Aircraft;C:\Users\לינוי\Documents\ער FORCE\Main\game\sivaks_logging_version\Aircraft
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:airport = PHTO
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:aircraft-dir = C:\Users\לינוי\Documents\ער FORCE\Main\game\sivaks_logging_version\Aircraft\f16
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:aircraft = f16-block-52
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:log-level = info
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:log-dir = C:\Users\לינוי\Documents\ער FORCE\Main\sessions\3_2026-05-19_10-05-17\game
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:disable-splash-screen = 
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /sim/menubar/visibility=false
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /sim/rendering/redout/enabled=false
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:disable-ai-traffic = 
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:fg-scenery = C:\Users\לינוי\Documents\ער FORCE\Main\game\data\Scenery
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /nasal/local_weather/enabled=false
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:metar = XXXX 012345Z 15003KT 19SM FEW072 FEW350 25/07 Q1028 NOSIG
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /environment/weather-scenario=Core high pressure region
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /sim/rendering/texture-cache/cache-enabled=true
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:disable-terrasync = 
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:disable-sentry = 
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:state = take-off
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /sim/sivaks/autostart-tutorial-enabled=true
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:prop = /sim/sivaks/autostart-tutorial=CorrActions DEFAULT
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2617: 	option:enable-fullscreen = 
+    0.00 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2626: Reading command-line property file Path "C:/Users/לינוי/Documents/ער FORCE/Main/sessions/3_2026-05-19_10-05-17/game/sivaks_logging_20260519_100636.xml"
+    0.01 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2641: Using default download dir: Path "C:/Users/לינוי/FlightGear/Downloads"
+    0.01 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2664: Using default texture cache directory: Path "C:/Users/לינוי/FlightGear/Downloads/TextureCache"
+    0.01 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\options.cxx:2687: Using TerraSync dir: Path "C:/Users/לינוי/FlightGear/Downloads/TerraSync"
+    0.01 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:716: EmbeddedResourceManager: selected locale 'he-IL'
+    0.01 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\fg_os_osgviewer.cxx:373: Using stock OSG implementation of GraphicsWindow
+    0.01 [INFO]:astro     C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\sky\cloud.cxx:343: initializing cloud layers
+    0.15 [WARN]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:755: Enabling ATI/AMD viewport hack
+    0.15 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:959: Configuration State
+    0.15 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:960: ============= =====
+    0.15 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:962: aircraft-dir = "C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16"
+    0.15 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:963: fghome-dir = "Path "C:/Users/לינוי/AppData/Roaming/flightgear.org""
+    0.15 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:964: download-dir = "C:/Users/לינוי/FlightGear/Downloads"
+    0.15 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:965: terrasync-dir = "C:/Users/לינוי/FlightGear/Downloads/TerraSync"
+    0.15 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:967: aircraft-search-paths = 
+	C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft
+	C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft
+    0.15 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:968: scenery-search-paths = 
+	C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery
+	C:/Users/לינוי/FlightGear/Downloads/TerraSync
+    0.16 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\renderer_legacy.cxx:1592: FGRenderer:: Maximum texture size 16384
+    0.17 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\gui.cxx:127: Intel
+    0.17 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\gui.cxx:130: Intel(R) Iris(R) Xe Graphics
+    0.17 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\gui.cxx:133: 4.6.0 - Build 32.0.101.7077
+    0.17 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\gui.cxx:143: 4.60 - Build 32.0.101.7077
+    0.17 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\gui.cxx:154: VertexAttribDivisor supported
+    0.72 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress loading-aircraft-list
+    0.76 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress loading-nav-dat
+    0.78 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:299: NavCache at:Path "C:/Users/לינוי/AppData/Roaming/flightgear.org/navdata_2020_3.cache"
+    0.79 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:302: NavCache read-only flags is:0
+    0.80 [INFO]:navaid    C:\Jenkins\workspace\Windows-release\flightgear\src\Navaids\NavDataCache.cxx:1459: NavCache: no main cache rebuild required
+    0.81 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress init-scenery
+    0.81 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:924: General Initialization
+    0.81 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:925: ======= ==============
+    0.81 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:934: FG_ROOT = "Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data""
+
+    0.81 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\positioninit.cxx:219: Attempting to set starting position from airport code PHTO heading 270
+    0.81 [INFO]:event     C:\Jenkins\workspace\Windows-release\simgear\simgear\timing\sg_time.cxx:88: Reading timezone info from: Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Timezone/zone.tab"
+    0.83 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\scenery.cxx:401: Selected scenery is tilecache
+    0.83 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\terrain_stg.cxx:243: FGStgTerrain::init - init tilemgr
+    0.83 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:180: Initializing Tile Manager subsystem.
+    0.83 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilecache.cxx:64: Initializing the tile cache.
+    0.83 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilecache.cxx:67:   max cache size = 100
+    0.83 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilecache.cxx:69:   current cache size = 0
+    0.83 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilecache.cxx:73:   done with init()
+    0.83 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress finalize-position
+    0.89 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress creating-subsystems
+    0.89 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:977: Creating Subsystems
+    0.89 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:978: ======== ==========
+    0.89 [INFO]:input     C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\material\matlib.cxx:73: Reading materials from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Materials/regions/materials.xml"
+    3.17 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Systems\system_mgr.cxx:45: Reading systems from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Systems/f16-airdata.xml"
+    3.18 [INFO]:cockpit   C:\Jenkins\workspace\Windows-release\flightgear\src\Instrumentation\HUD\HUD.cxx:116: Initializing HUD Instrument
+    3.18 [INFO]:sound     C:\Jenkins\workspace\Windows-release\flightgear\src\Sound\fg_fx.cxx:133: Reading sound sound from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Systems/f16-sound.xml"
+    3.22 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:388: Creating subsystems took:2330
+    3.22 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress binding-subsystems
+    3.22 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\main.cxx:396: Binding subsystems took:1
+    3.22 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress init-subsystems
+    3.26 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\locale.cxx:329: Reading localized strings for 'en' from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Translations/default/menu.xml"
+    3.29 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\FGPUIMenuBar.cxx:58: Initializing old dialog commands:
+    3.44 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\fgmetar.cxx:154: XXXX 012345Z 15003KT 19SM FEW072 FEW350 25/07 Q1028 NOSIG 
+    3.44 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\fgmetar.cxx:158: METAR from tgftp.nws.noaa.gov
+    3.44 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:333: Reusing metar properties at /environment[0]/metar[0] for 
+    3.44 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[1] for 
+    3.44 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[2] for 
+    3.44 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[3] for 
+    3.44 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[4] for 
+    3.44 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[5] for 
+    3.45 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[6] for 
+    3.45 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[10] for 
+    3.45 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:343: Adding metar properties at /environment[0]/metar[11] for 
+    3.45 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\realwx_ctrl.cxx:398: NoaaMetarRealWxController::update(): nearest airport with METAR has changed. Old: '', new: 'PHTO'
+    3.53 [INFO]:astro     C:\Jenkins\workspace\Windows-release\simgear\simgear\ephemeris\stardata.cxx:58:   Loading stars from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Astro/stars"
+    3.56 [INFO]:astro     C:\Jenkins\workspace\Windows-release\simgear\simgear\ephemeris\stardata.cxx:114:   Loaded 9098 stars
+    3.56 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Environment/metarinterpolator.xml"
+    3.61 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem Environment METAR Interpolation Rule
+    3.61 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Environment/interpolator.xml"
+    3.62 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem Environment Interpolation Rule
+    3.62 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Environment/local-weather-rules.xml"
+    3.64 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem Local Weather Rules 
+    3.64 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/g-forces.xml"
+    3.66 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem g force effects
+    3.66 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Systems/sound-rules.xml"
+    3.68 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem Sound properties
+    3.81 [INFO]:input     C:\Jenkins\workspace\Windows-release\flightgear\src\Input\FGJoystickInput.cxx:139: Looking for bindings for joystick "Logitech Extreme 3D"
+    3.82 [INFO]:input     C:\Jenkins\workspace\Windows-release\flightgear\src\Input\FGJoystickInput.cxx:151: ... found joystick: C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Input/Joysticks/Logitech/extreme-3d-pro.xml
+    3.84 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:67: FlightRecorder: Recorder configuration #0
+    3.84 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:101: FlightRecorder: Using custom recorder configuration: F-16 Flight Recorder
+    3.84 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'surface-positions/elevator-pos-norm'.
+    3.84 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'surface-positions/right-aileron-pos-norm'.
+    3.84 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'surface-positions/left-aileron-pos-norm'.
+    3.84 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'fdm/jsbsim/fcs/lef-pos-deg'.
+    3.84 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'surface-positions/rudder-pos-norm'.
+    3.84 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'surface-positions/nose-wheel-pos-norm'.
+    3.84 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'fdm/jsbsim/fcs/dht-left-pos-rad'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'canopy/position-norm'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/tailhook/position-norm'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'engines/engine[0]/n2-low'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property 'engines/engine[0]/n1-mid'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/orientation/side-slip-rad'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/orientation/beta-deg'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/orientation/roll-rate-degps'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/orientation/pitch-rate-degps'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/orientation/yaw-rate-degps'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/accelerations/pilot/x-accel-fps_sec'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/accelerations/pilot/y-accel-fps_sec'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/instrumentation/slip-skid-ball/indicated-slip-skid'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/gear[1]/steering-norm'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/gear[2]/steering-norm'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/gear[0]/compression-norm'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/gear[1]/compression-norm'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/gear/gear[2]/compression-norm'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/sim/alarms/stall-warning'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/hazards/icing/wing'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/controls/switches/master-avionics'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:270: FlightRecorder: Recording non-existent property '/controls/fuel/tank[8]/fuel_selector'.
+    3.85 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:124: FlightRecorder: record size is 416 bytes
+    4.05 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:246:   loaded aero.
+    4.05 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:253: 
+    4.05 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:254: 
+    4.05 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:255: After loading aero definition file ...
+    4.05 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:258: num engines = 1
+    4.11 [INFO]:cockpit   C:\Jenkins\workspace\Windows-release\flightgear\src\Instrumentation\instrument_mgr.cxx:83: Reading instruments from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Systems/instrumentation.xml"
+    4.13 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Systems/autoflight-rules.xml"
+    4.14 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem generic autopilot
+    4.14 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Systems/wingflexer.xml"
+    4.15 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem wing flexer property rule
+    4.19 [INFO]:network   C:\Jenkins\workspace\Windows-release\flightgear\src\MultiPlayer\multiplaymgr.cxx:1039: FGMultiplayMgr - multiplayer mode disabled (no MP server specificed).
+    4.49 [INFO]:cockpit   C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\cockpitDisplayManager.cxx:70: Reading cockpit displays from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Systems/instrumentation.xml"
+    4.66 [INFO]:event     C:\Jenkins\workspace\Windows-release\flightgear\src\Time\light.cxx:54: Initializing Lighting interpolation tables.
+    5.29 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/window_frost.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+    5.29 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/window_frost.png will generate mipmap only
+    5.35 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/hud-glass.rgb will generate mipmap only
+    5.87 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/null_bumpspec.png will generate mipmap only
+    5.90 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/fuselage/dirt.png will generate mipmap only
+    5.93 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/fuselage/rust1.png will generate mipmap only
+    6.69 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Terrain/void.png will generate mipmap only
+    7.54 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/dust-effect-overlay.png will generate mipmap only
+    8.53 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/dust3.png will generate mipmap only
+    9.52 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:348:  Already have c72bb41552cd546d8b713e62db71d76228def102 : C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Cockpit/Avionics/DED/canvas.png not C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Cockpit/Avionics/PFD/canvas.png
+    9.52 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:348:  Already have c72bb41552cd546d8b713e62db71d76228def102 : C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Cockpit/Avionics/DED/canvas.png not C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Cockpit/Avionics/PFD/canvas.png
+    9.52 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:348:  Already have c72bb41552cd546d8b713e62db71d76228def102 : C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Cockpit/Avionics/DED/canvas.png not C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Cockpit/Avionics/PFD/canvas.png
+    9.52 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:348:  Already have c72bb41552cd546d8b713e62db71d76228def102 : C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Cockpit/Avionics/DED/canvas.png not C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Cockpit/Avionics/PFD/canvas.png
+    9.70 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/dust2.png will generate mipmap only
+   10.07 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/greymap.png will generate mipmap only
+   10.12 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/ReflectMaps/reflectmap.png for inclusion into the texture cache because pixel density too low at 8 bits per pixek
+   10.12 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/ReflectMaps/reflectmap.png will generate mipmap only
+   10.86 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/fgfs-sky2/1.png will generate mipmap only
+   10.86 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/fgfs-sky2/4.png will generate mipmap only
+   10.87 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/fgfs-sky2/2.png will generate mipmap only
+   10.87 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/fgfs-sky2/3.png will generate mipmap only
+   10.88 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/fgfs-sky2/6.png will generate mipmap only
+   10.88 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/fgfs-sky2/5.png will generate mipmap only
+   17.56 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/FlightGear/Downloads/TerraSync/Models/Airport/Pushback/Military-smoke.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   17.81 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-front.png will generate mipmap only
+   17.83 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-back.png will generate mipmap only
+   17.84 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-left.png will generate mipmap only
+   17.86 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-right.png will generate mipmap only
+   17.88 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-up.png for inclusion into the texture cache because pixel density too low at 8 bits per pixek
+   17.88 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-up.png will generate mipmap only
+   17.88 [WARN]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\material\mipmap.cxx:272: mipmapping: texture size not a power-of-two: C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-up.png
+   17.89 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Models/Effects/glass/cockpit-cube-down.png will generate mipmap only
+   18.13 [INFO]:sound     C:\Jenkins\workspace\Windows-release\simgear\simgear\sound\soundmgr_openal.cxx:183: Initializing OpenAL sound manager
+   18.31 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress finishing-subsystems
+   18.66 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/aircraft.nas:367: loading aircraft data from C:/Users/לינוי/AppData/Roaming/flightgear.org/aircraft-data/f16-block-52.xml
+   18.87 [WARN]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/emexec.nas:88: (EMEXEC) FrameNotification.frame_rate_worst = /sim/frame-rate-worst -> /sim/frame-rate-worst
+   18.87 [WARN]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/emexec.nas:88: (EMEXEC) FrameNotification.elapsed_seconds = /sim/time/elapsed-sec -> /sim/time/elapsed-sec
+   18.88 [WARN]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/emexec.nas:88: (EMEXEC) FrameNotification.frame_rate = /sim/frame-rate -> /sim/frame-rate
+   18.88 [WARN]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/emexec.nas:88: (EMEXEC) FrameNotification.eframe_rate = /sim/emexec/frame-rate -> /sim/emexec/frame-rate
+   19.07 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/seaport.nas:2: *** NEW LOCATION ***
+   19.16 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/wildfire.nas:1190: Wildfire ... initialized.
+   19.59 [INFO]:general   C:\Jenkins\workspace\Windows-release\simgear\simgear\canvas\elements\CanvasElement.cxx:260: addEventListener(/sim[0]/gui[0]/canvas[0], mousedown)
+   20.79 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /sim[0]/current-view[0]/heading-offset-deg[0]
+   20.92 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:39: incr log_level
+   20.97 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/emesary_mp_bridge.nas:90: OutgoingMPBridge created for f16mp.geo mp=18
+   20.97 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/emesary_mp_bridge.nas:102:   f16mp.geo  outwards bridge[] notifications of type --> ArmamentInFlightNotification Id 21
+   20.97 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/emesary_mp_bridge.nas:90: OutgoingMPBridge created for f16mp.hit mp=19
+   20.97 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/emesary_mp_bridge.nas:102:   f16mp.hit  outwards bridge[] notifications of type --> ArmamentNotification Id 19
+   20.97 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/emesary_mp_bridge.nas:102:   f16mp.hit  outwards bridge[] notifications of type --> StaticNotification Id 25
+   20.97 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/emesary_mp_bridge.nas:90: OutgoingMPBridge created for f16mp.object mp=17
+   20.97 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/emesary_mp_bridge.nas:102:   f16mp.object  outwards bridge[] notifications of type --> ObjectInFlightNotification Id 22
+   21.39 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'sodipodi:namedview' [path='C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/HUD/HUD.svg']
+   21.39 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'metadata' [path='C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/HUD/HUD.svg']
+   22.68 [WARN]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\material\mipmap.cxx:272: mipmapping: texture size not a power-of-two: C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/HUD/main_mask.png
+   23.71 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/gear[0]/brake-parking[0]
+   23.71 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/gear[0]/gear-down[0]
+   23.71 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /instrumentation[0]/altimeter[0]/setting-inhg[0]
+   23.71 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/flight[0]/flaps[0]
+   23.72 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/flight[0]/rudder-trim[0]
+   23.72 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/flight[0]/elevator-trim[0]
+   23.72 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/flight[0]/aileron-trim[0]
+   23.89 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Time\TimeManager.cxx:502: After TimeManager::setTimeOffset(): warp = 0
+   23.89 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/flightPlanDelegate.nas:160: creating default GPS FPDelegate
+   23.89 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\route_mgr.cxx:854: route manager, current-wp is now -1
+   23.89 [INFO]:input     C:\Jenkins\workspace\Windows-release\flightgear\src\Input\FGHIDEventInput.cxx:929: HID event input starting up
+   23.93 [INFO]:ai        C:\Jenkins\workspace\Windows-release\flightgear\src\AIModel\AIManager.cxx:287: loading scenario 'nimitz_demo'
+   23.93 [INFO]:ai        C:\Jenkins\workspace\Windows-release\flightgear\src\AIModel\AIManager.cxx:287: loading scenario 'balloon_CorrActions'
+   23.93 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/debug.nas:268: [31m'balloon scenario load script complete'[m
+   23.94 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:1218: Subsystems postinit took:55
+   23.95 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:1227: 
+
+   23.95 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress finalize-position
+   24.00 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:\Users\לינוי\Documents\ער FORCE\Main\game\data\Textures\Sky\moon.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   24.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:5
+   24.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:537: FGTileMgr: at lon = -155.029deg, lat = 19.7214deg, elev = -3047.7m, scheduling needed for:-156:7, 19:5, visibility=32000
+   24.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:322: scheduling needed tiles for -156:7, 19:5, tile-width-m:13096.4, tile-height-m:13914.9
+   24.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:2
+   24.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:3
+   24.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:4
+   24.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:5
+   24.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:6
+   24.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 19:7
+   24.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:4, 20:0
+   24.07 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:2
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:3
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:4
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:5
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:6
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 19:7
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:5, 20:0
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:2
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:3
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:4
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:5
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:6
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 19:7
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:6, 20:0
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:2
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:3
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:4
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:6
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 19:7
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-156:7, 20:0
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:2
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:3
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:4
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:5
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:6
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 19:7
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:0, 20:0
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:2
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:3
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:4
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:5
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:6
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 19:7
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:1, 20:0
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:2
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:3
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:4
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:5
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:6
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 19:7
+   24.08 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:280: sched_tile: new tile entry for:-155:2, 20:0
+   24.14 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'ehsi-display.png' for object 'EHSI-Display'
+   24.14 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'HUDImage2'
+   24.14 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'HUDImage2'
+   24.14 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'HUDImage2'
+   24.14 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'HUDImage2'
+   24.14 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'rwr-bkg.png' for object 'bkg'
+   24.14 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'rwr-bkg.png' for object 'bkg'
+   24.20 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400212.stg
+   24.20 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400212.stg"
+   24.21 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400212.stg"
+   24.26 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Main\positioninit.cxx:824: Using METAR for runway selection: 'XXXX 012345Z 15003KT 19SM FEW072 FEW350 25/07 Q1028 NOSIG '
+   24.26 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\positioninit.cxx:219: Attempting to set starting position from airport code PHTO heading 150
+   24.26 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/seaport.nas:2: *** NEW LOCATION ***
+   24.26 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress loading-scenery
+   24.33 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Terrain/grain_texture.png will generate mipmap only
+   24.52 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Terrain/void.png will generate mipmap only
+   24.59 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400239.stg
+   24.60 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400239.stg"
+   24.61 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400239.stg"
+   25.12 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Globe/ocean_depth_1.png will generate mipmap only
+   26.51 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Terrain/packice-overlay.png will generate mipmap only
+   26.82 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Runway/lf_broken_white.png will generate mipmap only
+   26.86 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Runway/rwy-reflect.png will generate mipmap only
+   26.87 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/Rainbow.png will generate mipmap only
+   26.87 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/FresnelLookUp.png for inclusion into the texture cache because pixel density too low at 8 bits per pixek
+   26.87 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Effects/FresnelLookUp.png will generate mipmap only
+   26.90 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Runway/lf_dbl_lane_queue.png will generate mipmap only
+   26.91 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Runway/lf_dbl_solid_yellow.png will generate mipmap only
+   26.91 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Runway/lf_runway_hold.png will generate mipmap only
+   26.92 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Runway/lf_sng_lane_queue.png will generate mipmap only
+   26.92 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Runway/lf_sng_solid_white.png will generate mipmap only
+   26.92 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Runway/lf_sng_solid_yellow.png will generate mipmap only
+   27.07 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:348:  Already have 440273eb48d08de315e945d92d20f5ce75ba9da2 : C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Runway/pa_centerline.png not C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Runway/pa_rest.png
+   27.32 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400231.stg
+   27.33 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400231.stg"
+   27.34 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400231.stg"
+   27.45 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400238.stg
+   27.46 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400238.stg"
+   27.46 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400238.stg"
+   27.59 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400247.stg
+   27.60 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400247.stg"
+   27.61 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400247.stg"
+   27.75 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416616.stg
+   27.76 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w155n19/416616.stg"
+   27.77 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400230.stg
+   27.78 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400230.stg"
+   27.79 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400230.stg"
+   27.81 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\fdm_shell.cxx:192: Scenery loaded, will init FDM
+   27.81 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:412: Starting and initializing JSBsim
+   27.81 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:432: T,p,rho: 518.67, 2116.23, 0.00237691
+   27.81 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:139: Start common FDM init
+   27.81 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:146: ...initializing position...
+   27.81 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1088: FGJSBsim::set_Longitude: -2.70627
+   27.81 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1067: FGJSBsim::set_Latitude: 0.344203
+   27.81 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1068:  cur alt (ft) =  0
+   27.81 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:158: Checking for lon = -155.058deg, lat = 19.7214deg, alt = -9999ft
+   27.82 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1101: FGJSBsim::set_Altitude: 29.6013
+   27.82 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:175: ...initializing ground elevation to 29.5013ft...
+   27.82 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:178: ...initializing sea-level radius...
+   27.82 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:181:  lat = 19.7214 alt = 29.6013
+   27.82 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:186: ...initializing Euler angles...
+   27.82 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1197: FGJSBsim::set_Euler_Angles: 0, 0.0074002, 1.57149
+   27.82 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:195: ...initializing velocities...
+   27.82 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1113: FGJSBsim::set_V_calibrated_kts: 0
+   27.82 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:233: End common FDM init
+   27.82 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:462: Ready to trim, terrain elevation is: 29.4977
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1353:   Trim complete
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:486:   Initialized JSBSim with:
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:493:   Vn,Ve,Vd= 0, 0, 0 ft/s
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:515:   Bank Angle: -0.375321 deg
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:517:   Pitch Angle: 2.78634 deg
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:519:   True Heading: 90.0331 deg
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:521:   Latitude: 19.5994 deg
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:523:   Longitude: -155.058 deg
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:525:   Altitude: 34.6678 feet
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:526:   loaded initial conditions
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:528:   set dt
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:530: Finished initializing JSBSim
+   27.85 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:533: FGControls::get_gear_down()= 1
+   27.86 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/flight[0]/flaps[0]
+   27.86 [WARN]:nasal     C:\Jenkins\workspace\Windows-release\flightgear\src\Scripting\NasalSys.cxx:1732: ERROR: Cannot add listener to tied property /controls[0]/gear[0]/gear-down[0]
+   27.86 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1759: 
+   27.86 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1760: ********************************************************************
+   27.86 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1761:       Initializing General Dynamics F-16CJ Block 52 systems.           
+   27.86 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1762:                 Version 3.72 on FlightGear 2020.3.19
+   27.86 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1763: ********************************************************************
+   27.86 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/f16.nas:1764: 
+   27.88 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'sodipodi:namedview' [path='C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/MFD/MFD.svg']
+   27.88 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'metadata' [path='C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/MFD/MFD.svg']
+   28.05 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'sodipodi:namedview' [path='C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/MFD/MFD.svg']
+   28.05 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/canvas/svg.nas:29: parsesvg: Skipping unknown element 'metadata' [path='C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Nasal/MFD/MFD.svg']
+   28.19 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   28.59 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/modules.nas:155: Module.load() f16_HMD
+   28.63 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Trees/hawaii-shrub.png will generate mipmap only
+   28.63 [ALRT]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\fdm_shell.cxx:206: Failed to save initial FDM property state
+   28.63 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 0: GEAR_CONTACT: 0 seconds: NOSE_LG 1
+   28.63 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 1: GEAR_CONTACT: 0 seconds: LEFT_MLG 1
+   28.63 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 2: GEAR_CONTACT: 0 seconds: RIGHT_MLG 1
+   28.63 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 3: GEAR_CONTACT: 0 seconds: NOZZLE 1
+   28.63 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 4: GEAR_CONTACT: 0 seconds: INTAKE 1
+   28.63 [INFO]:view      C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\splash.cxx:760: Splash screen progress 
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'MFDimage1'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'MFDimage1'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'MFDimage2'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture '' for object 'MFDimage2'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'tranbg.png' for object 'MFDimage3'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'canvas.png' for object 'poly.003'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'canvas.png' for object 'poly.003'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'canvas.png' for object 'PFDscreen'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'canvas.png' for object 'PFDscreen'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'navFreq.png' for object 'freqDisplay'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'navFreq.png' for object 'freqDisplay'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper-r'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper-r'
+   28.63 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Cockpit\od_gauge.cxx:240: Replaced texture 'kneeboard.png' for object 'paper-r'
+   28.96 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Trees/tropical-alt.png will generate mipmap only
+   28.97 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 5: GEAR_CONTACT: 0.00833333 seconds: NOZZLE 0
+   28.97 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:587: 6: GEAR_CONTACT: 0.00833333 seconds: INTAKE 0
+   29.01 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2216:     found trigger: loading animation for standing to position 0
+   29.01 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2177:     found trigger: loading animation for walking to position 1
+   29.01 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2190:     found trigger: loading animation for running to position 2
+   29.01 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2203:     found trigger: loading animation for backwards to position 3
+   29.01 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2229:     found trigger: loading animation for falling to position 4
+   29.01 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2242:     found trigger: loading animation for open-parachute to position 5
+   29.01 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2255:     found trigger: loading animation for landing to position 6
+   29.01 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Aircraft/Generic/Human/Nasal/walker-animate.nas:2268:     found trigger: loading animation for crashing to position 7
+   29.34 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Models/Industrial/generic_chimney_011.png will generate mipmap only
+   29.39 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Sky/cl_cumulus2.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   29.39 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Sky/cl_cumulus2.png will generate mipmap only
+   29.73 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:403: From effects C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Models/Power/generic_pylon_50m.png will generate mipmap only
+   31.23 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/seaport.nas:2: *** NEW LOCATION ***
+   31.25 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_init.cxx:1237: fgStartReposition()
+   31.25 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/aircraft.nas:383: saving aircraft data to C:/Users/לינוי/AppData/Roaming/flightgear.org/aircraft-data/f16-block-52.xml
+   31.26 [WARN]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\fdm_shell.cxx:149: FDM: Some errors restoring preserved state
+   31.36 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:246:   loaded aero.
+   31.36 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:253: 
+   31.36 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:254: 
+   31.36 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:255: After loading aero definition file ...
+   31.36 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:258: num engines = 1
+   31.36 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:67: FlightRecorder: Recorder configuration #0
+   31.36 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:101: FlightRecorder: Using custom recorder configuration: F-16 Flight Recorder
+   31.36 [INFO]:systems   C:\Jenkins\workspace\Windows-release\flightgear\src\Aircraft\flightrecorder.cxx:124: FlightRecorder: record size is 416 bytes
+   31.36 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Systems/autoflight-rules.xml"
+   31.36 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem generic autopilot
+   31.36 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:208: Reading property-rule configuration from Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/sivaks_logging_version/Aircraft/f16/Systems/wingflexer.xml"
+   31.36 [INFO]:autopilot C:\Jenkins\workspace\Windows-release\flightgear\src\Autopilot\autopilotgroup.cxx:215: adding  property-rule subsystem wing flexer property rule
+   31.37 [INFO]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Time\TimeManager.cxx:502: After TimeManager::setTimeOffset(): warp = 0
+   31.39 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\fdm_shell.cxx:192: Scenery loaded, will init FDM
+   31.39 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:412: Starting and initializing JSBsim
+   31.39 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:432: T,p,rho: 518.67, 2116.23, 0.00237691
+   31.39 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:139: Start common FDM init
+   31.39 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:146: ...initializing position...
+   31.39 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1088: FGJSBsim::set_Longitude: -2.70617
+   31.39 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1067: FGJSBsim::set_Latitude: 0.344251
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1068:  cur alt (ft) =  2000
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:158: Checking for lon = -155.052deg, lat = 19.7242deg, alt = 2000ft
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1101: FGJSBsim::set_Altitude: 2000
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:175: ...initializing ground elevation to 29.8221ft...
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:178: ...initializing sea-level radius...
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:181:  lat = 19.7242 alt = 2000
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:186: ...initializing Euler angles...
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1197: FGJSBsim::set_Euler_Angles: 0, 0.0074002, 0
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:195: ...initializing velocities...
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1113: FGJSBsim::set_V_calibrated_kts: 350
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1241: FGJSBsim::set_Gamma_vert_rad: 0
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\flight.cxx:233: End common FDM init
+   31.40 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:462: Ready to trim, terrain elevation is: 29.8222
+   32.11 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Models/Airport/rot-bcn-2.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   32.12 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Models/Airport/rot-bcn-2.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   32.12 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Models/Airport/rot-bcn-2.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   32.12 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Models/Airport/rot-bcn-2.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   32.12 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Models/Airport/rot-bcn-2.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   32.13 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Models/Airport/rot-bcn-2.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   32.13 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Models/Airport/rot-bcn-2.png will generate mipmap only
+   32.25 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   32.55 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   32.88 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   33.23 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/white.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   33.26 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/white.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   33.27 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/white.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   33.27 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/white.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   33.28 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/white.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   33.28 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/white.png will generate mipmap only
+   33.30 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   33.33 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   33.33 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   33.33 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   33.33 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   33.33 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png will generate mipmap only
+   33.45 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   34.00 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400246.stg
+   34.01 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400246.stg"
+   34.19 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416608.stg
+   34.20 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w155n19/416608.stg"
+   34.21 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w155n19/416608.stg"
+   34.27 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416624.stg
+   34.27 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416624
+   34.27 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400223.stg
+   34.28 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400223.stg"
+   34.30 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400237.stg
+   34.31 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400237.stg"
+   34.35 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400255.stg
+   34.36 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400255.stg"
+   34.38 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416617.stg
+   34.38 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416617
+   34.38 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400222.stg
+   34.39 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400222.stg"
+   34.42 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400229.stg
+   34.43 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400229.stg"
+   34.43 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400229.stg"
+   34.47 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400245.stg
+   34.48 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400245.stg"
+   34.52 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400254.stg
+   34.52 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400254.stg"
+   34.53 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400254.stg"
+   34.60 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416600.stg
+   34.61 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w155n19/416600.stg"
+   34.62 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w155n19/416600.stg"
+   34.67 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416609.stg
+   34.67 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w155n19/416609.stg"
+   34.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416625.stg
+   34.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416625
+   34.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416632.stg
+   34.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416632
+   34.69 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400221.stg
+   34.70 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400221.stg"
+   34.71 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400221.stg"
+   34.79 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400253.stg
+   34.80 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400253.stg"
+   34.80 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400253.stg"
+   34.85 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416601.stg
+   34.86 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w155n19/416601.stg"
+   34.88 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416633.stg
+   34.88 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416633
+   34.88 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400215.stg
+   34.89 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400215.stg"
+   34.93 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400236.stg
+   34.93 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400236.stg"
+   34.94 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400236.stg"
+   35.00 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400263.stg
+   35.00 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n20/w156n20/400263
+   35.01 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416618.stg
+   35.01 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416618
+   35.01 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400214.stg
+   35.01 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400214.stg"
+   35.05 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400228.stg
+   35.06 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400228.stg"
+   35.09 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400244.stg
+   35.09 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400244.stg"
+   35.17 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400262.stg
+   35.17 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n20/w156n20/400262
+   35.17 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416592.stg
+   35.17 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w155n19/416592.stg"
+   35.19 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416610.stg
+   35.19 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416610
+   35.19 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416626.stg
+   35.19 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416626
+   35.19 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416640.stg
+   35.19 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n20/w155n20/416640
+   35.19 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400213.stg
+   35.20 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400213.stg"
+   35.24 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400220.stg
+   35.25 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400220.stg"
+   35.26 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400220.stg"
+   35.32 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400252.stg
+   35.33 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n10/w156n19/400252.stg"
+   35.34 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n10/w156n19/400252.stg"
+   35.40 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400261.stg
+   35.41 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n20/w156n20/400261.stg"
+   35.45 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416593.stg
+   35.45 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416593
+   35.45 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416602.stg
+   35.45 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416602
+   35.45 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416634.stg
+   35.45 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416634
+   35.46 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416641.stg
+   35.46 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n20/w155n20/416641
+   35.46 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 400260.stg
+   35.46 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Objects/w160n20/w156n20/400260.stg"
+   35.47 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:391: Loading stg file Path "C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Scenery/Terrain/w160n20/w156n20/400260.stg"
+   35.65 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/Terrain/airport_grass2.png will generate mipmap only
+   35.71 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416594.stg
+   35.71 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n10/w155n19/416594
+   35.71 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:740: Loading tile 416642.stg
+   35.71 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tgdb\ReaderWriterSTG.cxx:626:   Generating ocean tile: w160n20/w155n20/416642
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:1353:   Trim complete
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:486:   Initialized JSBSim with:
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:508:   Indicated Airspeed: 347.11 knots
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:515:   Bank Angle: -1.58738e-15 deg
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:517:   Pitch Angle: 0.424 deg
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:519:   True Heading: 7.89276e-16 deg
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:521:   Latitude: 19.6022 deg
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:523:   Longitude: -155.052 deg
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:525:   Altitude: 2000 feet
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:526:   loaded initial conditions
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:528:   set dt
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:530: Finished initializing JSBSim
+   42.26 [INFO]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\JSBSim\JSBSim.cxx:533: FGControls::get_gear_down()= 1
+   42.26 [ALRT]:flight    C:\Jenkins\workspace\Windows-release\flightgear\src\FDM\fdm_shell.cxx:206: Failed to save initial FDM property state
+   43.10 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/screen.nas:505: {copilot} Welcome aboard! Need help? Use 'Help -> Tutorials'.
+   44.12 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   44.13 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   44.13 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   44.13 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   44.17 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   44.19 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   44.19 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   44.19 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Maritime/Civilian/wake_small.png for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   44.25 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Textures/buildings-caribbean-lightmap.png will generate mipmap only
+   46.33 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\fgmetar.cxx:154: XXXX 012345Z 15003KT 12SM SCT041 FEW200 20/08 Q1015 NOSIG 
+   46.33 [INFO]:environmentC:\Jenkins\workspace\Windows-release\flightgear\src\Environment\fgmetar.cxx:158: METAR from tgftp.nws.noaa.gov
+   46.42 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:384: Ignoring C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Weather/cumulus_sheet1.rgb for inclusion into the texture cache because pixel density too low at 16 bits per pixek
+   46.42 [INFO]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\ModelRegistry.cxx:398: From effects transparent C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Models/Weather/cumulus_sheet1.rgb will generate mipmap only
+   49.38 [WARN]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\ErrorReporter.cxx:277: Error:error-type-not-found from error-dialog-load::Dialog not found:sivaks_pilot_info_dlg
+	
+   49.38 [ALRT]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\GUI\new_gui.cxx:213: Dialog sivaks_pilot_info_dlg not defined
+   55.40 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:10: SIVAKS_BULLSEYE_SCRIPT v2026-05-13_single-target-purge-ahead loaded
+   55.40 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:419: SPAWN target id=1 lat=19.77416277295731 lon=-155.0513808250896 alt=2000 level=0
+   55.40 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:513: INIT: aircraft_Lat=19.74416277295731 aircraft_Lon=-155.0519912649411 target_Lat=19.77416277295731 target_Lon=-155.0513808250896
+   55.44 [WARN]:general   C:\Jenkins\workspace\Windows-release\flightgear\src\Main\ErrorReporter.cxx:277: Error:error-type-bad-data from error-xml-model-load::Failed to load model XML:mismatched tag
+ at C:/Users/לינוי/Documents/ער FORCE/Main/game/data/AI/Aircraft/balloon/ca_sivaks_balloon.xml,
+line 75, column 2
+	C:/Users/לינוי/Documents/ער FORCE/Main/game/data/AI/Aircraft/balloon/ca_sivaks_balloon.xml,
+line 75, column 2
+   55.44 [WARN]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\SGReaderWriterXML.cxx:301: Failed to load xml: mismatched tag
+ at C:/Users/לינוי/Documents/ער FORCE/Main/game/data/AI/Aircraft/balloon/ca_sivaks_balloon.xml,
+line 75, column 2
+   55.44 [WARN]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\SGReaderWriterXML.cxx:99: Failed to load model: mismatched tag
+ at C:/Users/לינוי/Documents/ער FORCE/Main/game/data/AI/Aircraft/balloon/ca_sivaks_balloon.xml,
+line 75, column 2
+	from:C:/Users/לינוי/Documents/ער FORCE/Main/game/data/AI/Aircraft/balloon/ca_sivaks_balloon.xml
+   58.63 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:537: FGTileMgr: at lon = -155.052deg, lat = 19.75deg, elev = 451.953m, scheduling needed for:-156:7, 19:6, visibility=20922.4
+   58.63 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\tilemgr.cxx:322: scheduling needed tiles for -156:7, 19:6, tile-width-m:13086.1, tile-height-m:13914.9
+   69.51 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:809: LEVEL UP -> 1
+   69.51 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/screen.nas:505: {copilot} LEVEL 1
+   69.51 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:865: PASS scored: hit min_dist_ft=69.90143898819748 req=180 vs=1874.744564418205
+   69.51 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/screen.nas:505: {copilot} TARGET HIT
+   69.51 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:916: NEXT spawn ahead of AC: ac_lat=19.77419652775253 balloon_lat=19.79216283028004 ahead_ft~2000
+   69.51 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:419: SPAWN target id=2 lat=19.79216283028004 lon=-155.0483573574179 alt=2239.346423294476 level=1
+   69.54 [WARN]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\SGReaderWriterXML.cxx:301: Failed to load xml: mismatched tag
+ at C:/Users/לינוי/Documents/ער FORCE/Main/game/data/AI/Aircraft/balloon/ca_sivaks_balloon.xml,
+line 75, column 2
+   69.54 [WARN]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\SGReaderWriterXML.cxx:99: Failed to load model: mismatched tag
+ at C:/Users/לינוי/Documents/ער FORCE/Main/game/data/AI/Aircraft/balloon/ca_sivaks_balloon.xml,
+line 75, column 2
+	from:C:/Users/לינוי/Documents/ער FORCE/Main/game/data/AI/Aircraft/balloon/ca_sivaks_balloon.xml
+   76.86 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:809: LEVEL UP -> 2
+   76.86 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/screen.nas:505: {copilot} LEVEL 2
+   76.86 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:865: PASS scored: miss min_dist_ft=798.1174030096498 req=160 vs=8928.179936920949
+   76.86 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/screen.nas:505: {copilot} TARGET MISS
+   76.86 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:916: NEXT spawn ahead of AC: ac_lat=19.79225173284206 balloon_lat=19.81201466562233 ahead_ft~2200
+   76.86 [INFO]:nasal     /sim/tutorials/tutorial/step[2]/nasal:419: SPAWN target id=3 lat=19.81201466562233 lon=-155.0494533802089 alt=1942.541676699776 level=2
+   76.89 [WARN]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\SGReaderWriterXML.cxx:301: Failed to load xml: mismatched tag
+ at C:/Users/לינוי/Documents/ער FORCE/Main/game/data/AI/Aircraft/balloon/ca_sivaks_balloon.xml,
+line 75, column 2
+   76.89 [WARN]:io        C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\model\SGReaderWriterXML.cxx:99: Failed to load model: mismatched tag
+ at C:/Users/לינוי/Documents/ער FORCE/Main/game/data/AI/Aircraft/balloon/ca_sivaks_balloon.xml,
+line 75, column 2
+	from:C:/Users/לינוי/Documents/ער FORCE/Main/game/data/AI/Aircraft/balloon/ca_sivaks_balloon.xml
+   80.81 [INFO]:input     C:\Jenkins\workspace\Windows-release\flightgear\src\Main\fg_scene_commands.cxx:74: Program exit requested.
+   80.81 [INFO]:nasal     C:/Users/לינוי/Documents/ער FORCE/Main/game/data/Nasal/aircraft.nas:383: saving aircraft data to C:/Users/לינוי/AppData/Roaming/flightgear.org/aircraft-data/f16-block-52.xml
+   80.82 [INFO]:io        C:\Jenkins\workspace\Windows-release\flightgear\src\Main\globals.cxx:893: Saving user settings to Path "C:/Users/לינוי/AppData/Roaming/flightgear.org/autosave_2020_3.xml"
+   80.86 [INFO]:opengl    C:\Jenkins\workspace\Windows-release\flightgear\src\Viewer\PUICamera.cxx:309: Deleting PUI camera
+   81.33 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\terrain_stg.cxx:264: FGStgTerrain::shutdown - shutdown tilemgr
+   81.36 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\terrain_stg.cxx:233: FGStgTerrain::dtor
+   81.89 [INFO]:input     C:\Jenkins\workspace\Windows-release\flightgear\src\Input\FGHIDEventInput.cxx:944: HID event input shutting down
+   81.89 [INFO]:terrasync C:\Jenkins\workspace\Windows-release\simgear\simgear\scene\tsync\terrasync.cxx:1099: Shutdown
+   81.99 [INFO]:terrain   C:\Jenkins\workspace\Windows-release\flightgear\src\Scenery\SceneryPager.cxx:42: Destroying scenery pager

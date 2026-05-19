@@ -126,10 +126,14 @@ def compute_absolute_feature_score(current, feature_cfg):
 
     current = current_value
 
-    minimum = feature_cfg["min"]
-    maximum = feature_cfg["max"]
+    minimum = feature_cfg.get("min")
+    maximum = feature_cfg.get("max")
+    if minimum is None or maximum is None:
+        valid_range = feature_cfg.get("MEASUREMENT_VALID_RANGES")
+        if isinstance(valid_range, tuple) and len(valid_range) == 2:
+            minimum, maximum = valid_range
 
-    if maximum == minimum:
+    if minimum is None or maximum is None or maximum == minimum:
         return None
 
     normalized = (current - minimum) / (maximum - minimum)
@@ -137,12 +141,20 @@ def compute_absolute_feature_score(current, feature_cfg):
 
     fatigue_score = feature_cfg["direction"] * ((2 * normalized) - 1)
 
+    # Derive a raw sigmoid-like value so absolute-scored features expose
+    # a compatible "raw_sigmoid" for exports and debugging. This mirrors
+    # the transform used for relative features where:
+    #   centered = 2*(raw - 0.5)  =>  raw = (centered / 2) + 0.5
+    raw_sigmoid = (fatigue_score / 2.0) + 0.5
+
     return {
         "fatigue_score": fatigue_score,
-        "raw_sigmoid": None,
+        "raw_sigmoid": float(raw_sigmoid),
         "better_than_baseline": fatigue_score < 0,
         "relative_change": None,
-        "normalized_effect": fatigue_score
+        # keep the previous behaviour where normalized_effect carried the
+        # signed score for downstream code; this keeps semantics stable.
+        "normalized_effect": float(fatigue_score)
     }
 
 

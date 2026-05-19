@@ -62,8 +62,8 @@ from ui.game_runtime import (
 from ui.results_export import build_result_export_rows, export_result_csv, save_report_once
 from ui.theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
 
-MODALITY_ORDER = ["game", "eye", "voice"]
-MODALITY_LABELS = {"game": "משחק", "eye": "עיניים", "voice": "קול"}
+MODALITY_ORDER = ["game", "eye", "voice", "subjective"]
+MODALITY_LABELS = {"game": "משחק", "eye": "עיניים", "voice": "קול", "subjective": "שאלון"}
 
 
 def get_score_color(score):
@@ -592,14 +592,14 @@ class GameScreen(BaseScreen):
         self.audio_only = QCheckBox("הרצת בדיקת קול בלבד (ללא הפעלת המשחק)")
         self.audio_only.setLayoutDirection(Qt.RightToLeft)
 
-        self.start_button = QPushButton("התחל משחק")
+        self.start_button = QPushButton("התחל קליברציה לתנועות עיניים")
         self.stop_button = QPushButton("סיים משחק")
         self.status_label = message("המשחק מוכן")
         self.voice_label = message("")
         self.eye_status_label = message("מצלמה: לא פעילה")
         self.error_label = message("", "errorText")
 
-        # רכיב תצוגה מקדימה למצלמה
+        # רכיב תצוגה מקדימה למצלמה (לדעתי לא רלוונטי  כי לא מציג כלום במצב הנוכחי, אבל השארתי אותו למקרה שירצו להחזיר בעתיד)
         self.camera_preview = QLabel()
         self.camera_preview.setFixedSize(320, 240)
         self.camera_preview.setAlignment(Qt.AlignCenter)
@@ -609,6 +609,16 @@ class GameScreen(BaseScreen):
         self.root.addWidget(title("הפעלת משחק"))
         info_panel = panel()
         info_layout = QVBoxLayout(info_panel)
+        info_layout.addWidget(
+            message(
+                "בהתחלה תהיה קליברציה לניתוח תנועות העיניים ולאחר מכן יטען המשחק."
+            )
+        )
+        info_layout.addWidget(
+            message(
+                "מומלץ לא לבצע תנועות ראש חדות על מנת שיתקבלו נתוני תנועות עיניים איכותיים."
+            )
+        )
         info_layout.addWidget(
             message(
                 "המשחק יופעל במצב מסך מלא. במהלך הטעינה תופעל הנחיה קולית להשמעת קול כחלק ממדידת העייפות."
@@ -675,6 +685,20 @@ class GameScreen(BaseScreen):
         self.camera_preview.clear()
         self.camera_preview.setText("מקליט...")
 
+        if not self.app.eye_runtime.calibration_passed:
+            self.eye_status_label.setText("מעקב עיניים: מבצע כיול...")
+            QGuiApplication.processEvents()
+            calibrated, calibration_message = self.app.eye_runtime.run_calibration(
+                parent=self,
+                controller=self.app.controller,
+            )
+            if not calibrated:
+                self.app.eye_runtime.last_error = calibration_message
+                self.eye_status_label.setText(f"כיול נכשל: {calibration_message}")
+                self.set_error(f"שגיאת כיול מעקב עיניים: {calibration_message}")
+                return
+            self.eye_status_label.setText("מעקב עיניים: כיול הושלם")
+
         # הפעלת הקלטת מעקב עיניים במקביל
         cam_idx = get_camera_index()
         subject_id = self.app.state.get("session_id", "unknown")
@@ -687,7 +711,7 @@ class GameScreen(BaseScreen):
                 self.app.voice_session = create_voice_session(self.app.controller)
             except Exception as exc:
                 self.set_error(f"Failed to start voice session: {exc}")
-                self.app.eye_runtime.stop_recording()
+                self.app.eye_runtime.stop_recording(self.app.controller)
                 return
             self.app.voice_only_running = True
             self.app.fg_started_at = time.time()
@@ -698,14 +722,14 @@ class GameScreen(BaseScreen):
         pid, error = start_flightgear_session(self.app.controller)
         if error:
             self.set_error(error)
-            self.app.eye_runtime.stop_recording()
+            self.app.eye_runtime.stop_recording(self.app.controller)
             return
 
         try:
             self.app.voice_session = create_voice_session(self.app.controller)
         except Exception as exc:
             terminate_session_process(pid)
-            self.app.eye_runtime.stop_recording()
+            self.app.eye_runtime.stop_recording(self.app.controller)
             self.set_error(f"FlightGear started, but voice session failed: {exc}")
             return
 
@@ -720,15 +744,17 @@ class GameScreen(BaseScreen):
         self.eye_status_label.setText("מעקב עיניים: מעבד נתונים...")
         QGuiApplication.processEvents()
 
-        eye_features = self.app.eye_runtime.stop_recording()
+        eye_features = self.app.eye_runtime.stop_recording(self.app.controller)
         if eye_features:
             self.app.controller.set_eye_features(eye_features)
             self.eye_status_label.setText("מעקב עיניים: העיבוד הושלם בהצלחה")
         else:
             apply_eye_features_fallback(self.app.controller)
+            error_message = self.app.eye_runtime.last_error or "לא הופקו נתוני עיניים מספקים."
             self.eye_status_label.setText(
                 "מעקב עיניים: לא הופקו נתונים מספקים (הופעלו ערכי גיבוי)"
             )
+            self.set_error(f"שגיאת מעקב עיניים: {error_message}")
 
         if self.app.fg_pid:
             ok, error = terminate_session_process(self.app.fg_pid)
@@ -758,11 +784,13 @@ class GameScreen(BaseScreen):
             # הטיפול המקבילי בעצירת המשחק
             self.eye_status_label.setText("מעקב עיניים: מעבד נתונים...")
             QGuiApplication.processEvents()
-            eye_features = self.app.eye_runtime.stop_recording()
+            eye_features = self.app.eye_runtime.stop_recording(self.app.controller)
             if eye_features:
                 self.app.controller.set_eye_features(eye_features)
             else:
                 apply_eye_features_fallback(self.app.controller)
+                error_message = self.app.eye_runtime.last_error or "לא הופקו נתוני עיניים מספקים."
+                self.set_error(f"שגיאת מעקב עיניים: {error_message}")
 
             elapsed = time.time() - float(self.app.fg_started_at or time.time())
             if elapsed < 8.0:

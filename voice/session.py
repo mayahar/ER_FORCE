@@ -246,6 +246,7 @@ class VoiceSessionManager:
                         "prompt_text": event.prompt_text,
                         "prompt_type": event.prompt_type,
                         "event_type": event.event_type,
+                        "status": event.status,
                         "timestamp": event.timestamp,
                         "duration": event.duration,
                         "audio_path": (
@@ -264,6 +265,25 @@ class VoiceSessionManager:
             except (VoiceFeatureExtractionError, Exception) as exc:
                 event.error = str(exc)
                 event.status = "failed"
+                print(f"Voice feature extraction failed for {event.event_id}: {exc}")
+
+        for event in self.failed_events:
+            self._event_results.append(
+                {
+                    "event_id": event.event_id,
+                    "prompt_text": event.prompt_text,
+                    "prompt_type": event.prompt_type,
+                    "event_type": event.event_type,
+                    "status": event.status,
+                    "timestamp": event.timestamp,
+                    "duration": event.duration,
+                    "audio_path": (
+                        str(event.audio_path)
+                        if event.audio_path else None
+                    ),
+                    "error": event.error,
+                }
+            )
 
         self._finalized = True
 
@@ -333,6 +353,22 @@ class VoiceSessionManager:
     def _save_feature_workbook(self, result: Dict[str, Any], subject: str) -> None:
         workbook_path = self.recording_root / f"voice_features_{subject}_{self.session_id}.xlsx"
         sheets = [("summary", pd.DataFrame([result["summary"]]))]
+
+        event_status_df = pd.DataFrame(
+            [
+                {
+                    "event_id": event.get("event_id"),
+                    "prompt_text": event.get("prompt_text"),
+                    "prompt_type": event.get("prompt_type"),
+                    "event_type": event.get("event_type"),
+                    "status": event.get("status"),
+                    "error": event.get("error"),
+                    "audio_path": event.get("audio_path"),
+                }
+                for event in result["events"]
+            ]
+        )
+        sheets.append(("event_status", event_status_df))
 
         for feature_name in self.FEATURE_ARRAY_KEYS:
             frames = [

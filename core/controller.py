@@ -90,6 +90,18 @@ class Controller:
     def set_game_score(self, score: int | None):
         self.recorded_game_score = score
 
+    def has_baseline(self):
+        baseline = (self.subject or {}).get("baseline") or {}
+        required = {
+            "voice": ("dLPC", "PARCOR", "LPC", "Pitch", "MFCC"),
+            "game": ("score",),
+        }
+        return all(
+            coerce_feature_number((baseline.get(modality) or {}).get(feature)) is not None
+            for modality, features in required.items()
+            for feature in features
+        )
+
     def run_multimodal_game(self):
 
         if self.subject is None:

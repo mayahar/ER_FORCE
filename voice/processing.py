@@ -1,6 +1,6 @@
 import numpy as np
-import librosa
-from scipy.signal import lfilter
+from scipy.fftpack import dct
+from scipy.signal import lfilter, resample_poly
 
 
 class VoiceFeatureExtractionError(Exception):
@@ -25,7 +25,12 @@ class VoiceFeatureExtractor:
         audio = np.asarray(audio, dtype=np.float32)
 
         if sample_rate != cls.SAMPLE_RATE:
-            audio = librosa.resample(audio, orig_sr=sample_rate, target_sr=cls.SAMPLE_RATE)
+            gcd = np.gcd(int(sample_rate), int(cls.SAMPLE_RATE))
+            audio = resample_poly(
+                audio,
+                cls.SAMPLE_RATE // gcd,
+                int(sample_rate) // gcd,
+            ).astype(np.float32)
 
         max_amp = np.max(np.abs(audio))
         if max_amp > 0:
@@ -50,7 +55,10 @@ class VoiceFeatureExtractor:
             padding = frame_length - len(audio)
             audio = np.pad(audio, (0, padding), mode="constant")
 
-        frames = librosa.util.frame(audio, frame_length=frame_length, hop_length=hop_length).T
+        frame_count = 1 + max(0, (len(audio) - frame_length) // hop_length)
+        shape = (frame_count, frame_length)
+        strides = (audio.strides[0] * hop_length, audio.strides[0])
+        frames = np.lib.stride_tricks.as_strided(audio, shape=shape, strides=strides).copy()
         window = np.hamming(frame_length)
         return frames * window
 
@@ -174,6 +182,70 @@ class VoiceFeatureExtractor:
         delta = np.diff(lpc_features, axis=0)
         padding = np.zeros((1, lpc_features.shape[1]), dtype=np.float32)
         return np.vstack([padding, delta]).astype(np.float32)
+
+    @classmethod
+    def extract_mfcc(cls, audio: np.ndarray, sr: int, n_mfcc: int = 13):
+        frames = cls.frame_signal(audio, sr)
+        n_fft = max(512, cls._frame_length(sr) * 2)
+        spectrum = np.fft.rfft(frames, n=n_fft, axis=1)
+        power = np.maximum(np.abs(spectrum) ** 2, np.finfo(np.float32).eps)
+        coeffs = dct(np.log(power), type=2, axis=1, norm="ortho")[:, :n_mfcc]
+        return coeffs.astype(np.float32)
+
+    @classmethod
+    def extract_pitch(cls, audio: np.ndarray, sr: int):
+        if len(audio) < cls._frame_length(sr):
+            return np.array([], dtype=np.float32)
+
+        frames = cls.frame_signal(audio, sr)
+        min_lag = max(1, int(sr / cls.FMAX))
+        max_lag = min(frames.shape[1] - 1, int(sr / cls.FMIN))
+        pitches = np.full((frames.shape[0],), np.nan, dtype=np.float32)
+
+        for index, frame in enumerate(frames):
+            frame = frame - np.mean(frame)
+            energy = float(np.dot(frame, frame))
+            if energy <= 1e-6:
+                continue
+            corr = np.correlate(frame, frame, mode="full")[len(frame) - 1:]
+            search = corr[min_lag:max_lag + 1]
+            if search.size == 0:
+                continue
+            lag = int(np.argmax(search)) + min_lag
+            peak = corr[lag] / max(corr[0], np.finfo(np.float32).eps)
+            if peak >= 0.25:
+                pitches[index] = float(sr / lag)
+
+        return pitches
+
+    @classmethod
+    def _compute_frame_lpc_features(cls, audio: np.ndarray, sr: int, mode="lpc"):
+        frames = cls.frame_signal(audio, sr)
+        order = cls.LPC_ORDER
+
+        if mode == "lpc":
+            features = np.zeros((frames.shape[0], order + 1), dtype=np.float32)
+        else:
+            features = np.zeros((frames.shape[0], order), dtype=np.float32)
+
+        for index, frame in enumerate(frames):
+            if np.allclose(frame, 0.0):
+                continue
+
+            r = np.correlate(frame, frame, mode="full")[len(frame) - 1:len(frame) + order]
+            if r.shape[0] < order + 1 or r[0] == 0:
+                continue
+
+            try:
+                lpc_coeffs, parcor_coeffs = cls._levinson_durbin(r, order)
+                if mode == "lpc":
+                    features[index] = lpc_coeffs.astype(np.float32)
+                else:
+                    features[index] = parcor_coeffs.astype(np.float32)
+            except Exception:
+                continue
+
+        return features
 
     @classmethod
     def extract_features(cls, audio: np.ndarray, sample_rate: int):

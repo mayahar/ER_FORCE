@@ -1,0 +1,13 @@
+{
+  "fixation_duration": 42.39544215322881,
+  "fixation_count": 117.87668418664911,
+  "saccade_count": 72.89742311542774,
+  "analysis": {
+    "total_duration": 80.36924699973315,
+    "fixations_per_minute": 117.87668418664911,
+    "saccades_per_minute": 72.89742311542774,
+    "fixation_duration_per_minute": 42.39544215322881,
+    "mean_fixation_duration": 0.0,
+    "mean_saccade_velocity": 0.0
+  }
+}

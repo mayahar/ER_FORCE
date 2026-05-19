@@ -21,6 +21,10 @@ def apply_controller_eye_features(controller, eye_features) -> None:
         controller.set_eye_features(None)
 
 
+def apply_eye_features_fallback(controller) -> None:
+    apply_controller_eye_features(controller, None)
+
+
 def strip_absent_eye_from_result(result: dict) -> dict:
     features = result.get("features") or {}
     if has_eye_features(features.get("eye")):

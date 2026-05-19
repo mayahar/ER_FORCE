@@ -119,11 +119,26 @@ def _in_box(
 
 
 def _distance_hint_for_z(z: float) -> str:
-    if z < HEAD_Z_INNER[0]:
+    if z > HEAD_Z_INNER[0]:
         return "forward"
-    if z > HEAD_Z_INNER[1]:
+    if z < HEAD_Z_INNER[1]:
         return "back"
     return ""
+
+
+def _movement_hint_for_position(x: float, y: float, z: float) -> str:
+    distance_hint = _distance_hint_for_z(z)
+    if distance_hint:
+        return distance_hint
+    if x > HEAD_X_INNER[0]:
+        return "right"
+    if x < HEAD_X_INNER[1]:
+        return "left"
+    if y > HEAD_Y_INNER[0]:
+        return "up"
+    if y < HEAD_Y_INNER[1]:
+        return "down"
+    return "center"
 
 
 class HeadPositionSmoother:
@@ -173,7 +188,7 @@ class HeadPositionSmoother:
             if self._x is None:
                 return None, None, None, False, ""
             ok = self._update_ok_latch(self._x, self._y, self._z)
-            hint = "" if ok else _distance_hint_for_z(self._z)
+            hint = "" if ok else _movement_hint_for_position(self._x, self._y, self._z)
             return self._x, self._y, self._z, ok, hint
 
         self._missing_streak = 0
@@ -194,7 +209,7 @@ class HeadPositionSmoother:
             if self._bad_streak >= HEAD_BAD_STREAK_BEFORE_DECAY:
                 self._decay_hold(dt)
 
-        hint = "" if ok else _distance_hint_for_z(self._z)
+        hint = "" if ok else _movement_hint_for_position(self._x, self._y, self._z)
         return self._x, self._y, self._z, ok, hint
 
     def _decay_hold(self, dt: float) -> None:
@@ -267,6 +282,23 @@ class HeadPositionCanvas(QWidget):
             return QColor("#ffb74d"), QColor("#ffe0b2")
         return QColor("#5eb8ff"), QColor("#90caf9")
 
+    def _instruction_text(self) -> str:
+        if self._user_ok:
+            return "להישאר יציב/ה - כמעט מוכנים."
+        instructions = {
+            "forward": "להתקרב מעט למסך.",
+            "back": "להתרחק מעט מהמסך.",
+            "left": "לזוז מעט שמאלה.",
+            "right": "לזוז מעט ימינה.",
+            "up": "לעלות מעט למעלה.",
+            "down": "לרדת מעט למטה.",
+            "center": "להתמקם במרכז האליפסה.",
+        }
+        return instructions.get(
+            self._distance_hint,
+            "להתאים את הראש לאליפסה עד שהיא הופכת לירוקה.",
+        )
+
     def update_position(
         self,
         x: float | None,
@@ -306,9 +338,7 @@ class HeadPositionCanvas(QWidget):
         painter.drawText(0, int(h * 0.07), w, 40, Qt.AlignmentFlag.AlignHCenter, "Position and settings")
         painter.setFont(sub_font)
         painter.setPen(QColor("#90a4ae"))
-        hint = "Move your head to fit the oval. You're done when it's green."
-        if self._user_ok:
-            hint = "Hold still… almost ready."
+        hint = self._instruction_text()
         painter.drawText(0, int(h * 0.11), w, 36, Qt.AlignmentFlag.AlignHCenter, hint)
 
         painter.setPen(Qt.PenStyle.NoPen)
@@ -990,6 +1020,9 @@ class EyeCalibrationDialog(QDialog):
                 "כיול הושלם, אך הדיוק נמוך — מומלץ לכייל שוב "
                 "(אותו מסך כמו המשחק)."
             )
+        message = "הקליברציה הסתיימה בהצלחה, המשחק יופעל כעת."
+        self.status_label.show()
+        self.status_label.setText(message)
         QTimer.singleShot(3200, lambda: self._finish(True, message))
 
     def _abort_calibration(self) -> None:

@@ -195,20 +195,41 @@ def _saccade_to_dict(saccade) -> dict[str, Any]:
 
 
 def _metrics_to_dict(metrics) -> dict[str, Any]:
+    def get_float(*names, default=0.0):
+        for name in names:
+            if hasattr(metrics, name):
+                try:
+                    value = float(getattr(metrics, name))
+                except (TypeError, ValueError):
+                    continue
+                if np.isfinite(value):
+                    return value
+        return float(default)
+
+    def get_int(*names, default=0):
+        return int(round(get_float(*names, default=default)))
+
+    fixation_duration = get_float("fixation_duration", "mean_fixation_duration")
+    fixation_count = get_float("fixation_count", "num_fixations")
+    saccade_count = get_float("saccade_count", "num_saccades")
     return {
-        "total_duration_s": float(metrics.total_duration),
-        "num_fixations": int(metrics.num_fixations),
-        "num_saccades": int(metrics.num_saccades),
-        "fixations_per_minute": float(metrics.fixations_per_minute),
-        "saccades_per_minute": float(metrics.saccades_per_minute),
-        "mean_fixation_duration_s": float(metrics.mean_fixation_duration),
-        "median_fixation_duration_s": float(metrics.median_fixation_duration),
-        "total_fixation_duration_s": float(metrics.total_fixation_duration),
-        "fixation_duration_per_minute_s": float(metrics.fixation_duration_per_minute),
-        "mean_saccade_duration_s": float(metrics.mean_saccade_duration),
-        "mean_saccade_amplitude": float(metrics.mean_saccade_amplitude),
-        "mean_saccade_velocity": float(metrics.mean_saccade_velocity),
-        "blink_rate": float(metrics.blink_rate),
+        "total_duration_s": get_float("total_duration"),
+        "num_fixations": get_int("num_fixations", "fixation_count"),
+        "num_saccades": get_int("num_saccades", "saccade_count"),
+        "fixations_per_minute": get_float("fixations_per_minute", default=fixation_count),
+        "saccades_per_minute": get_float("saccades_per_minute", default=saccade_count),
+        "mean_fixation_duration_s": get_float("mean_fixation_duration"),
+        "median_fixation_duration_s": get_float("median_fixation_duration"),
+        "total_fixation_duration_s": get_float("total_fixation_duration"),
+        "fixation_duration_per_minute_s": get_float(
+            "fixation_duration_per_minute",
+            "fixation_duration",
+            default=fixation_duration,
+        ),
+        "mean_saccade_duration_s": get_float("mean_saccade_duration"),
+        "mean_saccade_amplitude": get_float("mean_saccade_amplitude"),
+        "mean_saccade_velocity": get_float("mean_saccade_velocity"),
+        "blink_rate": get_float("blink_rate"),
     }
 
 

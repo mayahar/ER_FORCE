@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "time_unit": "milliseconds since first gaze sample"
+  },
+  "fixations": [],
+  "saccades": [],
+  "metrics": {
+    "total_duration_s": 0.0,
+    "num_fixations": 161,
+    "num_saccades": 112,
+    "fixations_per_minute": 160.5665101593012,
+    "saccades_per_minute": 111.90999192920992,
+    "mean_fixation_duration_s": 0.0,
+    "median_fixation_duration_s": 0.0,
+    "total_fixation_duration_s": 0.0,
+    "fixation_duration_per_minute_s": 47.65012627245115,
+    "mean_saccade_duration_s": 0.0,
+    "mean_saccade_amplitude": 0.0,
+    "mean_saccade_velocity": 0.0,
+    "blink_rate": 0.0
+  }
+}

@@ -1,0 +1,10 @@
+CorrActions Final Results
+=========================
+CSV: C:\Users\לינוי\Documents\ער FORCE\Main\sessions\3_2026-05-19_09-43-22\game\sivaks_logging_20260519_094525.csv
+Balloons counted: 2
+Hits: 2
+Misses: 0
+Average closest distance at pass (ft): 38.9
+Score: 84/100
+Grade: B
+Breakdown: C:\Users\לינוי\Documents\ער FORCE\Main\sessions\3_2026-05-19_09-43-22\game\score_breakdown.csv
