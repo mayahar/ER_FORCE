@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QCheckBox,
     QComboBox,
+    QDialog,
     QFrame,
     QGridLayout,
     QGroupBox,
@@ -127,7 +128,6 @@ def add_labeled(parent_layout, label_text, widget):
     label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
     label.setMinimumWidth(90)
     
-    # הוספת הוידג'ט קודם ואז הלייבל כדי שויזואלית הלייבל יהיה מימין
     row_layout.addWidget(widget, 1)
     row_layout.addWidget(label)
     parent_layout.addLayout(row_layout)
@@ -237,6 +237,110 @@ class BaseScreen(QWidget):
             self.error_label.setText(text or "")
 
 
+class InstructionsDialog(QDialog):
+    """חלונית הנחיות צפה (Modal Popup) מעל המסך הניתנת לסגירה ברורה"""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setFixedSize(680, 520)
+        
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        
+        container = QFrame()
+        container.setObjectName("popupContainer")
+        container.setStyleSheet(
+            """
+            QFrame#popupContainer {
+                background-color: #05182e;
+                border: 2px solid #0066aa;
+                border-radius: 12px;
+            }
+            """
+        )
+        container_layout = QVBoxLayout(container)
+        container_layout.setContentsMargins(24, 20, 24, 20)
+        container_layout.setSpacing(12)
+        
+        # שורת כותרת עליונה
+        header_layout = QHBoxLayout()
+        header_layout.addStretch()
+        
+        title_label = QLabel("הנחיות לשימוש ב-ER FORCE:")
+        title_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        title_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #66aaff;")
+        header_layout.addWidget(title_label)
+        
+        container_layout.addLayout(header_layout)
+        
+        # רכיב גלילה פנימי למניעת חיתוך טקסט
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setAlignment(Qt.AlignRight)
+        
+        scroll_content = QWidget()
+        scroll_content.setStyleSheet("background: transparent;")
+        scroll_layout = QVBoxLayout(scroll_content)
+        scroll_layout.setContentsMargins(0, 5, 10, 5)
+        
+        instructions_text = (
+            "<div style='direction: rtl; text-align: right;'>"
+            "1. <b>הזנת מספר אישי</b> - במידה והמספר האישי שלכם קיים במערכת תוכלו להזין ולהתחיל בדיקת מצב עייפות "
+            "(המספרים האישיים הקיימים באבטיפוס זה הם 1,2,3). במידה ואתה משתמש חדש תוכל להריץ את המשחק "
+            "על מנת להזין עבורך בייסליין - שים לב שעליך להיות בעל כמות שעות שינה מספקת בשני הלילות האחרונים (7 שעות) "
+            "על מנת שתוכל לייצר בייסליין.<br><br>"
+            "2. לאחר מכן תתבקש להזין את מידת העייפות שלך ושעות השינה ב-2 הלילות האחרונים.<br><br>"
+            "3. במסך המשחק, לאחר שתלחץ על הכפתור \"התחל קליברציה לתנועות עיניים\" תופיע אליפסה שמראה את מיקום "
+            "הראש הנדרש למדידת תנועות העיניים, נסה להתאים את מיקום ראשך למיקום האליפסה.<br><br>"
+            "לאחר שירשם מיקום מוצלח, תופיע נקודה אדומה על המסך 5 פעמים במקומות שונים, תתמקד בה עד שתעלם.<br><br>"
+            "בסיום הקליברציה משחק ההטסה ייטען באופן אוטומטי.<br><br>"
+            "במהלך טעינת המשחק תתבקש להפיק את הצליל \"אה\" למשך עשר שניות - הנחיות לתחילת הפקת הצליל וסיומה יושמעו בקול.<br><br>"
+            "הקשב להנחיות המשחק, מטרתך היא להתנגש במטרות המוצגות (במידה והמטרה מופיעה מחוץ לתצוגה יהיה חץ ירוק שמכוון למטרה).<br><br>"
+            "בסיום המשחק (לאחר 12 מטרות) התוכנה תצא מהמשחק באופן אוטומטי ותציג את ציון העייפות המחושב.<br><br>"
+            "על מנת ללמוד עוד על אופן חישוב הציון התייחס למסמך <b>\"לוגיקת חישוב ציונים\"</b>."
+            "</div>"
+        )
+        
+        body_label = QLabel(instructions_text)
+        body_label.setTextFormat(Qt.RichText)
+        body_label.setWordWrap(True)
+        body_label.setAlignment(Qt.AlignRight)
+        body_label.setLayoutDirection(Qt.RightToLeft)
+        body_label.setStyleSheet("font-size: 15px; color: #dddddd; line-height: 1.45; text-align: right;")
+        
+        scroll_layout.addWidget(body_label)
+        scroll.setWidget(scroll_content)
+        container_layout.addWidget(scroll)
+        
+        # כפתור סגירה תחתון בולט וברור למניעת בעיות רינדור
+        self.close_btn = QPushButton("× סגור והמשך")
+        self.close_btn.setMinimumHeight(38)
+        self.close_btn.setCursor(Qt.PointingHandCursor)
+        self.close_btn.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #004488;
+                color: white;
+                font-size: 15px;
+                font-weight: bold;
+                border: 1px solid #0066cc;
+                border-radius: 6px;
+                padding: 4px 20px;
+            }
+            QPushButton:hover {
+                background-color: #0066cc;
+                border-color: #0088ff;
+            }
+            """
+        )
+        self.close_btn.clicked.connect(self.accept)
+        container_layout.addWidget(self.close_btn, alignment=Qt.AlignCenter)
+        
+        main_layout.addWidget(container)
+
+
 class EnterIdScreen(BaseScreen):
     def __init__(self, app_window):
         super().__init__(app_window)
@@ -265,7 +369,6 @@ class EnterIdScreen(BaseScreen):
 
         self.root.addWidget(title("התחלת מפגש חדש"))
         
-        # מרכוס של האלמנטים למראה הייטקיסטי מהודק
         center_wrapper = QHBoxLayout()
         center_wrapper.addStretch()
         self.dynamic_panel.setMinimumWidth(450)
@@ -285,6 +388,13 @@ class EnterIdScreen(BaseScreen):
             self._build_research_mode()
         else:
             self._build_manual_mode()
+
+        # הפעלה אסינכרונית קלה כדי לתת למסך הראשי להתרנדר לפני קפיצת הדיאלוג בפעם הראשונה
+        QTimer.singleShot(150, self._show_instructions_popup)
+
+    def _show_instructions_popup(self):
+        popup = InstructionsDialog(self)
+        popup.exec()
 
     def _build_research_mode(self):
         research_day = get_current_research_day()
@@ -368,7 +478,6 @@ class EnterIdScreen(BaseScreen):
         self.mode_group.addButton(existing_button)
         self.mode_group.addButton(new_button)
         
-        # סידור כפתורי הרדיו מימין לשמאל ללא שימוש ב-setDirection
         mode_layout.addStretch()
         mode_layout.addWidget(new_button)
         mode_layout.addWidget(existing_button)
@@ -407,7 +516,6 @@ class EnterIdScreen(BaseScreen):
         age_label = QLabel("גיל")
         age_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         
-        # סידור תקין ב-Grid (הלייבל בעמודה הימנית)
         profile_layout.addWidget(name_label, 0, 1)
         profile_layout.addWidget(self.name_input, 0, 0)
         profile_layout.addWidget(sex_label, 1, 1)
@@ -571,9 +679,9 @@ class NewUserSleepGateScreen(BaseScreen):
     def _continue(self):
         last = self.sleep_last_slider.value()
         prev = self.sleep_previous_slider.value()
-        if last < 6 or prev < 6:
+        if last < 7 or prev < 7:
             self.set_error(
-                f"על מנת לבצע מדידת ייחוס (Baseline), על המשתתף לישון לפחות 6 שעות ביומיים האחרונים.\nנתוני המשתתף: אתמול {last} שעות, שלשום {prev} שעות."
+                f"על מנת לבצע מדידת ייחוס (Baseline), על המשתתף לישון לפחות 7 שעות ביומיים האחרונים.\nנתוני המשתתף: אתמול {last} שעות, שלשום {prev} שעות."
             )
             return
 
@@ -589,9 +697,6 @@ class GameScreen(BaseScreen):
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self._tick)
 
-        self.audio_only = QCheckBox("הרצת בדיקת קול בלבד (ללא הפעלת המשחק)")
-        self.audio_only.setLayoutDirection(Qt.RightToLeft)
-
         self.start_button = QPushButton("התחל קליברציה לתנועות עיניים")
         self.stop_button = QPushButton("סיים משחק")
         self.status_label = message("המשחק מוכן")
@@ -599,12 +704,11 @@ class GameScreen(BaseScreen):
         self.eye_status_label = message("מצלמה: לא פעילה")
         self.error_label = message("", "errorText")
 
-        # רכיב תצוגה מקדימה למצלמה (לדעתי לא רלוונטי  כי לא מציג כלום במצב הנוכחי, אבל השארתי אותו למקרה שירצו להחזיר בעתיד)
         self.camera_preview = QLabel()
-        self.camera_preview.setFixedSize(320, 240)
-        self.camera_preview.setAlignment(Qt.AlignCenter)
-        self.camera_preview.setStyleSheet("border: 2px dashed #004466; background-color: #001a33;")
-        self.camera_preview.setText("תצוגה מקדימה של המצלמה")
+        #self.camera_preview.setFixedSize(320, 240)
+        #self.camera_preview.setAlignment(Qt.AlignCenter)
+        #self.camera_preview.setStyleSheet("border: 2px dashed #004466; background-color: #001a33;")
+        #self.camera_preview.setText("תצוגה מקדימה של המצלמה")
 
         self.root.addWidget(title("הפעלת משחק"))
         info_panel = panel()
@@ -623,9 +727,7 @@ class GameScreen(BaseScreen):
             )
         )
         self.root.addWidget(info_panel)
-        self.root.addWidget(self.audio_only)
 
-        # הוספת התצוגה המקדימה למרכז הפריסה
         preview_layout = QHBoxLayout()
         preview_layout.addStretch()
         preview_layout.addWidget(self.camera_preview)
@@ -650,7 +752,6 @@ class GameScreen(BaseScreen):
         self.error_label.clear()
         self._sync_buttons()
 
-        # הפעלת תצוגה מקדימה של המצלמה בעת כניסה למסך
         cam_idx = get_camera_index()
         self.app.eye_runtime.start_preview(cam_idx, self._on_preview_frame)
 
@@ -663,7 +764,6 @@ class GameScreen(BaseScreen):
             self.eye_status_label.setText("מצלמה: מוכנה להקלטה")
 
     def _on_preview_frame(self, qimg):
-        # פונקציית היזון חוזר לעדכון ה-QLabel בפריימים מהמצלמה
         pix = QPixmap.fromImage(qimg)
         self.camera_preview.setPixmap(
             pix.scaled(self.camera_preview.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
@@ -672,7 +772,6 @@ class GameScreen(BaseScreen):
     def start_session(self):
         self.error_label.clear()
 
-        # עצירת התצוגה המקדימה לפני תחילת ההקלטה הממשית
         self.app.eye_runtime.stop_preview()
         self.camera_preview.clear()
         self.camera_preview.setText("מקליט...")
@@ -691,26 +790,13 @@ class GameScreen(BaseScreen):
                 return
             self.eye_status_label.setText("מעקב עיניים: כיול הושלם")
 
-        # הפעלת הקלטת מעקב עיניים במקביל
         cam_idx = get_camera_index()
         subject_id = self.app.state.get("session_id", "unknown")
         eye_ok = self.app.eye_runtime.start_recording(cam_idx, subject_id)
         if not eye_ok:
             self.eye_status_label.setText("מעקב עיניים: נכשל באתחול (נעשה שימוש בגיבוי)")
 
-        if self.audio_only.isChecked():
-            try:
-                self.app.voice_session = create_voice_session(self.app.controller)
-            except Exception as exc:
-                self.set_error(f"Failed to start voice session: {exc}")
-                self.app.eye_runtime.stop_recording(self.app.controller)
-                return
-            self.app.voice_only_running = True
-            self.app.fg_started_at = time.time()
-            self.timer.start()
-            self._sync_buttons()
-            return
-
+        
         pid, error = start_flightgear_session(self.app.controller)
         if error:
             self.set_error(error)
@@ -732,7 +818,6 @@ class GameScreen(BaseScreen):
         self._sync_buttons()
 
     def stop_session(self):
-        # עצירת הקלטת העיניים ועיבוד הנתונים
         self.eye_status_label.setText("מעקב עיניים: מעבד נתונים...")
         QGuiApplication.processEvents()
 
@@ -773,7 +858,6 @@ class GameScreen(BaseScreen):
 
         fg_running = is_pid_running(self.app.fg_pid)
         if self.app.fg_pid and not fg_running:
-            # הטיפול המקבילי בעצירת המשחק
             self.eye_status_label.setText("מעקב עיניים: מעבד נתונים...")
             QGuiApplication.processEvents()
             eye_features = self.app.eye_runtime.stop_recording(self.app.controller)
@@ -801,7 +885,7 @@ class GameScreen(BaseScreen):
                 return
 
         runtime = int(time.time() - self.app.fg_started_at) if self.app.fg_started_at else 0
-        mode = "Audio only" if self.app.voice_only_running else "Game running"
+        mode = "Game running"
         self.status_label.setText(f"{mode} | {runtime} seconds")
 
         voice_session = self.app.voice_session
@@ -818,7 +902,6 @@ class GameScreen(BaseScreen):
         running = bool(self.app.voice_only_running or is_pid_running(self.app.fg_pid))
         self.start_button.setDisabled(running)
         self.stop_button.setVisible(running)
-        self.audio_only.setDisabled(running)
 
 
 class ResultsScreen(BaseScreen):
@@ -881,14 +964,11 @@ class ResultsScreen(BaseScreen):
         subject_id = result.get("subject_id", "UNKNOWN")
         score = result.get("score")
 
-        # כותרת דוח קבועה
         self.content.addWidget(message(f"דוח תוצאות עבור משתתף: {subject_id}"))
 
-        # יצירת מנגנון לשוניות (Tabs) למניעת גלילה במסך התוצאות
         self.tabs = QTabWidget()
         self.tabs.setLayoutDirection(Qt.RightToLeft)
 
-        # 1. לשונית ציון סופי
         tab_score = QWidget()
         score_layout = QVBoxLayout(tab_score)
         score_layout.setContentsMargins(16, 16, 16, 16)
@@ -901,7 +981,6 @@ class ResultsScreen(BaseScreen):
         score_label.setAlignment(Qt.AlignCenter)
         score_label.setStyleSheet("font-size: 20px; font-weight: 800; color: #bfd7ff;")
 
-        # שינוי לבקשתך: הטקסט של הציון מוקטן ל-76px וממורכז באופן מושלם
         score_value = QLabel(f"{score:.2f}" if isinstance(score, (int, float)) else "Unavailable")
         score_value.setAlignment(Qt.AlignCenter)
 
@@ -932,19 +1011,16 @@ class ResultsScreen(BaseScreen):
         score_layout.addStretch()
         self.tabs.addTab(tab_score, "ציון סופי")
 
-        # הפקת נתוני הגרף והטבלה
         export_rows, graph_rows = build_result_export_rows(result)
         ordered_rows = self._ordered_graph_rows(graph_rows)
         table_rows = self._ordered_table_rows(export_rows)
 
         if ordered_rows:
-            # 2. לשונית גרף מדדים
             tab_chart = QWidget()
             chart_layout = QVBoxLayout(tab_chart)
             chart_layout.addWidget(self._build_chart(ordered_rows))
             self.tabs.addTab(tab_chart, "גרף מדדים")
 
-            # 3. לשונית טבלת נתונים
             tab_table = QWidget()
             table_layout = QVBoxLayout(tab_table)
             table_layout.addWidget(self._build_table(table_rows))
@@ -960,13 +1036,11 @@ class ResultsScreen(BaseScreen):
 
         self.content.addWidget(self.tabs)
 
-        # שמירת דוח אוטומטית ברקע
         csv_text = pd.DataFrame(export_rows).to_csv(index=False)
         path = save_report_once(subject_id, csv_text, result=result, controller=self.app.controller)
         if path:
             self.saved_path = path
 
-        # כפתור ניווט תחתון קבוע
         new_button = QPushButton("התחל מפגש חדש")
         new_button.setMaximumWidth(200)
         new_button.clicked.connect(self._new_session)
@@ -1190,10 +1264,49 @@ class FatigueApp(QMainWindow):
         self.voice_session = None
         self.eye_runtime = EyeTrackingRuntime()
 
-        self.stack = QStackedWidget()
+        # יצירת קומפוננטת קונטיינר מרכזית שתחזיק את ה-Stack הראשי + סרגל עליון קבוע
+        central_widget = QWidget()
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        # סרגל כלים/עזרה עליון קבוע (יישאר קבוע מעל כל המסכים באפליקציה)
+        top_bar = QWidget()
+        top_bar.setStyleSheet("background-color: #03101e; border-bottom: 1px solid #002b4d;")
+        top_bar_layout = QHBoxLayout(top_bar)
+        top_bar_layout.setContentsMargins(15, 6, 15, 6)
         
-        # הסרנו את ה-QScrollArea החיצוני כדי למנוע גלילה לא נחוצה וכפולה
-        self.setCentralWidget(self.stack)
+        # כפתור פתיחת ההנחיות - נגיש תמיד בצד שמאל של הסרגל העליון
+        self.help_button = QPushButton("הנחיות שימוש")
+        self.help_button.setCursor(Qt.PointingHandCursor)
+        self.help_button.setMinimumWidth(120)
+        self.help_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #002b4d;
+                color: #66aaff;
+                border: 1px solid #004488;
+                border-radius: 4px;
+                font-weight: bold;
+                font-size: 13px;
+                padding: 4px 10px;
+            }
+            QPushButton:hover {
+                background-color: #004488;
+                color: white;
+            }
+            """
+        )
+        self.help_button.clicked.connect(self.show_instructions)
+        top_bar_layout.addWidget(self.help_button)
+        
+        top_bar_layout.addStretch()
+        main_layout.addWidget(top_bar)
+
+        self.stack = QStackedWidget()
+        main_layout.addWidget(self.stack)
+        
+        self.setCentralWidget(central_widget)
 
         self.screens = {
             "enter_id": EnterIdScreen(self),
@@ -1213,6 +1326,11 @@ class FatigueApp(QMainWindow):
         screen = self.screens[screen_name]
         self.stack.setCurrentWidget(screen)
         screen.activate()
+
+    def show_instructions(self):
+        """פונקציה המאפשרת להקפיץ את הדיאלוג מכל מסך באפליקציה"""
+        popup = InstructionsDialog(self)
+        popup.exec()
 
 
 def main():
