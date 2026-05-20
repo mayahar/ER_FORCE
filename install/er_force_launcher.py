@@ -72,7 +72,7 @@ def main() -> int:
 
     try:
         completed = subprocess.run(
-            [str(python), "-m", "UI.app"],
+            [str(python), "-m", "ui.app"],
             cwd=str(root),
             env=env,
         )

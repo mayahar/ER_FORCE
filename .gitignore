@@ -215,5 +215,5 @@ install/ER_FORCE.spec
 # =========================
 sessions/
 scores_reports/
-UI/scores_reports/
+ui/scores_reports/
 *.log

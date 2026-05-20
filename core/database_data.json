@@ -2,56 +2,56 @@
   "subjects": {
     "1": {
       "id": 1,
-      "name": "ישראל ישראלי",
+      "name": "עידן נקדימון",
       "sex": "male",
-      "age": 28,
+      "age": 40,
       "baseline": {
         "voice": {
-          "dLPC": 0.06,
-          "PARCOR": 0.4,
-          "LPC": 1200,
-          "Pitch": 120.0,
-          "MFCC": 50
+          "dLPC": 0.15,
+          "PARCOR": 0.50,
+          "LPC": 1100.0,
+          "Pitch": 125.0,
+          "MFCC": 45.0
         },
         "eye": {
-          "fixation_duration": 0.22,
-          "fixation_count": 120,
-          "saccade_count": 150
+          "fixation_duration": 42.5,
+          "fixation_count": 72.0,
+          "saccade_count": 41.0
         },
         "game": {
-          "score": 85
+          "score": 88
         },
         "questionnaire": {
-          "fatigue_self": 1,
+          "fatigue_self": 2,
           "sleep_last": 7,
-          "sleep_previous": 7
+          "sleep_previous": 8
         }
       }
     },
     "2": {
       "id": 2,
-      "name": "שרה כהן",
-      "sex": "female",
-      "age": 25,
+      "name": "איוון גור",
+      "sex": "male",
+      "age": 35,
       "baseline": {
         "voice": {
-          "dLPC": 0.10,
-          "PARCOR": 0.5,
-          "LPC": 1000,
-          "Pitch": 230.0,
-          "MFCC": 70
+          "dLPC": 0.22,
+          "PARCOR": 0.65,
+          "LPC": 950.0,
+          "Pitch": 140.0,
+          "MFCC": 68.0
         },
         "eye": {
-          "fixation_duration": 0.2,
-          "fixation_count": 125,
-          "saccade_count": 160
+          "fixation_duration": 38.2,
+          "fixation_count": 65.0,
+          "saccade_count": 48.0
         },
         "game": {
-          "score": 80
+          "score": 91
         },
         "questionnaire": {
-          "fatigue_self": 2,
-          "sleep_last": 7,
+          "fatigue_self": 1,
+          "sleep_last": 8,
           "sleep_previous": 7
         }
       }
@@ -63,22 +63,22 @@
       "age": 24,
       "baseline": {
         "voice": {
-          "dLPC": 0.12,
-          "PARCOR": 0.45,
-          "LPC": 1500,
-          "Pitch": 200,
-          "MFCC": 30
+          "dLPC": 0.08,
+          "PARCOR": 0.42,
+          "LPC": 1350.0,
+          "Pitch": 195.0,
+          "MFCC": 35.0
         },
         "eye": {
-          "fixation_duration": 0.28036600936790407,
-          "fixation_count": 144.1988448526657,
-          "saccade_count": 191.52262896920035
+          "fixation_duration": 48.1,
+          "fixation_count": 81.0,
+          "saccade_count": 39.0
         },
         "game": {
-          "score": 72
+          "score": 85
         },
         "questionnaire": {
-          "fatigue_self": 0,
+          "fatigue_self": 2,
           "sleep_last": 7,
           "sleep_previous": 7
         }

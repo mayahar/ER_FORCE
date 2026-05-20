@@ -19,11 +19,13 @@ class VoiceFeatureExtractor:
 
     @classmethod
     def preprocess_audio(cls, audio: np.ndarray, sample_rate: int):
+        # 1. המרה לערוץ יחיד (Mono) במידה וההקלטה בסטריאו
         if audio.ndim > 1:
             audio = np.mean(audio, axis=-1)
 
         audio = np.asarray(audio, dtype=np.float32)
 
+        # 2. שינוי קצב דגימה ל-16kHz במידת הצורך
         if sample_rate != cls.SAMPLE_RATE:
             gcd = np.gcd(int(sample_rate), int(cls.SAMPLE_RATE))
             audio = resample_poly(
@@ -32,10 +34,31 @@ class VoiceFeatureExtractor:
                 int(sample_rate) // gcd,
             ).astype(np.float32)
 
+        # 3. ניקוי רעשי רקע בתדרים קיצוניים (מזגנים, המהום חשמלי, רעשי מיקרופון סטטיים)
+        # שימוש בפילטר דיגיטלי מסדר 4 להשארת טווח תדרי הדיבור האנושי הדומיננטיים (60Hz - 4000Hz)
+        try:
+            from scipy.signal import butter, sosfilt
+            sos = butter(4, [60.0, 4000.0], btype='bandpass', fs=cls.SAMPLE_RATE, output='sos')
+            audio = sosfilt(sos, audio)
+        except ImportError:
+            # הגנה למקרה שבו scipy.signal.butter אינו זמין בסביבת הריצה
+            pass
+
+        # 4. נרמול האות לפי עוצמת RMS (אנרגיה ממוצעת) ולא לפי פיק רגעי
+        # שלב זה מבטיח כי מיקרופונים בעלי רגישות שונה או מרחקי הקלטה שונים יקבלו הגברה אחידה ותואמת
+        rms = np.sqrt(np.mean(audio**2))
+        
+        if rms > 1e-5:  # הגנה מפני קובץ שקט לחלוטין כדי למנוע חלוקה באפס
+            # אנרגיית יעד אחידה קבועה (Target RMS) של 0.1 להבטחת כיול אחיד של המעטפת הספקטרלית
+            target_rms = 0.1
+            audio = audio * (target_rms / rms)
+
+        # 5. הגנה סופית מפני קטיעה (Clipping) של האות בדיסטורשן דיגיטלי
         max_amp = np.max(np.abs(audio))
-        if max_amp > 0:
+        if max_amp > 1.0:
             audio = audio / max_amp
 
+        # 6. הדגשת תדרים גבוהים (Pre-emphasis) הקיימת בקוד המקורי שלך
         audio = lfilter([1.0, -cls.PREEMPHASIS], [1.0], audio)
         return audio, cls.SAMPLE_RATE
 
@@ -61,127 +84,6 @@ class VoiceFeatureExtractor:
         frames = np.lib.stride_tricks.as_strided(audio, shape=shape, strides=strides).copy()
         window = np.hamming(frame_length)
         return frames * window
-
-    @classmethod
-    def extract_mfcc(cls, audio: np.ndarray, sr: int, n_mfcc: int = 13):
-        frame_length = cls._frame_length(sr)
-        hop_length = cls._hop_length(sr)
-        
-        # שינוי: center=True מבטיח סנכרון זמנים מושלם מול אלגוריתם ה-Pitch (pyin)
-        mfcc = librosa.feature.mfcc(
-            y=audio,
-            sr=sr,
-            n_mfcc=n_mfcc,
-            n_fft=max(512, frame_length * 2),
-            hop_length=hop_length,
-            win_length=frame_length,
-            window="hamming",
-            center=True, 
-        )
-        return mfcc.T.astype(np.float32)
-
-    @classmethod
-    def extract_pitch(cls, audio: np.ndarray, sr: int):
-        if len(audio) < cls._frame_length(sr):
-            return np.array([], dtype=np.float32)
-
-        try:
-            # שינוי: center=True כדי להתאים קוהרנטית ל-MFCC ולמנוע איבוד פריימים בסוף האות
-            result = librosa.pyin(
-                audio,
-                fmin=cls.FMIN,
-                fmax=cls.FMAX,
-                sr=sr,
-                frame_length=cls._frame_length(sr),
-                hop_length=cls._hop_length(sr),
-                center=True,
-            )
-            if isinstance(result, tuple):
-                f0 = result[0]
-            else:
-                f0 = result
-        except Exception as exc:
-            raise VoiceFeatureExtractionError(f"Pitch extraction failed: {exc}") from exc
-
-        if f0 is None:
-            return np.full((0,), np.float32)
-
-        return np.asarray(f0, dtype=np.float32)
-
-    @classmethod
-    def _levinson_durbin(cls, r: np.ndarray, order: int):
-        a = np.zeros(order + 1, dtype=np.float64)
-        k = np.zeros(order, dtype=np.float64)
-        a[0] = 1.0
-        e = r[0]
-
-        for i in range(1, order + 1):
-            s = 0.0
-            for j in range(1, i):
-                s += a[j] * r[i - j]
-            
-            if e == 0:
-                ki = 0.0
-            else:
-                ki = (r[i] - s) / e
-            
-            k[i - 1] = ki
-            a[i] = ki
-            for j in range(1, (i // 2) + 1):
-                aj = a[j]
-                aij = a[i - j]
-                a[j] = aj - ki * aij
-                if j != i - j:
-                    a[i - j] = aij - ki * aj
-            e *= (1.0 - ki * ki)
-            
-        return a, k
-
-    @classmethod
-    def _compute_frame_lpc_features(cls, audio: np.ndarray, sr: int, mode="lpc"):
-        frames = cls.frame_signal(audio, sr)
-        order = cls.LPC_ORDER
-        
-        if mode == "lpc":
-            features = np.zeros((frames.shape[0], order + 1), dtype=np.float32)
-        else:
-            features = np.zeros((frames.shape[0], order), dtype=np.float32)
-
-        for index, frame in enumerate(frames):
-            if np.allclose(frame, 0.0):
-                continue
-            
-            r = librosa.autocorrelate(frame)[:order + 1]
-            if r[0] == 0:
-                continue
-
-            try:
-                lpc_coeffs, parcor_coeffs = cls._levinson_durbin(r, order)
-                if mode == "lpc":
-                    features[index] = lpc_coeffs.astype(np.float32)
-                else:
-                    features[index] = parcor_coeffs.astype(np.float32)
-            except Exception:
-                continue
-
-        return features
-
-    @classmethod
-    def extract_lpc(cls, audio: np.ndarray, sr: int):
-        return cls._compute_frame_lpc_features(audio, sr, mode="lpc")
-
-    @classmethod
-    def extract_parcor(cls, audio: np.ndarray, sr: int):
-        return cls._compute_frame_lpc_features(audio, sr, mode="parcor")
-
-    @classmethod
-    def compute_delta_lpc(cls, lpc_features: np.ndarray):
-        if lpc_features.ndim != 2 or lpc_features.shape[0] < 2:
-            return np.zeros_like(lpc_features, dtype=np.float32)
-
-        delta = np.diff(lpc_features, axis=0)
-        padding = np.zeros((1, lpc_features.shape[1]), dtype=np.float32)
-        return np.vstack([padding, delta]).astype(np.float32)
 
     @classmethod
     def extract_mfcc(cls, audio: np.ndarray, sr: int, n_mfcc: int = 13):
@@ -219,6 +121,35 @@ class VoiceFeatureExtractor:
         return pitches
 
     @classmethod
+    def _levinson_durbin(cls, r: np.ndarray, order: int):
+        a = np.zeros(order + 1, dtype=np.float64)
+        k = np.zeros(order, dtype=np.float64)
+        a[0] = 1.0
+        e = r[0]
+
+        for i in range(1, order + 1):
+            s = 0.0
+            for j in range(1, i):
+                s += a[j] * r[i - j]
+            
+            if e == 0:
+                ki = 0.0
+            else:
+                ki = (r[i] - s) / e
+            
+            k[i - 1] = ki
+            a[i] = ki
+            for j in range(1, (i // 2) + 1):
+                aj = a[j]
+                aij = a[i - j]
+                a[j] = aj - ki * aij
+                if j != i - j:
+                    a[i - j] = aij - ki * aj
+            e *= (1.0 - ki * ki)
+            
+        return a, k
+
+    @classmethod
     def _compute_frame_lpc_features(cls, audio: np.ndarray, sr: int, mode="lpc"):
         frames = cls.frame_signal(audio, sr)
         order = cls.LPC_ORDER
@@ -248,6 +179,23 @@ class VoiceFeatureExtractor:
         return features
 
     @classmethod
+    def extract_lpc(cls, audio: np.ndarray, sr: int):
+        return cls._compute_frame_lpc_features(audio, sr, mode="lpc")
+
+    @classmethod
+    def extract_parcor(cls, audio: np.ndarray, sr: int):
+        return cls._compute_frame_lpc_features(audio, sr, mode="parcor")
+
+    @classmethod
+    def compute_delta_lpc(cls, lpc_features: np.ndarray):
+        if lpc_features.ndim != 2 or lpc_features.shape[0] < 2:
+            return np.zeros_like(lpc_features, dtype=np.float32)
+
+        delta = np.diff(lpc_features, axis=0)
+        padding = np.zeros((1, lpc_features.shape[1]), dtype=np.float32)
+        return np.vstack([padding, delta]).astype(np.float32)
+
+    @classmethod
     def extract_features(cls, audio: np.ndarray, sample_rate: int):
         audio, sr = cls.preprocess_audio(audio, sample_rate)
         
@@ -257,9 +205,8 @@ class VoiceFeatureExtractor:
         parcor = cls.extract_parcor(audio, sr)
         delta_lpc = cls.compute_delta_lpc(lpc)
 
-        # תיקון קריטי: במקום לחתוך גלובלית לפי ה-minimum, אנחנו מתאימים את אורכי 
-        # המערכים באופן דינמי באמצעות אינטרפולציה או הצמדה (Padding/Clipping) 
-        # כדי לא לאבד נתוני Pitch קריטיים בסוף ההקלטה.
+        # התאמת אורכי המערכים באופן דינמי באמצעות אינטרפולציה או הצמדה (Padding/Clipping) 
+        # כדי לא לאבד נתוני Pitch קריטיים בסוף ההקלטה
         target_frames = pitch.shape[0]
 
         def adjust_time_dimension(arr, target_len):
