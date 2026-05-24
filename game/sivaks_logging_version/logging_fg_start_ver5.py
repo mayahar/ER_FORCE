@@ -200,8 +200,24 @@ def evaluate_flight_score(csv_path):
         reader = csv.DictReader(file)
         fields = set(reader.fieldnames or [])
         use_snap = "balloons-count" in fields and "balloon-scoring-closest-ft" in fields
+        rows = list(reader)
+        if "retry-count" in fields:
+            def _row_retry_count(row):
+                try:
+                    return int(float((row.get("retry-count") or "0").strip() or 0))
+                except ValueError:
+                    return 0
 
-        for row in reader:
+            latest_retry = 0
+            for row in rows:
+                latest_retry = max(latest_retry, _row_retry_count(row))
+            if latest_retry > 0:
+                rows = [
+                    row for row in rows
+                    if _row_retry_count(row) == latest_retry
+                ]
+
+        for row in rows:
             hit_raw = (row.get("balloon-hit") or "").strip()
             if hit_raw == "":
                 continue
@@ -691,6 +707,7 @@ if __name__ == "__main__":
         '/algorithm/game/balloon-hit',
         '/algorithm/game/balloons-count',
         '/algorithm/game/balloon-scoring-closest-ft',
+        '/algorithm/game/retry-count',
         ],
         csv_export_folder=export_folder,
     )

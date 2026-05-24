@@ -54,6 +54,7 @@
       <blue>0.15</blue>
       <factor-prop>engines/engine[0]/running</factor-prop>
     </emission>
+  </animation>
   <animation>
     <type>rotate</type>
     <object-name>hull</object-name>

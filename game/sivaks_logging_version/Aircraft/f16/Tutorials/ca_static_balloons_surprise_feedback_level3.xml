@@ -141,9 +141,14 @@ This Scenario announces if you hit or miss.
 
 	var active_target_id = 0;
 	var last_pass_scored_id = -1;
+	var crashResetInProgress = 0;
+	var lowAltitudeSince = nil;
+	var resetGeneration = 0;
+	var handledCrashResetRequest = 0;
 	# Score a pass only after the aircraft was south of the balloon, then crossed north of it.
 	setprop("/sim/rendering/redout/enabled", 0);
 	setprop("/sim/rendering/redout/internal/redout", 0);
+	setprop("/algorithm/game/retry-count", 0);
 
 	var apply_cruise_power = func() {
 		setprop("/controls/engines/throttle-all", 0.85);
@@ -640,6 +645,106 @@ This Scenario announces if you hit or miss.
 		volume : 1
 	});
 
+	var resetCorrActionsAttempt = func(reason)
+	{
+		if (crashResetInProgress)
+			return;
+
+		crashResetInProgress = 1;
+		resetGeneration += 1;
+		var thisResetGeneration = resetGeneration;
+		lowAltitudeSince = nil;
+		setprop("/sim/messages/copilot", "RESETTING FLIGHT");
+
+		if (BalloonTimer != nil)
+			BalloonTimer.stop();
+
+		destroyActiveTarget();
+		purgeCorrTargetModels();
+		sivaksStopTargetEdge();
+
+		var retry_count = getprop("/algorithm/game/retry-count");
+		if (retry_count == nil)
+			retry_count = 0;
+		setprop("/algorithm/game/retry-count", retry_count + 1);
+		handledCrashResetRequest = getprop("/sim/sivaks/corractions-reset-request");
+		if (handledCrashResetRequest == nil)
+			handledCrashResetRequest = 0;
+
+		balloons_counted_passed = 0;
+		balloons_counted_hit = 0;
+		hardness_lon = 0;
+		last_pass_scored_id = -1;
+		min_dist_ft = 10000000;
+		pass_cooldown_until = 0;
+		pass_committed = 0;
+		pass_south_armed = 0;
+		hit_miss_msg = "undefined";
+		hit_miss_number = 0;
+
+		setprop("/algorithm/game/balloons-count", 0);
+		setprop("/algorithm/game/balloons-hit-count", 0);
+		setprop("/algorithm/game/balloon-scoring-closest-ft", 0);
+		setprop("/algorithm/game/balloon-hit", 0);
+		setprop("/algorithm/game/balloon-level", 1);
+		setprop("/algorithm/game/finished", 0);
+
+		setprop("/sim/crashed", 0);
+		setprop("/sim/freeze/master", 0);
+		setprop("/sim/presets/airport-id", "PHTO");
+		setprop("/sim/presets/on-ground", 0);
+		setprop("/sim/presets/latitude-deg", 19.72415017471669);
+		setprop("/sim/presets/longitude-deg", -155.0518970894882);
+		setprop("/sim/presets/altitude-ft", 2000);
+		setprop("/sim/presets/heading-deg", 0);
+		setprop("/sim/presets/airspeed-kt", 350);
+		setprop("/sim/presets/glideslope-deg", 0);
+		setprop("/sim/presets/offset-azimuth-deg", 0);
+		setprop("/sim/presets/offset-distance-nm", 0);
+		fgcommand("reposition");
+
+		settimer(func {
+			if (thisResetGeneration != resetGeneration)
+				return;
+			setprop("/sim/crashed", 0);
+			setprop("/controls/gear/gear-down", 0);
+			setprop("/controls/gear/brake-parking", 0);
+			apply_cruise_power();
+			destroyActiveTarget();
+			purgeCorrTargetModels();
+		}, 0.4);
+
+		settimer(func {
+			if (thisResetGeneration != resetGeneration)
+				return;
+			destroyActiveTarget();
+			purgeCorrTargetModels();
+		}, 1.0);
+
+		settimer(func {
+			if (thisResetGeneration != resetGeneration)
+				return;
+			setprop("/sim/crashed", 0);
+			destroyActiveTarget();
+			purgeCorrTargetModels();
+			sivaksStartTargetEdge();
+			var reset_position = geo.aircraft_position();
+			last_balloon_lat = reset_position.lat() + init_shift_val;
+			last_balloon_lon = reset_position.lon() + ((0.003) * (rand() - 0.5));
+			last_balloon_alt = base_balloon_altitude;
+			spawnActiveTarget(
+				last_balloon_lat,
+				last_balloon_lon,
+				base_balloon_altitude,
+				hardness_lon
+			);
+
+			setprop("/sim/messages/copilot", "RETRY");
+			crashResetInProgress = 0;
+			BalloonTimer.start();
+		}, 1.8);
+	};
+
 	# =========================================================
 	# UPDATE LOOP
 	# =========================================================
@@ -650,6 +755,39 @@ This Scenario announces if you hit or miss.
 		var sim_elapsed = getprop("/sim/time/elapsed-sec");
 		if (sim_elapsed == nil)
 			sim_elapsed = 0;
+
+		var reset_request = getprop("/sim/sivaks/corractions-reset-request");
+		if (reset_request == nil)
+			reset_request = 0;
+		if (reset_request > handledCrashResetRequest) {
+			handledCrashResetRequest = reset_request;
+			resetCorrActionsAttempt("crash-reset-request");
+			return;
+		}
+
+		var crashed = getprop("/sim/crashed");
+		var agl_ft = getprop("/position/altitude-agl-ft");
+		var alt_ft = getprop("/position/altitude-ft");
+		var low_altitude = 0;
+		if (sim_elapsed > 5 and agl_ft != nil and agl_ft < 20)
+			low_altitude = 1;
+		if (sim_elapsed > 5 and alt_ft != nil and alt_ft < 20)
+			low_altitude = 1;
+		if (low_altitude > 0) {
+			if (lowAltitudeSince == nil)
+				lowAltitudeSince = sim_elapsed;
+			if ((sim_elapsed - lowAltitudeSince) >= 1.0) {
+				resetCorrActionsAttempt("low-altitude");
+				return;
+			}
+		}
+		else {
+			lowAltitudeSince = nil;
+		}
+		if (crashed != nil and crashed > 0) {
+			resetCorrActionsAttempt("crashed");
+			return;
+		}
 
 		forindex (var i; balloonsArray)
 		{
@@ -1085,6 +1223,23 @@ This Scenario announces if you hit or miss.
 
 	sivaksStartTargetEdge();
 
+	setlistener("/sim/crashed", func(node) {
+		if (node != nil and node.getValue())
+			resetCorrActionsAttempt("crashed");
+	}, 0, 0);
+
+	setlistener("/sim/sivaks/corractions-reset-request", func(node) {
+		if (node == nil)
+			return;
+		var request = node.getValue();
+		if (request == nil)
+			request = 0;
+		if (request > handledCrashResetRequest) {
+			handledCrashResetRequest = request;
+			resetCorrActionsAttempt("crash-reset-request");
+		}
+	}, 0, 0);
+
 	BalloonTimer.start();
 	]]>
 	</script>
@@ -1124,15 +1279,6 @@ This Scenario announces if you hit or miss.
         </error>
 		
 		
-        <exit>
-            <condition>
-                    <less-than>
-                        <property>/instrumentation/altimeter/indicated-altitude-ft</property>
-                        <value>200</value>
-                    </less-than>
-            </condition>
-        </exit>
-
     </step>
 
     <step>
