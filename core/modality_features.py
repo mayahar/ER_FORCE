@@ -28,7 +28,7 @@ def voice_features_unused(voice_features: dict | None) -> bool:
     if voice_features is None:
         return True
     return not any(
-        coerce_feature_number(voice_features.get(key)) is not None
+        coerce_feature_number(voice_features.get(key)) is not None and coerce_feature_number(voice_features.get(key)) != 0
         for key in VOICE_FEATURE_KEYS
     )
 

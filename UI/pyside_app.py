@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QLineEdit,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QRadioButton,
     QScrollArea,
@@ -51,6 +52,7 @@ from core.subject_repository import (
     subject_exists,
     update_subject_baseline,
 )
+from core.modality_features import voice_features_unused
 from score.eye_features import apply_eye_features_fallback
 from ui.eye_runtime import EyeTrackingRuntime, get_camera_index
 from ui.game_runtime import (
@@ -698,7 +700,6 @@ class GameScreen(BaseScreen):
         self.timer.timeout.connect(self._tick)
 
         self.start_button = QPushButton("התחל קליברציה לתנועות עיניים")
-        self.stop_button = QPushButton("סיים משחק")
         self.status_label = message("המשחק מוכן")
         self.voice_label = message("")
         self.eye_status_label = message("מצלמה: לא פעילה")
@@ -736,7 +737,7 @@ class GameScreen(BaseScreen):
 
         buttons = QHBoxLayout()
         buttons.addWidget(self.start_button)
-        buttons.addWidget(self.stop_button)
+        # buttons.addWidget(self.stop_button)
         buttons.addStretch()
         self.root.addLayout(buttons)
         self.root.addWidget(self.status_label)
@@ -746,7 +747,7 @@ class GameScreen(BaseScreen):
         self.root.addStretch()
 
         self.start_button.clicked.connect(self.start_session)
-        self.stop_button.clicked.connect(self.stop_session)
+        # self.stop_button.clicked.connect(self.stop_session)
 
     def activate(self):
         self.error_label.clear()
@@ -839,7 +840,31 @@ class GameScreen(BaseScreen):
                 self.set_error(f"Failed to stop session: {error}")
                 return
 
-        finalize_voice_session(self.app.controller, self.app.voice_session)
+        voice_data = finalize_voice_session(self.app.controller, self.app.voice_session)
+        
+        if voice_data and voice_features_unused(voice_data.get("summary")):
+            msg = QMessageBox(self)
+            msg.setWindowTitle("איכות הקלטת קול")
+            msg.setText("הקלטת הקול לא הפיקה ערכים תקינים. האם ברצונך לבצע הקלטה חוזרת של הקול בלבד?")
+            msg.setStandardButtons(QMessageBox.כן | QMessageBox.לא)
+            msg.setDefaultButton(QMessageBox.כן)
+            msg.setLayoutDirection(Qt.RightToLeft)
+            
+            if msg.exec() == QMessageBox.לא:
+                # יצירת סשן קול חדש ללא השהיה
+                self.app.voice_session = create_voice_session(self.app.controller)
+                for event in self.app.voice_session.events:
+                    event.trigger_time = 0.0  # הקלטה מיידית ללא המתנה של 5 שניות
+                
+                self.app.voice_session.start_session()
+                self.app.fg_pid = 0
+                self.app.voice_only_running = True
+                self.app.fg_started_at = time.time()
+                self.timer.start()
+                self._sync_buttons()
+                self.status_label.setText("מבצע הקלטת קול חוזרת...")
+                return
+
         self.app.voice_session = None
         self.app.fg_pid = 0
         self.app.voice_only_running = False
@@ -876,9 +901,42 @@ class GameScreen(BaseScreen):
                     "FlightGear closed too quickly. Check the FlightGear path and run logging_fg_start_ver5.py from a terminal for details."
                 )
             else:
-                finalize_voice_session(self.app.controller, self.app.voice_session)
+                voice_data = finalize_voice_session(self.app.controller, self.app.voice_session)
+                
+                if voice_data and voice_features_unused(voice_data.get("summary")):
+                    msg = QMessageBox(self)
+                    msg.setWindowTitle("איכות הקלטת קול")
+                    msg.setText("הקלטת הקול לא הפיקה ערכים תקינים. האם ברצונך לבצע הקלטה חוזרת של הקול בלבד?")
+                    msg.setStandardButtons(QMessageBox.כן | QMessageBox.לא)
+                    msg.setDefaultButton(QMessageBox.כן)
+                    msg.setLayoutDirection(Qt.RightToLeft)
+                    
+                    if msg.exec() == QMessageBox.לא:
+                        self.app.voice_session = create_voice_session(self.app.controller)
+                        for event in self.app.voice_session.events:
+                            event.trigger_time = 0.0
+                        self.app.voice_session.start_session()
+                        self.app.fg_pid = 0
+                        self.app.voice_only_running = True
+                        self.app.fg_started_at = time.time()
+                        self._sync_buttons()
+                        self.status_label.setText("מבצע הקלטת קול חוזרת...")
+                        return
+
                 self.app.voice_session = None
                 self.app.fg_pid = 0
+                self.app.fg_started_at = None
+                self.timer.stop()
+                self.app.navigate("result")
+                return
+
+        # בדיקה לסיום הקלטת קול חוזרת (במצב שאין משחק רץ)
+        if self.app.voice_only_running and not fg_running:
+            vs = self.app.voice_session
+            if vs and not vs.pending_events and not vs.active_event:
+                finalize_voice_session(self.app.controller, vs)
+                self.app.voice_session = None
+                self.app.voice_only_running = False
                 self.app.fg_started_at = None
                 self.timer.stop()
                 self.app.navigate("result")
@@ -901,7 +959,7 @@ class GameScreen(BaseScreen):
     def _sync_buttons(self):
         running = bool(self.app.voice_only_running or is_pid_running(self.app.fg_pid))
         self.start_button.setDisabled(running)
-        self.stop_button.setVisible(running)
+        #self.stop_button.setVisible(running)
 
 
 class ResultsScreen(BaseScreen):
