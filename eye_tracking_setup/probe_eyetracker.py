@@ -10,8 +10,7 @@ def _repo_root() -> Path:
 
 def _import_tobii():
     root = _repo_root()
-    sdk_root = root / "TobiiPro_SDK"
-    for path in (root, sdk_root):
+    for path in (root,):
         candidate = str(path)
         if candidate not in sys.path:
             sys.path.insert(0, candidate)

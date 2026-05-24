@@ -5,7 +5,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-$VenvDir = Join-Path $RepoRoot ".venv-eye-tracking"
+$VenvDir = Join-Path $RepoRoot ".venv"
 $PythonExe = Join-Path $VenvDir "Scripts\python.exe"
 
 function Ensure-Python310 {
@@ -28,6 +28,7 @@ function Ensure-Venv {
         & $Py310 -m venv $VenvDir
     }
     & $PythonExe -m pip install --upgrade pip
+    & $PythonExe -m pip install -r (Join-Path $RepoRoot "requirements.txt")
     & $PythonExe -m pip install -r (Join-Path $PSScriptRoot "requirements.txt")
 }
 

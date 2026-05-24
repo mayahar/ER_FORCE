@@ -1,23 +1,30 @@
 @echo off
-REM Launch the PySide6 app from virtual environment
+REM Launch the PySide6 app from the Python 3.10 virtual environment.
 
 cd /d "%~dp0"
 
-if not exist "venv" (
-    echo Virtual environment not found. Creating one...
-    python -m venv venv
+set "VENV=.venv"
+set "PYTHON=%VENV%\Scripts\python.exe"
+
+if not exist "%PYTHON%" (
+    echo Python 3.10 virtual environment not found. Creating %VENV%...
+    py -3.10 -m venv "%VENV%"
+    if errorlevel 1 (
+        echo Python 3.10 is required. Install it or run eye_tracking_setup\setup_colleague.cmd
+        pause
+        exit /b 1
+    )
 )
 
-REM Activate virtual environment
-call venv\Scripts\activate.bat
-
 REM Install requirements if needed
-pip install -r requirements.txt
-
-REM Set PYTHONPATH to include local TobiiPro_SDK
-set PYTHONPATH=%CD%\TobiiPro_SDK;%PYTHONPATH%
+"%PYTHON%" -m pip install -r requirements.txt
+if errorlevel 1 (
+    echo Failed to install requirements.
+    pause
+    exit /b 1
+)
 
 REM Run the app
-python -m ui.app
+"%PYTHON%" -m ui.app
 
 pause

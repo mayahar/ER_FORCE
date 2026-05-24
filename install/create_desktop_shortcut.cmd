@@ -3,7 +3,8 @@ setlocal
 cd /d "%~dp0.."
 
 set "PY="
-if exist ".venv-eye-tracking\Scripts\python.exe" set "PY=.venv-eye-tracking\Scripts\python.exe"
+if exist ".venv\Scripts\python.exe" set "PY=.venv\Scripts\python.exe"
+if not defined PY if exist ".venv-eye-tracking\Scripts\python.exe" set "PY=.venv-eye-tracking\Scripts\python.exe"
 if not defined PY if exist "venv\Scripts\python.exe" set "PY=venv\Scripts\python.exe"
 if not defined PY (
     where python >nul 2>&1

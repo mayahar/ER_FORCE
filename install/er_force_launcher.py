@@ -32,14 +32,37 @@ def _repo_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
+def _can_import_tobii(python: Path) -> bool:
+    try:
+        completed = subprocess.run(
+            [
+                str(python),
+                "-c",
+                (
+                    "import sys; "
+                    "sys.exit(3) if sys.version_info[:2] > (3, 10) "
+                    "else None; import tobii_research"
+                ),
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=10,
+        )
+    except Exception:
+        return False
+    return completed.returncode == 0
+
+
 def _venv_python(root: Path) -> Path | None:
     for candidate in (
-        root / ".venv-eye-tracking" / "Scripts" / "pythonw.exe",
+        root / ".venv" / "Scripts" / "python.exe",
+        root / ".venv" / "Scripts" / "pythonw.exe",
         root / ".venv-eye-tracking" / "Scripts" / "python.exe",
-        root / "venv" / "Scripts" / "pythonw.exe",
+        root / ".venv-eye-tracking" / "Scripts" / "pythonw.exe",
         root / "venv" / "Scripts" / "python.exe",
+        root / "venv" / "Scripts" / "pythonw.exe",
     ):
-        if candidate.is_file():
+        if candidate.is_file() and _can_import_tobii(candidate):
             return candidate
     return None
 
@@ -52,29 +75,29 @@ def main() -> int:
     if python is None:
         _show_error(
             "ER Force - setup required",
-            "Could not find a Python virtual environment.\n\n"
+            "Could not find a Python 3.10 virtual environment with Tobii Research installed.\n\n"
             "Run eye_tracking_setup\\setup_colleague.cmd first to create\n"
-            "the .venv-eye-tracking environment, then launch ER Force again.",
+            "the .venv environment, then launch ER Force again.",
         )
         return 1
 
     env = os.environ.copy()
-    fg_root = root / "game" / "sivaks_logging_version"
+    fg_root = root / "game"
     if fg_root.is_dir():
         env.setdefault("SIVAKS_FG_ROOT", str(fg_root))
     env.setdefault("ER_FORCE_HOME", str(root))
-    tobii_sdk = root / "TobiiPro_SDK"
-    if tobii_sdk.is_dir():
-        existing = env.get("PYTHONPATH", "")
-        env["PYTHONPATH"] = (
-            f"{tobii_sdk};{existing}" if existing else str(tobii_sdk)
-        )
+    env.setdefault("PYTHONIOENCODING", "utf-8")
+    env.setdefault("PYTHONUTF8", "1")
 
     try:
+        creationflags = 0
+        if os.name == "nt" and python.name.lower() == "python.exe":
+            creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
         completed = subprocess.run(
             [str(python), "-m", "ui.app"],
             cwd=str(root),
             env=env,
+            creationflags=creationflags,
         )
         return completed.returncode
     except Exception:

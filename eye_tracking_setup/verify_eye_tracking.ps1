@@ -6,9 +6,8 @@ param(
 $ErrorActionPreference = "Stop"
 $ScriptDir = $PSScriptRoot
 $RepoRoot = Split-Path -Parent $ScriptDir
-$VenvDir = Join-Path $RepoRoot ".venv-eye-tracking"
+$VenvDir = Join-Path $RepoRoot ".venv"
 $PythonExe = Join-Path $VenvDir "Scripts\python.exe"
-$InteropPyd = Join-Path $RepoRoot "TobiiPro_SDK\tobiiresearch\interop\python3\tobii_research_interop.pyd"
 $RecordingsDir = Join-Path $RepoRoot "eye_tracking_analysis\recordings"
 
 function Write-Step([string]$Message) {
@@ -33,6 +32,7 @@ function Ensure-Venv {
         & $Py310 -m venv $VenvDir
     }
     & $PythonExe -m pip install --upgrade pip -q
+    & $PythonExe -m pip install -r (Join-Path $RepoRoot "requirements.txt") -q
     & $PythonExe -m pip install -r (Join-Path $ScriptDir "requirements.txt") -q
 }
 
@@ -66,26 +66,10 @@ $py310 = Ensure-Python310
 Ensure-Venv $py310
 Write-Host "OK  $PythonExe"
 
-Write-Step "2/5 Tobii Pro SDK native bindings (tobii_research_interop.pyd)"
-if (Test-Path $InteropPyd) {
-    Write-Host "OK  $InteropPyd"
-} else {
-    Write-Host "Missing native binding. Trying sync_sdk_native..." -ForegroundColor Yellow
-    try {
-        Sync-SdkNative -SourceRoot $SdkSourceRoot
-    } catch {
-        Write-Host ""
-        Write-Host "Could not sync SDK bindings." -ForegroundColor Red
-        Write-Host "  1) Install Tobii Pro SDK for Windows from Tobii download page"
-        Write-Host "  2) Re-run: eye_tracking_setup\verify_eye_tracking.cmd"
-        Write-Host "  Or set TOBII_SDK_SOURCE to your SDK folder, e.g.:"
-        Write-Host "    set TOBII_SDK_SOURCE=C:\Path\To\TobiiProSDKPython\64"
-        throw
-    }
-    if (-not (Test-Path $InteropPyd)) {
-        throw "Sync finished but $InteropPyd is still missing."
-    }
-    Write-Host "OK  synced to $InteropPyd"
+Write-Step "2/5 Installed Tobii Research Python package"
+& $PythonExe -m pip show tobii-research
+if ($LASTEXITCODE -ne 0) {
+    throw "tobii-research is not installed in $VenvDir."
 }
 
 Write-Step "3/5 Python import test (tobii_research + eye_tracker_recorder)"
@@ -93,7 +77,7 @@ $importTest = @"
 import sys
 from pathlib import Path
 root = Path(r'$RepoRoot').resolve()
-for p in (str(root), str(root / 'TobiiPro_SDK')):
+for p in (str(root),):
     if p not in sys.path:
         sys.path.insert(0, p)
 import tobii_research as tr

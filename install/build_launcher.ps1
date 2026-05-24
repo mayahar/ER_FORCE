@@ -29,6 +29,7 @@ $FinalExe     = Join-Path $RepoRoot "ER_FORCE.exe"
 
 function Find-Python {
     foreach ($cand in @(
+        (Join-Path $RepoRoot ".venv\Scripts\python.exe"),
         (Join-Path $RepoRoot ".venv-eye-tracking\Scripts\python.exe"),
         (Join-Path $RepoRoot "venv\Scripts\python.exe")
     )) {

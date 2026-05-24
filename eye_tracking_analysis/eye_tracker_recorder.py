@@ -17,17 +17,24 @@ SDK_DIR = os.path.join(ROOT_DIR, "TobiiPro_SDK")
 def _load_tobii_research():
     try:
         return importlib.import_module("tobii_research")
-    except Exception:
-        for path in (ROOT_DIR, SDK_DIR):
-            if path not in sys.path:
-                sys.path.insert(0, path)
-        try:
-            return importlib.import_module("tobii_research")
-        except Exception as exc:
-            print(
-                f"Warning: Could not import Tobii SDK module 'tobii_research' ({exc.__class__.__name__}: {exc})"
-            )
-            return None
+    except Exception as first_exc:
+        if os.environ.get("ER_FORCE_ALLOW_LOCAL_TOBII_SDK") == "1":
+            for path in (ROOT_DIR, SDK_DIR):
+                if path not in sys.path:
+                    sys.path.insert(0, path)
+            try:
+                return importlib.import_module("tobii_research")
+            except Exception as exc:
+                print(
+                    f"Warning: Could not import local Tobii SDK module 'tobii_research' ({exc.__class__.__name__}: {exc})"
+                )
+                return None
+        print(
+            "Warning: Could not import installed Tobii SDK module "
+            f"'tobii_research' ({first_exc.__class__.__name__}: {first_exc}). "
+            "Run eye_tracking_setup\\setup_colleague.cmd to install Python 3.10 dependencies."
+        )
+        return None
 
 
 tr = _load_tobii_research()
