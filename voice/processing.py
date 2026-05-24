@@ -12,20 +12,25 @@ class VoiceFeatureExtractor:
     PREEMPHASIS = 0.97
     FRAME_LENGTH_MS = 25
     HOP_LENGTH_MS = 10
-    # תיקון מבוסס ספרות: סדר 12 הוא האופטימלי לצליל תנועה (Vowel) מתמשך ב-16kHz
     LPC_ORDER = 12 
     FMIN = 50.0
     FMAX = 500.0
+    
+    # -------------------------------------------------------------
+    # ספים מעודכנים להגנה כפולה: מניעת אזעקות שווא + חסימת דיבור
+    # -------------------------------------------------------------
+    MIN_ENERGY_THRESHOLD = 0.0004      
+    MIN_TOTAL_SPEECH_DURATION_S = 2.5  
+    MAX_FLUX_STD = 0.035000            # סף ליברלי לנשימות
+    MAX_PITCH_STD = 88.000000          # סף יציבות תדר קשיח: מונע אינטונציה של דיבור חופשי
 
     @classmethod
     def preprocess_audio(cls, audio: np.ndarray, sample_rate: int):
-        # 1. המרה לערוץ יחיד (Mono) במידה וההקלטה בסטריאו
         if audio.ndim > 1:
             audio = np.mean(audio, axis=-1)
 
         audio = np.asarray(audio, dtype=np.float32)
 
-        # 2. שינוי קצב דגימה ל-16kHz במידת הצורך
         if sample_rate != cls.SAMPLE_RATE:
             gcd = np.gcd(int(sample_rate), int(cls.SAMPLE_RATE))
             audio = resample_poly(
@@ -34,31 +39,56 @@ class VoiceFeatureExtractor:
                 int(sample_rate) // gcd,
             ).astype(np.float32)
 
-        # 3. ניקוי רעשי רקע בתדרים קיצוניים (מזגנים, המהום חשמלי, רעשי מיקרופון סטטיים)
-        # שימוש בפילטר דיגיטלי מסדר 4 להשארת טווח תדרי הדיבור האנושי הדומיננטיים (60Hz - 4000Hz)
+        frame_length = cls._frame_length(cls.SAMPLE_RATE)
+        hop_length = cls._hop_length(cls.SAMPLE_RATE)
+        
+        if len(audio) < frame_length:
+            raise VoiceFeatureExtractionError("Audio file is too short.")
+
+        frame_count = 1 + max(0, (len(audio) - frame_length) // hop_length)
+        shape = (frame_count, frame_length)
+        strides = (audio.strides[0] * hop_length, audio.strides[0])
+        frames = np.lib.stride_tricks.as_strided(audio, shape=shape, strides=strides)
+
+        # 1. בדיקת עוצמה ומשך זמן מצטבר
+        frame_rms = np.sqrt(np.mean(frames**2, axis=1))
+        speech_frames = frame_rms > cls.MIN_ENERGY_THRESHOLD
+        speech_duration = (np.sum(speech_frames) * cls.HOP_LENGTH_MS) / 1000.0
+
+        if speech_duration < cls.MIN_TOTAL_SPEECH_DURATION_S:
+            raise VoiceFeatureExtractionError("Valid speech duration too short.")
+
+        # 2. ניתוח תבנית השטף הספקטרלי (סינון חלונות מעבר לנשימה)
+        # כדי למנוע מהנשימות להקפיץ את המדד, ניקח רק פרימים שהם בלב הדיבור (עוצמה גבוהה מהסף)
+        core_speech_frames = frame_rms > (cls.MIN_ENERGY_THRESHOLD * 2.5)
+        valid_frames = frames[core_speech_frames]
+        
+        if len(valid_frames) > 10:
+            fft_data = np.abs(np.fft.rfft(valid_frames, n=512, axis=1))
+            fft_norm = fft_data / (np.sum(fft_data, axis=1, keepdims=True) + 1e-3)
+            flux_per_frame = np.sqrt(np.sum(np.diff(fft_norm, axis=0)**2, axis=1))
+            flux_std = float(np.std(flux_per_frame))
+            
+            if flux_std > cls.MAX_FLUX_STD:
+                raise VoiceFeatureExtractionError("Audio contains highly dynamic speech patterns (Flux).")
+
+        # 3. ניקוי רעשים דיגיטלי
         try:
             from scipy.signal import butter, sosfilt
             sos = butter(4, [60.0, 4000.0], btype='bandpass', fs=cls.SAMPLE_RATE, output='sos')
             audio = sosfilt(sos, audio)
         except ImportError:
-            # הגנה למקרה שבו scipy.signal.butter אינו זמין בסביבת הריצה
             pass
 
-        # 4. נרמול האות לפי עוצמת RMS (אנרגיה ממוצעת) ולא לפי פיק רגעי
-        # שלב זה מבטיח כי מיקרופונים בעלי רגישות שונה או מרחקי הקלטה שונים יקבלו הגברה אחידה ותואמת
-        rms = np.sqrt(np.mean(audio**2))
-        
-        if rms > 1e-5:  # הגנה מפני קובץ שקט לחלוטין כדי למנוע חלוקה באפס
-            # אנרגיית יעד אחידה קבועה (Target RMS) של 0.1 להבטחת כיול אחיד של המעטפת הספקטרלית
+        # 4. נרמול עוצמה גלובלי
+        global_rms = np.sqrt(np.mean(audio**2))
+        if global_rms > 1e-5:
             target_rms = 0.1
-            audio = audio * (target_rms / rms)
+            audio = audio * (target_rms / global_rms)
 
-        # 5. הגנה סופית מפני קטיעה (Clipping) של האות בדיסטורשן דיגיטלי
-        max_amp = np.max(np.abs(audio))
-        if max_amp > 1.0:
-            audio = audio / max_amp
+        if np.max(np.abs(audio)) > 1.0:
+            audio = audio / np.max(np.abs(audio))
 
-        # 6. הדגשת תדרים גבוהים (Pre-emphasis) הקיימת בקוד המקורי שלך
         audio = lfilter([1.0, -cls.PREEMPHASIS], [1.0], audio)
         return audio, cls.SAMPLE_RATE
 
@@ -131,12 +161,10 @@ class VoiceFeatureExtractor:
             s = 0.0
             for j in range(1, i):
                 s += a[j] * r[i - j]
-            
             if e == 0:
                 ki = 0.0
             else:
                 ki = (r[i] - s) / e
-            
             k[i - 1] = ki
             a[i] = ki
             for j in range(1, (i // 2) + 1):
@@ -146,7 +174,6 @@ class VoiceFeatureExtractor:
                 if j != i - j:
                     a[i - j] = aij - ki * aj
             e *= (1.0 - ki * ki)
-            
         return a, k
 
     @classmethod
@@ -162,11 +189,9 @@ class VoiceFeatureExtractor:
         for index, frame in enumerate(frames):
             if np.allclose(frame, 0.0):
                 continue
-
             r = np.correlate(frame, frame, mode="full")[len(frame) - 1:len(frame) + order]
             if r.shape[0] < order + 1 or r[0] == 0:
                 continue
-
             try:
                 lpc_coeffs, parcor_coeffs = cls._levinson_durbin(r, order)
                 if mode == "lpc":
@@ -175,7 +200,6 @@ class VoiceFeatureExtractor:
                     features[index] = parcor_coeffs.astype(np.float32)
             except Exception:
                 continue
-
         return features
 
     @classmethod
@@ -190,14 +214,18 @@ class VoiceFeatureExtractor:
     def compute_delta_lpc(cls, lpc_features: np.ndarray):
         if lpc_features.ndim != 2 or lpc_features.shape[0] < 2:
             return np.zeros_like(lpc_features, dtype=np.float32)
-
         delta = np.diff(lpc_features, axis=0)
         padding = np.zeros((1, lpc_features.shape[1]), dtype=np.float32)
         return np.vstack([padding, delta]).astype(np.float32)
 
     @classmethod
     def extract_features(cls, audio: np.ndarray, sample_rate: int):
-        audio, sr = cls.preprocess_audio(audio, sample_rate)
+        try:
+            audio, sr = cls.preprocess_audio(audio, sample_rate)
+        except VoiceFeatureExtractionError:
+            return {
+                "mfcc": None, "pitch": None, "lpc": None, "parcor": None, "delta_lpc": None
+            }
         
         mfcc = cls.extract_mfcc(audio, sr)
         pitch = cls.extract_pitch(audio, sr)
@@ -205,8 +233,18 @@ class VoiceFeatureExtractor:
         parcor = cls.extract_parcor(audio, sr)
         delta_lpc = cls.compute_delta_lpc(lpc)
 
-        # התאמת אורכי המערכים באופן דינמי באמצעות אינטרפולציה או הצמדה (Padding/Clipping) 
-        # כדי לא לאבד נתוני Pitch קריטיים בסוף ההקלטה
+        # -------------------------------------------------------------
+        # שכבת הגנה שנייה: בדיקת אי יציבות תדר קול (Pitch Instability)
+        # -------------------------------------------------------------
+        valid_pitches = pitch[~np.isnan(pitch)]
+        if valid_pitches.size > 2:
+            pitch_std = float(np.std(valid_pitches))
+            # אם התדר קופץ ורוקד כמו בדיבור חופשי (מעל 88.0) - נפסול
+            if pitch_std > cls.MAX_PITCH_STD:
+                return {
+                    "mfcc": None, "pitch": None, "lpc": None, "parcor": None, "delta_lpc": None
+                }
+
         target_frames = pitch.shape[0]
 
         def adjust_time_dimension(arr, target_len):
@@ -215,7 +253,6 @@ class VoiceFeatureExtractor:
                 return arr
             if curr_len > target_len:
                 return arr[:target_len]
-            # אם קצר מדי, נבצע פאדינג של השורה האחרונה
             pad_width = target_len - curr_len
             if arr.ndim == 1:
                 return np.pad(arr, (0, pad_width), mode='edge')
@@ -224,11 +261,7 @@ class VoiceFeatureExtractor:
 
         if target_frames == 0:
             return {
-                "mfcc": np.zeros((0, mfcc.shape[1]), dtype=np.float32),
-                "pitch": np.full((0,), np.float32(np.nan)),
-                "lpc": np.zeros((0, lpc.shape[1]), dtype=np.float32),
-                "parcor": np.zeros((0, parcor.shape[1]), dtype=np.float32),
-                "delta_lpc": np.zeros((0, delta_lpc.shape[1]), dtype=np.float32),
+                "mfcc": None, "pitch": None, "lpc": None, "parcor": None, "delta_lpc": None
             }
 
         return {
