@@ -1,7 +1,7 @@
 import time
 import numpy as np
 import sounddevice as sd
-from voice.processing import VoiceFeatureExtractor
+from processing import VoiceFeatureExtractor
 
 
 def run_live_voice_test():
@@ -46,7 +46,7 @@ def run_live_voice_test():
     energy_thresh = getattr(VoiceFeatureExtractor, 'MIN_ENERGY_THRESHOLD', 0.0004)
     duration_thresh = getattr(VoiceFeatureExtractor, 'MIN_TOTAL_SPEECH_DURATION_S', 2.5)
     flux_std_thresh = getattr(VoiceFeatureExtractor, 'MAX_FLUX_STD', 0.035)
-    pitch_std_thresh = getattr(VoiceFeatureExtractor, 'MAX_PITCH_STD', 88.0)
+    pitch_cv_thresh = getattr(VoiceFeatureExtractor, 'MAX_PITCH_REL_VARIATION', 0.38)
     
     speech_frames = frame_rms > energy_thresh
     detected_duration = (np.sum(speech_frames) * 10) / 1000.0
@@ -60,18 +60,21 @@ def run_live_voice_test():
         flux_per_frame = np.sqrt(np.sum(np.diff(fft_norm, axis=0)**2, axis=1))
         flux_std = float(np.std(flux_per_frame))
 
-    # חילוץ פיץ' עצמאי לצורך הלוּג בלבד במקרה של דחייה
+    # חילוץ פיץ' עצמאי לצורך לוג מפורט
     raw_pitch = VoiceFeatureExtractor.extract_pitch(audio_data, sample_rate)
     valid_pitches = raw_pitch[~np.isnan(raw_pitch)] if raw_pitch.size > 0 else np.array([])
-    pitch_std = float(np.std(valid_pitches)) if valid_pitches.size > 2 else 0.0
+    
     pitch_mean = float(np.mean(valid_pitches)) if valid_pitches.size > 0 else 0.0
+    pitch_std = float(np.std(valid_pitches)) if valid_pitches.size > 2 else 0.0
+    pitch_cv = pitch_std / pitch_mean if pitch_mean > 0 else 0.0
 
     print("\n📊 RAW DATA ANALYSIS:")
     print(f"  1. Global Signal RMS (Volume) : {global_rms:.6f}")
     print(f"  2. Maximum Peak Amplitude    : {max_amplitude:.6f}")
     print(f"  3. Active Speech Duration    : {detected_duration:.2f} seconds  (Required: >= {duration_thresh}s)")
     print(f"  4. Spectral Flux Volatility  : {flux_std:.6f}  (Required: <= {flux_std_thresh})")
-    print(f"  5. Pitch Frequency Variation : {pitch_std:.2f}  (Required: <= {pitch_std_thresh})")
+    print(f"  5. Relative Pitch Variation  : {pitch_cv:.4f}  (Required: <= {pitch_cv_thresh})")
+    print(f"     [Pitch Mean: {pitch_mean:.1f} Hz, Pitch Std: {pitch_std:.2f}]")
     print("-"*60)
     
     if features["pitch"] is None or features["mfcc"] is None:
@@ -83,8 +86,8 @@ def run_live_voice_test():
             print(f"   -> FAILED ENERGY/DURATION CHECK: Active speech was only {detected_duration:.2f}s.")
         elif flux_std > flux_std_thresh:
             print("   -> FAILED STABILITY CHECK: Dynamic speech patterns (Flux Volatility) detected!")
-        elif pitch_std > pitch_std_thresh:
-            print(f"   -> FAILED PITCH STABILITY: Detected words/sentences via voice intonation (Pitch Std: {pitch_std:.1f}).")
+        elif pitch_cv > pitch_cv_thresh:
+            print(f"   -> FAILED PITCH STABILITY: Voice intonation variation is too high ({pitch_cv * 100:.1f}%).")
     else:
         print("✅ PIPELINE RESULT: SUCCESS (Valid Features Extracted)")
         print(f"   -> Extracted Pitch Mean      : {pitch_mean:.1f} Hz")

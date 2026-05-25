@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.fftpack import dct
-from scipy.signal import lfilter, resample_poly
+from scipy.signal import lfilter, resample_poly, medfilt
 
 
 class VoiceFeatureExtractionError(Exception):
@@ -13,16 +13,18 @@ class VoiceFeatureExtractor:
     FRAME_LENGTH_MS = 25
     HOP_LENGTH_MS = 10
     LPC_ORDER = 12 
-    FMIN = 50.0
+    
+    # הרחבת הטווח ל-40Hz כדי לתפוס קולות בס גבריים נמוכים ועמוקים
+    FMIN = 40.0
     FMAX = 500.0
     
     # -------------------------------------------------------------
-    # ספים מעודכנים להגנה כפולה: מניעת אזעקות שווא + חסימת דיבור
+    # ספים מנורמלים למניעת אפליה של קולות עמוקים
     # -------------------------------------------------------------
     MIN_ENERGY_THRESHOLD = 0.0004      
     MIN_TOTAL_SPEECH_DURATION_S = 2.5  
-    MAX_FLUX_STD = 0.035000            # סף ליברלי לנשימות
-    MAX_PITCH_STD = 88.000000          # סף יציבות תדר קשיח: מונע אינטונציה של דיבור חופשי
+    MAX_FLUX_STD = 0.045            
+    MAX_PITCH_REL_VARIATION = 0.55 # מדד CV יחסי (סטיית תקן חלקי ממוצע). חוסם דיבור חופשי, מאשר קול עמוק.
 
     @classmethod
     def preprocess_audio(cls, audio: np.ndarray, sample_rate: int):
@@ -58,8 +60,7 @@ class VoiceFeatureExtractor:
         if speech_duration < cls.MIN_TOTAL_SPEECH_DURATION_S:
             raise VoiceFeatureExtractionError("Valid speech duration too short.")
 
-        # 2. ניתוח תבנית השטף הספקטרלי (סינון חלונות מעבר לנשימה)
-        # כדי למנוע מהנשימות להקפיץ את המדד, ניקח רק פרימים שהם בלב הדיבור (עוצמה גבוהה מהסף)
+        # 2. ניתוח תבנית השטף הספקטרלי
         core_speech_frames = frame_rms > (cls.MIN_ENERGY_THRESHOLD * 2.5)
         valid_frames = frames[core_speech_frames]
         
@@ -148,6 +149,12 @@ class VoiceFeatureExtractor:
             if peak >= 0.25:
                 pitches[index] = float(sr / lag)
 
+        # החלקת קפיצות הרמוניות (Pitch Doubling/Halving) באמצעות פילטר מדיאני (חלון 5)
+        valid_indices = ~np.isnan(pitches)
+        if np.sum(valid_indices) > 5:
+            smoothed_valid = medfilt(pitches[valid_indices], kernel_size=5)
+            pitches[valid_indices] = smoothed_valid
+
         return pitches
 
     @classmethod
@@ -234,16 +241,19 @@ class VoiceFeatureExtractor:
         delta_lpc = cls.compute_delta_lpc(lpc)
 
         # -------------------------------------------------------------
-        # שכבת הגנה שנייה: בדיקת אי יציבות תדר קול (Pitch Instability)
+        # ולידציה מנורמלת יחסית (CV) במקום סטיית תקן אבסולוטית
         # -------------------------------------------------------------
         valid_pitches = pitch[~np.isnan(pitch)]
         if valid_pitches.size > 2:
+            pitch_mean = float(np.mean(valid_pitches))
             pitch_std = float(np.std(valid_pitches))
-            # אם התדר קופץ ורוקד כמו בדיבור חופשי (מעל 88.0) - נפסול
-            if pitch_std > cls.MAX_PITCH_STD:
-                return {
-                    "mfcc": None, "pitch": None, "lpc": None, "parcor": None, "delta_lpc": None
-                }
+            
+            if pitch_mean > 0:
+                pitch_cv = pitch_std / pitch_mean
+                if pitch_cv > cls.MAX_PITCH_REL_VARIATION:
+                    return {
+                        "mfcc": None, "pitch": None, "lpc": None, "parcor": None, "delta_lpc": None
+                    }
 
         target_frames = pitch.shape[0]
 

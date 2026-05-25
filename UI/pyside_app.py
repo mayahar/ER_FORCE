@@ -176,6 +176,52 @@ def slider_tick_ruler(slider):
     return SliderTickRuler(slider)
 
 
+class ClickableSlider(QSlider):
+    def __init__(self, orientation, parent=None):
+        super().__init__(orientation, parent)
+
+    def mousePressEvent(self, event):
+        # אם לחצו עם המקש השמאלי של העכבר
+        if event.button() == Qt.LeftButton:
+            option = QStyleOptionSlider()
+            self.initStyleOption(option)
+            
+            # חישוב גיאומטריית הסליידר כדי להבין היכן נגמר ומתחיל האזור הלחיץ
+            gr = self.style().subControlRect(QStyle.CC_Slider, option, QStyle.SC_SliderGroove, self)
+            hr = self.style().subControlRect(QStyle.CC_Slider, option, QStyle.SC_SliderHandle, self)
+
+            if self.orientation() == Qt.Horizontal:
+                slider_length = gr.width()
+                slider_min = gr.x()
+                # חישוב המיקום היחסי של הלחיצה בציר ה-X
+                pos = event.position().x() if hasattr(event, 'position') else event.x()
+            else:
+                slider_length = gr.height()
+                slider_min = gr.y()
+                # חישוב המיקום היחסי בציר ה-Y (בסליידר אנכי הלמעלה הוא המינימום)
+                pos = event.position().y() if hasattr(event, 'position') else event.y()
+
+            # מניעת חלוקה באפס במידה והרוחב לא חושב נכון
+            if slider_length <= 0:
+                super().mousePressEvent(event)
+                return
+
+            # חישוב הערך החדש באופן יחסי למיקום הלחיצה
+            pr = pos - slider_min
+            new_val = self.minimum() + ((self.maximum() - self.minimum()) * pr) / slider_length
+            
+            # אם הסליידר הפוך (Inverted)
+            if self.invertedAppearance():
+                new_val = self.maximum() - (new_val - self.minimum())
+
+            # עיגול לערך השלם הקרוב ביותר ועדכון הסליידר
+            self.setValue(round(new_val))
+            event.accept()
+            
+        # קריאה למתודת האב כדי לאפשר גרירה תקינה של הסליידר לאחר הלחיצה
+        super().mousePressEvent(event)
+
+
 def slider_row(label_text, minimum, maximum, value):
     container = QWidget()
     layout = QVBoxLayout(container)
@@ -186,7 +232,8 @@ def slider_row(label_text, minimum, maximum, value):
     label.setAlignment(Qt.AlignCenter)
     label.setStyleSheet("font-size: 15px; font-weight: bold; color: white;")
 
-    slider = QSlider(Qt.Horizontal)
+    # שינוי כאן: משתמשים ב-ClickableSlider המותאם אישית במקום ב-QSlider הרגיל
+    slider = ClickableSlider(Qt.Horizontal)
     slider.setRange(minimum, maximum)
     slider.setValue(value)
     slider.setTickPosition(QSlider.NoTicks)

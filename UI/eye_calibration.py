@@ -122,9 +122,9 @@ def _in_box(
 
 
 def _distance_hint_for_z(z: float) -> str:
-    if z < HEAD_Z_INNER[0]:
+    if z > HEAD_Z_INNER[0]:
         return "forward"
-    if z > HEAD_Z_INNER[1]:
+    if z < HEAD_Z_INNER[1]:
         return "back"
     return ""
 
@@ -133,13 +133,13 @@ def _movement_hint_for_position(x: float, y: float, z: float) -> str:
     distance_hint = _distance_hint_for_z(z)
     if distance_hint:
         return distance_hint
-    if x > HEAD_X_INNER[1]:
+    if x < HEAD_X_INNER[1]:
         return "left"
-    if x < HEAD_X_INNER[0]:
+    if x > HEAD_X_INNER[0]:
         return "right"
-    if y > HEAD_Y_INNER[1]:
+    if y < HEAD_Y_INNER[1]:
         return "down"
-    if y < HEAD_Y_INNER[0]:
+    if y > HEAD_Y_INNER[0]:
         return "up"
     return "center"
 
