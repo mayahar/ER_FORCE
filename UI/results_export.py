@@ -78,6 +78,14 @@ def build_result_export_rows(result):
     for modality, feats in contributions.items():
         for fname, data in feats.items():
             contribution_value = data.get("weighted_contribution", 0)
+            feature_modality_contribution = data.get(
+                "feature_modality_contribution"
+            )
+            feature_final_contribution = data.get(
+                "feature_final_contribution",
+                contribution_value,
+            )
+            effective_weight = data.get("effective_weight", data.get("weight"))
             export_row = {
                 "subject_id": subject_id,
                 "modality": modality,
@@ -88,11 +96,26 @@ def build_result_export_rows(result):
                 "relative_change": data.get("relative_change"),
                 "normalized_effect": data.get("normalized_effect"),
                 "raw_sigmoid": data.get("raw_sigmoid"),
-                "weight": data.get("weight"),
+                "weight": effective_weight,
+                "effective_weight": effective_weight,
+                "feature_weight": data.get("feature_weight", data.get("weight")),
+                "feature_weight_sum": data.get("feature_weight_sum"),
+                "modality_feature_weight": data.get("modality_feature_weight"),
+                "modality_weight": data.get("modality_weight"),
+                "active_modality_weight_sum": data.get(
+                    "active_modality_weight_sum"
+                ),
+                "final_modality_weight": data.get("final_modality_weight"),
                 "direction": data.get("direction"),
                 "expected_change": data.get("expected_change"),
                 "contribution": contribution_value,
                 "weighted_contribution": contribution_value,
+                "feature_modality_contribution": feature_modality_contribution,
+                "modality_score": data.get("modality_score"),
+                "modality_final_contribution": data.get(
+                    "modality_final_contribution"
+                ),
+                "feature_final_contribution": feature_final_contribution,
                 "better_than_baseline": data.get("better_than_baseline"),
                 "valid_measurement": True,
                 "measurement_status": "included",
@@ -117,7 +140,7 @@ def build_result_export_rows(result):
                 {
                     "modality": modality,
                     "feature": fname,
-                    "value": contribution_value,
+                    "value": feature_final_contribution,
                 }
             )
 
@@ -140,10 +163,21 @@ def build_result_export_rows(result):
             "normalized_effect": None,
             "raw_sigmoid": None,
             "weight": None,
+            "effective_weight": None,
+            "feature_weight": None,
+            "feature_weight_sum": None,
+            "modality_feature_weight": None,
+            "modality_weight": None,
+            "active_modality_weight_sum": None,
+            "final_modality_weight": None,
             "direction": None,
             "expected_change": None,
             "contribution": None,
             "weighted_contribution": None,
+            "feature_modality_contribution": None,
+            "modality_score": None,
+            "modality_final_contribution": None,
+            "feature_final_contribution": None,
             "better_than_baseline": None,
             "valid_measurement": False,
             "measurement_status": "excluded_invalid_measurement",
@@ -180,10 +214,21 @@ def build_result_export_rows(result):
             "normalized_effect": None,
             "raw_sigmoid": None,
             "weight": None,
+            "effective_weight": None,
+            "feature_weight": None,
+            "feature_weight_sum": None,
+            "modality_feature_weight": None,
+            "modality_weight": None,
+            "active_modality_weight_sum": None,
+            "final_modality_weight": None,
             "direction": None,
             "expected_change": None,
             "contribution": None,
             "weighted_contribution": None,
+            "feature_modality_contribution": None,
+            "modality_score": None,
+            "modality_final_contribution": None,
+            "feature_final_contribution": None,
             "better_than_baseline": None,
             "valid_measurement": None,
             "measurement_status": "questionnaire",

@@ -285,6 +285,14 @@ def compute_modality_score(
 
     if wsum:
         modality_score = total / wsum
+        for item in contributions.values():
+            feature_weight = item["weight"]
+            item["feature_weight"] = float(feature_weight)
+            item["feature_weight_sum"] = float(wsum)
+            item["modality_feature_weight"] = float(feature_weight / wsum)
+            item["feature_modality_contribution"] = float(
+                item["weighted_contribution"] / wsum
+            )
     else:
         scored = [
             item["fatigue_score"]
@@ -416,6 +424,44 @@ def compute_fatigue_score(data):
         numerator / denominator
         if denominator else None
     )
+
+    if denominator:
+        for modality, feats in modality_contributions.items():
+            modality_summary = modality_level_contributions.get(modality)
+            if not modality_summary:
+                continue
+
+            modality_weight = modality_summary["weight"]
+            final_modality_weight = modality_weight / denominator
+            modality_summary["final_weight"] = float(final_modality_weight)
+            modality_summary["final_contribution"] = float(
+                modality_summary["weighted_contribution"] / denominator
+            )
+
+            for data in feats.values():
+                modality_feature_weight = data.get("modality_feature_weight")
+                feature_modality_contribution = data.get(
+                    "feature_modality_contribution"
+                )
+                if modality_feature_weight is None:
+                    continue
+
+                effective_weight = modality_feature_weight * final_modality_weight
+                data["modality_weight"] = float(modality_weight)
+                data["active_modality_weight_sum"] = float(denominator)
+                data["final_modality_weight"] = float(final_modality_weight)
+                data["effective_weight"] = float(effective_weight)
+                data["feature_final_contribution"] = float(
+                    data["fatigue_score"] * effective_weight
+                )
+                data["modality_score"] = float(modality_summary["score"])
+                data["modality_final_contribution"] = float(
+                    modality_summary["final_contribution"]
+                )
+                if feature_modality_contribution is not None:
+                    data["feature_modality_contribution"] = float(
+                        feature_modality_contribution
+                    )
 
     # =================================================
     # DISPLAY SCORE

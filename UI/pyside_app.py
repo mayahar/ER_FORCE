@@ -1287,7 +1287,11 @@ class ResultsScreen(BaseScreen):
         table_rows = [
             ("מצב ערנות", "baseline"),
             ("מצב נוכחי", "current"),
-            ("תרומה לציון", "weighted_contribution"),
+            ("משקל אפקטיבי", "weight"),
+            ("תרומת הפיצ'ר לציון המודול", "feature_modality_contribution"),
+            ("ציון המודול", "modality_score"),
+            ("תרומת המודול לציון הסופי", "modality_final_contribution"),
+            ("תרומת הפיצ'ר לציון הסופי", "feature_final_contribution"),
             ("סטטוס", "measurement_status"),
         ]
 
