@@ -33,9 +33,9 @@ if not exist "%PYW%" if not exist "%PY%" (
 )
 
 if exist "%PYW%" (
-  start "" /D "%ROOT%" "%PYW%" -m UI.app %*
+  start "" /D "%ROOT%" "%PYW%" -m ui.app %*
   exit /b 0
 )
 
-"%PY%" -m UI.app %*
+"%PY%" -m ui.app %*
 exit /b %ERRORLEVEL%

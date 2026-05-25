@@ -1296,12 +1296,7 @@ class ResultsScreen(BaseScreen):
         table_rows = [
             ("מצב ערנות", "baseline"),
             ("מצב נוכחי", "current"),
-            ("משקל אפקטיבי", "weight"),
-            ("תרומת הפיצ'ר לציון המודול", "feature_modality_contribution"),
-            ("ציון המודול", "modality_score"),
-            ("תרומת המודול לציון הסופי", "modality_final_contribution"),
-            ("תרומת הפיצ'ר לציון הסופי", "feature_final_contribution"),
-            ("סטטוס", "measurement_status"),
+            ("תרומה לציון", "feature_final_contribution"),
         ]
 
         table = QTableWidget(len(table_rows), len(headers))
@@ -1318,10 +1313,6 @@ class ResultsScreen(BaseScreen):
                     value = f"{value:.3f}"
                 elif value is None:
                     value = "-"
-                elif key == "measurement_status" and value == "included":
-                    value = "נכלל בציון"
-                elif key == "measurement_status" and value == "excluded_invalid_measurement":
-                    value = "מחוץ לטווח - לא חושב"
                 item = QTableWidgetItem(str(value))
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 if row.get("valid_measurement") is False:

@@ -651,7 +651,7 @@ if __name__ == "__main__":
     if os.environ.get("SIVAKS_NOTRIM", "").strip().lower() in ("1", "true", "yes", "y", "on"):
         fg_command_args.append("--notrim")
 
-    # Fullscreen: set by the ERR_FORCE desktop UI, or SIVAKS_FG_FULLSCREEN=1 for CLI.
+    # Fullscreen: set by the ERR_FORCE desktop ui, or SIVAKS_FG_FULLSCREEN=1 for CLI.
     if os.environ.get("SIVAKS_FG_FULLSCREEN", "").strip().lower() in ("1", "true", "yes", "y", "on"):
         # 2020.3 Windows build rejects --fullscreen; --enable-fullscreen is recognized.
         fg_command_args.append("--enable-fullscreen")

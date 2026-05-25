@@ -6,6 +6,7 @@ __pycache__/
 *$py.class
 .venv/
 .venv-eye-tracking/
+sessions/
 
 # =========================
 # Runtime / generated data
