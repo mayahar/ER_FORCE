@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <PropertyList>
   <description>CorrActions aim marker — centered on bullseye; scales with hit radius per level</description>
-  <author>ER_FORCE / CorrActions</author>
+  <author>ERR_FORCE / CorrActions</author>
   <path>Models/aim_dot.ac</path>
   <texture-path></texture-path>
   <animation>

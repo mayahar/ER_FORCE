@@ -1,8 +1,8 @@
-"""Tiny launcher used by PyInstaller to build ER_FORCE.exe.
+"""Tiny launcher used by PyInstaller to build ERR_FORCE.exe.
 
 It locates the bundled venv (created by eye_tracking_setup/setup_colleague.cmd)
 and starts the PySide6 app with the right environment variables, so the user
-just double-clicks ER_FORCE.exe instead of fiddling with batch scripts.
+just double-clicks ERR_FORCE.exe instead of fiddling with batch scripts.
 """
 
 from __future__ import annotations
@@ -74,10 +74,10 @@ def main() -> int:
     python = _venv_python(root)
     if python is None:
         _show_error(
-            "ER Force - setup required",
+            "ERR Force - setup required",
             "Could not find a Python 3.10 virtual environment with Tobii Research installed.\n\n"
             "Run eye_tracking_setup\\setup_colleague.cmd first to create\n"
-            "the .venv environment, then launch ER Force again.",
+            "the .venv environment, then launch ERR Force again.",
         )
         return 1
 
@@ -85,6 +85,7 @@ def main() -> int:
     fg_root = root / "game"
     if fg_root.is_dir():
         env.setdefault("SIVAKS_FG_ROOT", str(fg_root))
+    env.setdefault("ERR_FORCE_HOME", str(root))
     env.setdefault("ER_FORCE_HOME", str(root))
     env.setdefault("PYTHONIOENCODING", "utf-8")
     env.setdefault("PYTHONUTF8", "1")
@@ -94,7 +95,7 @@ def main() -> int:
         if os.name == "nt" and python.name.lower() == "python.exe":
             creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
         completed = subprocess.run(
-            [str(python), "-m", "ui.app"],
+            [str(python), "-m", "UI.app"],
             cwd=str(root),
             env=env,
             creationflags=creationflags,
@@ -102,7 +103,7 @@ def main() -> int:
         return completed.returncode
     except Exception:
         _show_error(
-            "ER Force - launch failed",
+            "ERR Force - launch failed",
             traceback.format_exc(),
         )
         return 1

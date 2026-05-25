@@ -43,7 +43,16 @@ function Open-FirstTimeDownloads {
     ) | ForEach-Object { Start-Process $_ }
 }
 
-Write-Host "ER_FORCE eye-tracking setup check"
+function Sync-SdkNative {
+    param([string]$SourceRoot)
+    if (-not $SourceRoot) {
+        $SourceRoot = Join-Path ([Environment]::GetFolderPath("Desktop")) "TobiiProSDKPython\64"
+    }
+    $syncScript = Join-Path $ScriptDir "sync_sdk_native.ps1"
+    & $syncScript -SourceRoot $SourceRoot
+}
+
+Write-Host "ERR_FORCE eye-tracking setup check"
 Write-Host "Repo: $RepoRoot"
 
 if ($OpenDownloads) {

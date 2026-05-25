@@ -14,7 +14,12 @@ DEFAULT_FG_SCRIPT = DEFAULT_FG_DIR / "logging_fg_start_ver5.py"
 
 
 def resolve_fg_script_path():
-    env = (os.environ.get("ER_FORCE_FG_SCRIPT") or os.environ.get("SIVAKS_LOGGING_FG_SCRIPT") or "").strip()
+    env = (
+        os.environ.get("ERR_FORCE_FG_SCRIPT")
+        or os.environ.get("ER_FORCE_FG_SCRIPT")
+        or os.environ.get("SIVAKS_LOGGING_FG_SCRIPT")
+        or ""
+    ).strip()
     if env:
         candidate = Path(env).expanduser()
         if not candidate.is_absolute():
@@ -77,7 +82,7 @@ def start_flightgear_session(controller=None):
     if script_path is None:
         return 0, (
             f"FlightGear script not found. Expected {DEFAULT_FG_SCRIPT}, "
-            "or set ER_FORCE_FG_SCRIPT to logging_fg_start_ver5.py."
+            "or set ERR_FORCE_FG_SCRIPT to logging_fg_start_ver5.py."
         )
 
     script_dir = str(script_path.parent)

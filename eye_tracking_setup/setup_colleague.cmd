@@ -7,7 +7,7 @@ set "PYTHONUTF8=1"
 
 echo.
 echo ========================================
-echo  ER_FORCE - colleague setup (all-in-one)
+echo  ERR_FORCE - colleague setup (all-in-one)
 echo ========================================
 echo  Repo: %ROOT%
 echo.
@@ -24,7 +24,7 @@ set "RC=%ERRORLEVEL%"
 echo.
 if "%RC%"=="0" (
     echo SUCCESS. Start the fatigue app:
-    echo   ER_FORCE.exe
+    echo   ERR_FORCE.exe
     echo   or eye_tracking_setup\run_app.cmd
     echo.
     echo In-game: blue "eye recording active" after start.

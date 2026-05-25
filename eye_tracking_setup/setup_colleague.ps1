@@ -15,7 +15,7 @@ $RepoRoot = Split-Path -Parent $ScriptDir
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host " ER_FORCE - colleague eye-tracking setup" -ForegroundColor Cyan
+Write-Host " ERR_FORCE - colleague eye-tracking setup" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Repo: $RepoRoot"
 Write-Host ""

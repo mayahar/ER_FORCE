@@ -1,4 +1,4 @@
-"""Create a Desktop shortcut for ER Force - Unicode-safe.
+"""Create a Desktop shortcut for ERR Force - Unicode-safe.
 
 We call the Win32 COM interfaces (IShellLinkW + IPersistFile) directly via
 ctypes instead of going through WScript.Shell / cscript: those choke on
@@ -98,6 +98,7 @@ def create_shortcut(
     workdir: Path,
     icon: Path | None,
     description: str,
+    arguments: str = "",
 ) -> None:
     hr = ole32.CoInitializeEx(None, COINIT_APARTMENTTHREADED)
     if hr < 0 and hr != -2147417850:  # ignore "already initialized"
@@ -129,11 +130,16 @@ def create_shortcut(
         set_path        = _vtbl(psl, 20, [wintypes.LPCWSTR])
         set_workdir     = _vtbl(psl, 9,  [wintypes.LPCWSTR])
         set_desc        = _vtbl(psl, 7,  [wintypes.LPCWSTR])
+        set_args        = _vtbl(psl, 11, [wintypes.LPCWSTR])
         set_icon        = _vtbl(psl, 17, [wintypes.LPCWSTR, ctypes.c_int])
 
         hr = set_path(psl, str(target))
         if hr < 0:
             raise OSError(f"SetPath failed: 0x{hr & 0xFFFFFFFF:08X}")
+        if arguments:
+            hr = set_args(psl, arguments)
+            if hr < 0:
+                raise OSError(f"SetArguments failed: 0x{hr & 0xFFFFFFFF:08X}")
         hr = set_workdir(psl, str(workdir))
         if hr < 0:
             raise OSError(f"SetWorkingDirectory failed: 0x{hr & 0xFFFFFFFF:08X}")
@@ -171,40 +177,81 @@ def create_shortcut(
         ole32.CoUninitialize()
 
 
+def _pick_existing(root: Path, *names: str) -> Path | None:
+    for name in names:
+        path = root / name
+        if path.is_file():
+            return path
+    return None
+
+
 def main() -> int:
     root = repo_root()
-    exe = root / "ER_FORCE.exe"
+    # Prefer ERR_FORCE_fast.cmd: same env as the PyInstaller launcher but starts
+    # the venv's pythonw.exe directly (no onefile extract to %%TEMP%% — much faster).
+    fast_cmd = _pick_existing(root, "ERR_FORCE_fast.cmd", "ER_FORCE_fast.cmd")
+    exe = _pick_existing(root, "ERR_FORCE.exe", "ER_FORCE.exe")
     fallback_cmd = root / "eye_tracking_setup" / "run_app.cmd"
-    icon = root / "install" / "assets" / "er_force_icon.ico"
+    assets = root / "install" / "assets"
+    icon = _pick_existing(assets, "err_force_icon.ico", "er_force_icon.ico")
 
-    if exe.is_file():
+    if fast_cmd is not None:
+        # cmd.exe /c is more reliable than pointing the shortcut directly at a .cmd
+        # file (especially on OneDrive / non-ASCII Desktop paths).
+        comspec = Path(os.environ.get("ComSpec", r"C:\Windows\System32\cmd.exe"))
+        target = comspec
+        arguments = f'/c "{fast_cmd.resolve()}"'
+    elif exe is not None:
         target = exe
+        arguments = ""
     elif fallback_cmd.is_file():
-        target = fallback_cmd
+        comspec = Path(os.environ.get("ComSpec", r"C:\Windows\System32\cmd.exe"))
+        target = comspec
+        arguments = f'/c "{fallback_cmd.resolve()}"'
     else:
         print(
-            "Neither ER_FORCE.exe nor eye_tracking_setup\\run_app.cmd found.\n"
-            "Run install\\build_launcher.cmd first.",
+            "Could not find ERR_FORCE_fast.cmd, ERR_FORCE.exe, or "
+            "eye_tracking_setup\\run_app.cmd.\n"
+            "Run eye_tracking_setup\\setup_colleague.cmd (and optionally "
+            "install\\build_launcher.cmd).",
             file=sys.stderr,
         )
         return 1
 
-    link = desktop_dir() / "ER Force.lnk"
+    link = desktop_dir() / "ERR Force.lnk"
+    legacy_link = desktop_dir() / "ER Force.lnk"
     create_shortcut(
         link_path=link,
         target=target.resolve(),
         workdir=root.resolve(),
-        icon=icon if icon.is_file() else None,
-        description="ER Force - fatigue and eye tracking research app",
+        icon=icon,
+        description="ERR Force - fatigue and eye tracking research app",
+        arguments=arguments,
     )
+
+    if legacy_link.is_file() and legacy_link != link:
+        try:
+            legacy_link.unlink()
+        except OSError:
+            pass
 
     if not link.is_file():
         print(f"Shortcut creation reported success but file not found at {link}", file=sys.stderr)
         return 2
 
+    if fast_cmd is not None:
+        launch_target = fast_cmd
+    elif exe is not None:
+        launch_target = exe
+    else:
+        launch_target = fallback_cmd
+
     print("Desktop shortcut created:")
     print(f"  {link}")
     print(f"  Target: {target.resolve()}")
+    if arguments:
+        print(f"  Args:   {arguments}")
+    print(f"  Launches: {launch_target.resolve()}")
     return 0
 
 

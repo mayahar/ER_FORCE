@@ -159,7 +159,7 @@ class Controller:
             "detail": str(detail),
         }
         self.measurement_warnings.append(warning)
-        print(f"[ER Force warning] {label}: {detail}")
+        print(f"[ERR Force warning] {label}: {detail}")
 
     def _none_features(self, modality):
         return {

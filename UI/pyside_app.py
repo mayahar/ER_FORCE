@@ -702,7 +702,7 @@ class GameScreen(BaseScreen):
         self.start_button = QPushButton("התחל קליברציה לתנועות עיניים")
         self.status_label = message("המשחק מוכן")
         self.voice_label = message("")
-        self.eye_status_label = message("מצלמה: לא פעילה")
+        self.eye_status_label = message("עקיב עיניים: לא פעיל")
         self.error_label = message("", "errorText")
 
         self.camera_preview = QLabel()
@@ -776,18 +776,27 @@ class GameScreen(BaseScreen):
         self.app.eye_runtime.stop_preview()
         self.camera_preview.clear()
         self.camera_preview.setText("מקליט...")
+        self.eye_status_label.setText("עקיב עיניים: מוכן לכיול")
+
+    def start_session(self):
+        self.error_label.clear()
+        self.start_button.setEnabled(False)
+        self.eye_status_label.setText("מעקב עיניים: מתחבר...")
+        QGuiApplication.processEvents()
 
         if not self.app.eye_runtime.calibration_passed:
             self.eye_status_label.setText("מעקב עיניים: מבצע כיול...")
             QGuiApplication.processEvents()
             calibrated, calibration_message = self.app.eye_runtime.run_calibration(
-                parent=self,
+                parent=self.app,
+                screen=self.app.screen(),
                 controller=self.app.controller,
             )
             if not calibrated:
                 self.app.eye_runtime.last_error = calibration_message
                 self.eye_status_label.setText(f"כיול נכשל: {calibration_message}")
                 self.set_error(f"שגיאת כיול מעקב עיניים: {calibration_message}")
+                self._sync_buttons()
                 return
             self.eye_status_label.setText("מעקב עיניים: כיול הושלם")
 
@@ -1365,7 +1374,7 @@ class BaselineSavedScreen(BaseScreen):
 class FatigueApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("ER Force Fatigue App")
+        self.setWindowTitle("ERR Force Fatigue App")
         self.resize(1180, 820)
         self.setStyleSheet(APP_STYLESHEET)
 
@@ -1454,7 +1463,7 @@ def main():
     install_safe_stdio()
 
     app = QApplication(sys.argv)
-    app.setApplicationName("ER Force")
+    app.setApplicationName("ERR Force")
     window = FatigueApp()
     window.show()
     return app.exec()

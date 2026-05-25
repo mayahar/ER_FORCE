@@ -183,7 +183,7 @@ def evaluate_flight_score(csv_path):
     `balloon-level` jumps is wrong: the sim respawns the next target immediately, so that snapshot is
     often multi-kft away from the aircraft.
 
-    Scoring weights match the historical `logging_fg_start_ver5.py`; ER_FORCE keeps launcher/session
+    Scoring weights match the historical `logging_fg_start_ver5.py`; ERR_FORCE keeps launcher/session
     fixes in __main__ / run_flightgear.
     """
     # Scoring targets/tolerances (tune here).
@@ -580,8 +580,8 @@ if __name__ == "__main__":
 
     # FlightGear install root (directory that contains bin/fgfs.exe and data/).
     # - Env wins: SIVAKS_FG_ROOT or FG_ROOT
-    # - Repo layout: ER_FORCE/game/sivaks_logging_version/this file ->
-    #   <parent-of-ER_FORCE>/yan/FlightGear_2020_3
+    # - Repo layout: ERR_FORCE/game/sivaks_logging_version/this file ->
+    #   <parent-of-ERR_FORCE>/yan/FlightGear_2020_3
     # - Legacy layout: .../FlightGear_2020_3/sivaks_logging_version/this file -> parent = FG root
     _fg_root = (os.environ.get("SIVAKS_FG_ROOT") or os.environ.get("FG_ROOT") or "").strip()
     _exe = lambda root: os.path.join(root, "bin", "fgfs.exe")
@@ -651,7 +651,7 @@ if __name__ == "__main__":
     if os.environ.get("SIVAKS_NOTRIM", "").strip().lower() in ("1", "true", "yes", "y", "on"):
         fg_command_args.append("--notrim")
 
-    # Fullscreen: set by the ER_FORCE desktop UI, or SIVAKS_FG_FULLSCREEN=1 for CLI.
+    # Fullscreen: set by the ERR_FORCE desktop UI, or SIVAKS_FG_FULLSCREEN=1 for CLI.
     if os.environ.get("SIVAKS_FG_FULLSCREEN", "").strip().lower() in ("1", "true", "yes", "y", "on"):
         # 2020.3 Windows build rejects --fullscreen; --enable-fullscreen is recognized.
         fg_command_args.append("--enable-fullscreen")
