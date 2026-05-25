@@ -1,8 +1,8 @@
-# ER Force – Flight Fatigue & Eye Tracking Research Platform
+# ERR Force – Flight Fatigue & Eye Tracking Research Platform
 
 ## Overview
 
-ER Force is a research-oriented flight simulation platform focused on:
+ERR Force is a research-oriented flight simulation platform focused on:
 
 * Fatigue estimation
 * Eye tracking integration
@@ -421,7 +421,7 @@ Still worth documenting later:
 
 # Summary
 
-ER Force is a Python + PySide6 research platform for fatigue estimation and eye tracking experiments using an interactive flight/game environment.
+ERR Force is a Python + PySide6 research platform for fatigue estimation and eye tracking experiments using an interactive flight/game environment.
 
 The project combines:
 
@@ -446,7 +446,7 @@ making it suitable for both rapid experimentation and future hardware integratio
 
 ---
 
-ER Force is a multidisciplinary flight simulation research platform combining:
+ERR Force is a multidisciplinary flight simulation research platform combining:
 
 * Cognitive neuroscience
 * Human factors research

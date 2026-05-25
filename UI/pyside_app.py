@@ -51,16 +51,16 @@ from core.subject_repository import (
     update_subject_baseline,
 )
 from score.eye_features import apply_eye_features_fallback
-from ui.eye_runtime import EyeTrackingRuntime, get_camera_index
-from ui.game_runtime import (
+from UI.eye_runtime import EyeTrackingRuntime, get_camera_index
+from UI.game_runtime import (
     create_voice_session,
     finalize_voice_session,
     is_pid_running,
     start_flightgear_session,
     terminate_session_process,
 )
-from ui.results_export import build_result_export_rows, export_result_csv, save_report_once
-from ui.theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
+from UI.results_export import build_result_export_rows, export_result_csv, save_report_once
+from UI.theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
 
 MODALITY_ORDER = ["game", "eye", "voice", "subjective"]
 MODALITY_LABELS = {"game": "משחק", "eye": "עיניים", "voice": "קול", "subjective": "שאלון"}
@@ -596,15 +596,8 @@ class GameScreen(BaseScreen):
         self.stop_button = QPushButton("סיים משחק")
         self.status_label = message("המשחק מוכן")
         self.voice_label = message("")
-        self.eye_status_label = message("מצלמה: לא פעילה")
+        self.eye_status_label = message("עקיב עיניים: לא פעיל")
         self.error_label = message("", "errorText")
-
-        # רכיב תצוגה מקדימה למצלמה (לדעתי לא רלוונטי  כי לא מציג כלום במצב הנוכחי, אבל השארתי אותו למקרה שירצו להחזיר בעתיד)
-        self.camera_preview = QLabel()
-        self.camera_preview.setFixedSize(320, 240)
-        self.camera_preview.setAlignment(Qt.AlignCenter)
-        self.camera_preview.setStyleSheet("border: 2px dashed #004466; background-color: #001a33;")
-        self.camera_preview.setText("תצוגה מקדימה של המצלמה")
 
         self.root.addWidget(title("הפעלת משחק"))
         info_panel = panel()
@@ -625,13 +618,6 @@ class GameScreen(BaseScreen):
         self.root.addWidget(info_panel)
         self.root.addWidget(self.audio_only)
 
-        # הוספת התצוגה המקדימה למרכז הפריסה
-        preview_layout = QHBoxLayout()
-        preview_layout.addStretch()
-        preview_layout.addWidget(self.camera_preview)
-        preview_layout.addStretch()
-        self.root.addLayout(preview_layout)
-
         buttons = QHBoxLayout()
         buttons.addWidget(self.start_button)
         buttons.addWidget(self.stop_button)
@@ -650,44 +636,33 @@ class GameScreen(BaseScreen):
         self.error_label.clear()
         self._sync_buttons()
 
-        # הפעלת תצוגה מקדימה של המצלמה בעת כניסה למסך
-        cam_idx = get_camera_index()
-        self.app.eye_runtime.start_preview(cam_idx, self._on_preview_frame)
-
         if self.app.fg_pid or self.app.voice_only_running:
             self.timer.start()
         else:
             self.timer.stop()
             self.status_label.setText("Ready")
             self.voice_label.clear()
-            self.eye_status_label.setText("מצלמה: מוכנה להקלטה")
-
-    def _on_preview_frame(self, qimg):
-        # פונקציית היזון חוזר לעדכון ה-QLabel בפריימים מהמצלמה
-        pix = QPixmap.fromImage(qimg)
-        self.camera_preview.setPixmap(
-            pix.scaled(self.camera_preview.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        )
+            self.eye_status_label.setText("עקיב עיניים: מוכן לכיול")
 
     def start_session(self):
         self.error_label.clear()
-
-        # עצירת התצוגה המקדימה לפני תחילת ההקלטה הממשית
-        self.app.eye_runtime.stop_preview()
-        self.camera_preview.clear()
-        self.camera_preview.setText("מקליט...")
+        self.start_button.setEnabled(False)
+        self.eye_status_label.setText("מעקב עיניים: מתחבר...")
+        QGuiApplication.processEvents()
 
         if not self.app.eye_runtime.calibration_passed:
             self.eye_status_label.setText("מעקב עיניים: מבצע כיול...")
             QGuiApplication.processEvents()
             calibrated, calibration_message = self.app.eye_runtime.run_calibration(
-                parent=self,
+                parent=self.app,
+                screen=self.app.screen(),
                 controller=self.app.controller,
             )
             if not calibrated:
                 self.app.eye_runtime.last_error = calibration_message
                 self.eye_status_label.setText(f"כיול נכשל: {calibration_message}")
                 self.set_error(f"שגיאת כיול מעקב עיניים: {calibration_message}")
+                self._sync_buttons()
                 return
             self.eye_status_label.setText("מעקב עיניים: כיול הושלם")
 
@@ -1176,7 +1151,7 @@ class BaselineSavedScreen(BaseScreen):
 class FatigueApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("ER Force Fatigue App")
+        self.setWindowTitle("ERR Force Fatigue App")
         self.resize(1180, 820)
         self.setStyleSheet(APP_STYLESHEET)
 
@@ -1221,7 +1196,7 @@ def main():
     install_safe_stdio()
 
     app = QApplication(sys.argv)
-    app.setApplicationName("ER Force")
+    app.setApplicationName("ERR Force")
     window = FatigueApp()
     window.show()
     return app.exec()

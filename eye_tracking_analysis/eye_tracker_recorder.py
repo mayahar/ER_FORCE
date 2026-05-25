@@ -40,15 +40,24 @@ import json
 
 
 def _safe_print(*args, sep=" ", end="\n", flush=False):
-    message = sep.join(str(arg) for arg in args) + end
     stream = sys.stdout
+    if stream is None or not hasattr(stream, "write"):
+        return
+    message = sep.join(str(arg) for arg in args) + end
     encoding = getattr(stream, "encoding", None) or "utf-8"
-    if hasattr(stream, "buffer"):
-        stream.buffer.write(message.encode(encoding, errors="replace"))
-    else:
-        stream.write(message.encode(encoding, errors="replace").decode(encoding, errors="replace"))
-    if flush:
-        stream.flush()
+    try:
+        if hasattr(stream, "buffer"):
+            stream.buffer.write(message.encode(encoding, errors="replace"))
+        else:
+            stream.write(
+                message.encode(encoding, errors="replace").decode(
+                    encoding, errors="replace"
+                )
+            )
+        if flush:
+            stream.flush()
+    except (AttributeError, OSError, ValueError, TypeError):
+        return
 
 
 @dataclass
@@ -85,6 +94,10 @@ class EyeTrackerRecorder:
         
     def find_and_select_eyetracker(self, auto_select_first: bool = True) -> bool:
         """Find and select an eye tracker"""
+        global tr
+        if tr is None:
+            tr = _load_tobii_research()
+
         _safe_print("Looking for eye trackers...")
         if tr is None:
             _safe_print("Tobii SDK is not available. Eye tracking is disabled.")

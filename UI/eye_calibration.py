@@ -1,4 +1,4 @@
-"""Fullscreen Tobii calibration: head position → 5-point dots → fixation preview."""
+"""Fullscreen Tobii calibration: head position → calibration dots → fixation preview."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import math
 from pathlib import Path
 
 import tobii_research as tr
-from PySide6.QtCore import Qt, QTimer, Signal, QEventLoop, QRectF
+from PySide6.QtCore import Qt, QTimer, Signal, QRectF
 from PySide6.QtGui import (
     QFont,
     QGuiApplication,
@@ -34,22 +34,22 @@ from tobii_research import (
     ScreenBasedCalibration,
 )
 
-# Same order as Tobii SDK calibration example (center, then corners).
+# Center + three corners (4 points — enough for Tobii, faster than full 5-corner set).
 DEFAULT_CALIBRATION_POINTS = (
     (0.5, 0.5),
-    (0.1, 0.1),
-    (0.1, 0.9),
-    (0.9, 0.1),
-    (0.9, 0.9),
+    (0.12, 0.12),
+    (0.88, 0.12),
+    (0.5, 0.88),
 )
 
-DOT_LOOK_MS = 2000
-DOT_COLLECT_DELAY_MS = 80
-DOT_EXPLODE_MS = 550
-DOT_GAP_MS = 400
+DOT_LOOK_MS = 1200
+DOT_COLLECT_DELAY_MS = 40
+DOT_EXPLODE_MS = 280
+DOT_GAP_MS = 150
 COLLECT_PASSES_PER_POINT = 1
-DOT_COLLECT_RETRIES = 3
-DOT_EXPLODE_PARTICLES = 18
+DOT_COLLECT_RETRIES = 2
+DOT_EXPLODE_PARTICLES = 10
+DOT_EXPLODE_SAFETY_MS = DOT_EXPLODE_MS + 250
 
 LEFT_EYE_COLOR = QColor("#42a5f5")
 RIGHT_EYE_COLOR = QColor("#66bb6a")
@@ -60,7 +60,10 @@ SUCCESS_STATUSES = {
     CALIBRATION_STATUS_SUCCESS_RIGHT_EYE,
 }
 
-HEAD_HOLD_SECONDS = 4.0
+HEAD_HOLD_SECONDS = 1.0
+HEAD_TO_DOTS_DELAY_MS = 120
+HEAD_POSITION_ENABLED = True
+TRACKER_CONNECT_TIMEOUT_MS = 20000
 POSITION_POLL_MS = 50
 HEAD_POSITION_SMOOTH_ALPHA = 0.12
 HEAD_BAD_STREAK_BEFORE_DECAY = 5
@@ -119,9 +122,9 @@ def _in_box(
 
 
 def _distance_hint_for_z(z: float) -> str:
-    if z > HEAD_Z_INNER[0]:
+    if z < HEAD_Z_INNER[0]:
         return "forward"
-    if z < HEAD_Z_INNER[1]:
+    if z > HEAD_Z_INNER[1]:
         return "back"
     return ""
 
@@ -130,14 +133,14 @@ def _movement_hint_for_position(x: float, y: float, z: float) -> str:
     distance_hint = _distance_hint_for_z(z)
     if distance_hint:
         return distance_hint
-    if x > HEAD_X_INNER[0]:
-        return "right"
-    if x < HEAD_X_INNER[1]:
+    if x > HEAD_X_INNER[1]:
         return "left"
-    if y > HEAD_Y_INNER[0]:
-        return "up"
-    if y < HEAD_Y_INNER[1]:
+    if x < HEAD_X_INNER[0]:
+        return "right"
+    if y > HEAD_Y_INNER[1]:
         return "down"
+    if y < HEAD_Y_INNER[0]:
+        return "up"
     return "center"
 
 
@@ -423,6 +426,10 @@ class CalibrationDotCanvas(QWidget):
         self._look_timer.setSingleShot(True)
         self._look_timer.timeout.connect(self._on_look_finished)
 
+        self._explosion_safety = QTimer(self)
+        self._explosion_safety.setSingleShot(True)
+        self._explosion_safety.timeout.connect(self._force_explosion_done)
+
     def start_point(self, norm_x: float, norm_y: float) -> None:
         self._look_timer.stop()
         self._anim_timer.stop()
@@ -454,6 +461,7 @@ class CalibrationDotCanvas(QWidget):
 
     def hide_point(self) -> None:
         self._look_timer.stop()
+        self._explosion_safety.stop()
         self._anim_timer.stop()
         self._phase = "hidden"
         self.update()
@@ -466,7 +474,18 @@ class CalibrationDotCanvas(QWidget):
             angle = (2.0 * math.pi * i / DOT_EXPLODE_PARTICLES) + (i * 0.17)
             speed = 0.75 + (i % 5) * 0.08
             self._particles.append((angle, speed))
+        self._anim_timer.start()
+        self._explosion_safety.start(DOT_EXPLODE_SAFETY_MS)
         self.update()
+
+    def _force_explosion_done(self) -> None:
+        if self._phase != "exploding":
+            return
+        self._phase = "hidden"
+        self._anim_timer.stop()
+        self._explosion_safety.stop()
+        self.update()
+        self.explosion_finished.emit()
 
     def _tick_animation(self) -> None:
         if self._phase == "looking":
@@ -478,6 +497,7 @@ class CalibrationDotCanvas(QWidget):
             if self._explode_t >= 1.0:
                 self._phase = "hidden"
                 self._anim_timer.stop()
+                self._explosion_safety.stop()
                 self.update()
                 self.explosion_finished.emit()
                 return
@@ -710,12 +730,44 @@ class FixationMapCanvas(QWidget):
             x += 36
 
 
+class ConnectingCanvas(QWidget):
+    """Simple splash while the Tobii SDK connects on the main thread."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._message = "מתחבר לעקיב העיניים..."
+
+    def set_message(self, text: str) -> None:
+        self._message = text
+        self.update()
+
+    def paintEvent(self, _event) -> None:
+        painter = QPainter(self)
+        painter.fillRect(self.rect(), QColor("#101010"))
+        painter.setPen(QColor("#ffffff"))
+        title_font = QFont("Segoe UI", 28, QFont.Weight.DemiBold)
+        sub_font = QFont("Segoe UI", 18)
+        w, h = self.width(), self.height()
+        painter.setFont(title_font)
+        painter.drawText(0, h // 2 - 40, w, 40, Qt.AlignmentFlag.AlignHCenter, "Eye calibration")
+        painter.setFont(sub_font)
+        painter.setPen(QColor("#b0bec5"))
+        painter.drawText(0, h // 2 + 10, w, 36, Qt.AlignmentFlag.AlignHCenter, self._message)
+
+
 class EyeCalibrationDialog(QDialog):
     finished_calibration = Signal(bool, str)
 
-    def __init__(self, eyetracker, parent=None, screen=None, save_dir: Path | None = None):
+    def __init__(
+        self,
+        runtime,
+        parent=None,
+        screen=None,
+        save_dir: Path | None = None,
+    ):
         super().__init__(parent)
-        self.eyetracker = eyetracker
+        self._runtime = runtime
+        self.eyetracker = None
         self.target_screen = screen or QGuiApplication.primaryScreen()
         self.save_dir = save_dir
         self._points = list(DEFAULT_CALIBRATION_POINTS)
@@ -736,19 +788,25 @@ class EyeCalibrationDialog(QDialog):
         self._dot_busy = False
         self._dot_token = 0
         self._awaiting_explosion = False
+        self._begin_started = False
+        self._connect_completed = False
+        self._gaze_wake_subscribed = False
 
         self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint
+            Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint
         )
         self.setModal(True)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         self.stack = QStackedWidget(self)
+        self.connecting_canvas = ConnectingCanvas(self)
         self.head_canvas = HeadPositionCanvas(self)
         self.dot_canvas = CalibrationDotCanvas(self)
         self.preview_canvas = FixationMapCanvas(self)
+        self.stack.addWidget(self.connecting_canvas)
         self.stack.addWidget(self.head_canvas)
         self.stack.addWidget(self.dot_canvas)
         self.stack.addWidget(self.preview_canvas)
@@ -769,12 +827,123 @@ class EyeCalibrationDialog(QDialog):
         self.dot_canvas.look_finished.connect(self._on_dot_look_finished)
         self.dot_canvas.explosion_finished.connect(self._on_dot_explosion_finished)
 
+        self.stack.setCurrentWidget(self.connecting_canvas)
+        self.connecting_canvas.set_message("מתחבר לעקיב העיניים...")
+        self.status_label.setText("מתחבר לעקיב העיניים...")
+        self.status_label.show()
+
         if self.target_screen is not None:
             self.setGeometry(self.target_screen.geometry())
 
     def begin(self) -> None:
-        self.status_label.hide()
-        self._start_head_position_phase()
+        if self._begin_started:
+            return
+        self._begin_started = True
+
+        self.stack.setCurrentWidget(self.connecting_canvas)
+        self.connecting_canvas.set_message("מתחבר לעקיב העיניים...")
+        self.status_label.setText("מתחבר לעקיב העיניים...")
+        self.status_label.show()
+        app = QApplication.instance()
+        if app is not None:
+            app.processEvents()
+
+        self._connect_completed = False
+        self._connect_timeout = QTimer(self)
+        self._connect_timeout.setSingleShot(True)
+        self._connect_timeout.timeout.connect(self._on_tracker_connect_timeout)
+        self._connect_timeout.start(TRACKER_CONNECT_TIMEOUT_MS)
+
+        # Tobii SDK must run on the main thread — background connect hangs forever
+        # and the IR lights never turn on.
+        QTimer.singleShot(100, self._connect_tracker)
+
+    def _connect_tracker(self) -> None:
+        app = QApplication.instance()
+        try:
+            recorder = getattr(self._runtime, "recorder", None)
+            if recorder is not None and getattr(recorder, "eyetracker", None) is not None:
+                ok, err = True, ""
+            else:
+                if app is not None:
+                    app.processEvents()
+                ok, err = self._runtime.ensure_tracker()
+
+            if app is not None:
+                app.processEvents()
+
+            self._connect_completed = True
+            if hasattr(self, "_connect_timeout"):
+                self._connect_timeout.stop()
+
+            recorder = getattr(self._runtime, "recorder", None)
+            if (
+                not ok
+                or recorder is None
+                or getattr(recorder, "eyetracker", None) is None
+            ):
+                self._finish(False, err or "לא נמצא עוקב עיניים.")
+                return
+
+            self.eyetracker = recorder.eyetracker
+            self.connecting_canvas.set_message("מפעיל את עקיב העיניים...")
+            self.status_label.setText("מפעיל את עקיב העיניים...")
+            if app is not None:
+                app.processEvents()
+
+            self._wake_tracker_lights()
+            QTimer.singleShot(300, self._begin_calibration_points)
+        except Exception as exc:
+            self._connect_completed = True
+            if hasattr(self, "_connect_timeout"):
+                self._connect_timeout.stop()
+            self._finish(False, f"חיבור לעקיב העיניים נכשל: {exc}")
+
+    def _on_gaze_wake(self, _data) -> None:
+        pass
+
+    def _wake_tracker_lights(self) -> None:
+        """Brief gaze subscription turns on Tobii IR illuminators before calibration."""
+        if self.eyetracker is None or tr is None or self._gaze_wake_subscribed:
+            return
+        try:
+            self.eyetracker.subscribe_to(
+                tr.EYETRACKER_GAZE_DATA,
+                self._on_gaze_wake,
+                as_dictionary=True,
+            )
+            self._gaze_wake_subscribed = True
+            app = QApplication.instance()
+            if app is not None:
+                app.processEvents()
+        except Exception:
+            pass
+
+    def _unsubscribe_gaze_wake(self) -> None:
+        if not self._gaze_wake_subscribed or self.eyetracker is None or tr is None:
+            return
+        try:
+            self.eyetracker.unsubscribe_from(
+                tr.EYETRACKER_GAZE_DATA,
+                self._on_gaze_wake,
+            )
+        except Exception:
+            pass
+        self._gaze_wake_subscribed = False
+
+    def _on_tracker_connect_timeout(self) -> None:
+        if self._connect_completed:
+            return
+        self._finish(
+            False,
+            "חיבור לעקיב העיניים נכשל (timeout). ודא שה-Tobii מחובר, דולק, ו-Tobii Pro Eye Tracker Manager רץ.",
+        )
+
+    def _begin_calibration_points(self) -> None:
+        if HEAD_POSITION_ENABLED:
+            self._start_head_position_phase()
+        else:
+            self._start_dot_calibration()
 
     def _set_status(self, text: str) -> None:
         if not self.status_label.isVisible():
@@ -829,16 +998,27 @@ class EyeCalibrationDialog(QDialog):
         self._hold_seconds = 0.0
         self._head_smoother.reset()
         self._last_status_key = ""
+        self.status_label.hide()
         self._apply_display_area()
         if not self._subscribe_position_guide():
+            QTimer.singleShot(80, self._start_dot_calibration)
             return
         self._position_timer.start()
+
+    def _skip_head_position_phase(self) -> None:
+        if self._calibration is not None:
+            return
+        self._position_timer.stop()
+        self._unsubscribe_position_guide()
+        self._start_dot_calibration()
 
     def _tick_head_position(self) -> None:
         dt = POSITION_POLL_MS / 1000.0
         data = self._latest_guide
         if data is None:
-            x, y, z, ok, distance_hint = self._head_smoother.update(None, None, None, dt)
+            x, y, z, ok, distance_hint = self._head_smoother.update(
+                None, None, None, dt
+            )
         else:
             raw_x, raw_y, raw_z, _raw_ok, _ = _parse_position_guide(data)
             x, y, z, ok, distance_hint = self._head_smoother.update(
@@ -851,30 +1031,18 @@ class EyeCalibrationDialog(QDialog):
             x, y, z, ok, distance_hint, hold_ratio=ratio
         )
 
-        remaining = max(0.0, HEAD_HOLD_SECONDS - self._hold_seconds)
         if ok and self._hold_seconds >= HEAD_HOLD_SECONDS:
             self._position_timer.stop()
             self._unsubscribe_position_guide()
-            QTimer.singleShot(400, self._start_dot_calibration)
-            return
-
-        if ok:
-            status_key = f"ok:{int(remaining * 10)}"
-            if status_key != self._last_status_key:
-                self._last_status_key = status_key
-        elif distance_hint == "forward":
-            if self._last_status_key != "forward":
-                self._last_status_key = "forward"
-        elif distance_hint == "back":
-            if self._last_status_key != "back":
-                self._last_status_key = "back"
-        elif self._last_status_key != "center":
-            self._last_status_key = "center"
+            QTimer.singleShot(HEAD_TO_DOTS_DELAY_MS, self._start_dot_calibration)
 
     def _start_dot_calibration(self) -> None:
         self.stack.setCurrentWidget(self.dot_canvas)
-        self.status_label.hide()
+        total = len(self._points)
+        self.status_label.setText(f"עקבו אחרי הנקודות האדומות (1/{total})")
+        self.status_label.show()
         self._apply_display_area()
+        self._unsubscribe_gaze_wake()
 
         try:
             self._calibration = ScreenBasedCalibration(self.eyetracker)
@@ -885,7 +1053,7 @@ class EyeCalibrationDialog(QDialog):
 
         self._point_index = 0
         self._collect_pass = 0
-        QTimer.singleShot(500, self._collect_next_point)
+        QTimer.singleShot(250, self._collect_next_point)
 
     def _collect_next_point(self) -> None:
         if self._calibration is None:
@@ -904,6 +1072,12 @@ class EyeCalibrationDialog(QDialog):
         norm_x, norm_y = self._points[self._point_index]
         self._pending_collect = (norm_x, norm_y)
         self._collect_pass = 0
+        step = self._point_index + 1
+        total_pts = len(self._points)
+        self.status_label.setText(
+            f"עקבו אחרי הנקודות האדומות ({step}/{total_pts})"
+        )
+        self.status_label.show()
         self.dot_canvas.start_point(norm_x, norm_y)
 
     def _on_dot_look_finished(self) -> None:
@@ -922,21 +1096,20 @@ class EyeCalibrationDialog(QDialog):
         self._dot_busy = True
         token = self._dot_token
         norm_x, norm_y = self._pending_collect
-        step = self._point_index + 1
 
         app = QApplication.instance()
-        if app is not None:
-            app.processEvents()
-
         status = CALIBRATION_STATUS_FAILURE
         try:
             for _ in range(DOT_COLLECT_RETRIES):
                 if token != self._dot_token:
                     return
+                if app is not None:
+                    app.processEvents()
                 status = self._calibration.collect_data(norm_x, norm_y)
                 if status != CALIBRATION_STATUS_FAILURE:
                     break
         except Exception as exc:
+            self._dot_busy = False
             self._abort_calibration()
             self._finish(False, f"איסוף נתוני כיול נכשל: {exc}")
             return
@@ -955,12 +1128,17 @@ class EyeCalibrationDialog(QDialog):
         self._awaiting_explosion = True
         self.dot_canvas.begin_explosion()
 
-    def _on_dot_explosion_finished(self) -> None:
+    def _on_dot_explosion_finished(self, _wait_attempt: int = 0) -> None:
         if self._calibration is None or not self._awaiting_explosion:
             return
         if self._dot_busy:
-            QTimer.singleShot(50, self._on_dot_explosion_finished)
-            return
+            if _wait_attempt < 40:
+                QTimer.singleShot(
+                    50,
+                    lambda: self._on_dot_explosion_finished(_wait_attempt + 1),
+                )
+                return
+            self._dot_busy = False
 
         self._awaiting_explosion = False
 
@@ -981,6 +1159,15 @@ class EyeCalibrationDialog(QDialog):
 
     def _finalize_calibration(self) -> None:
         self.dot_canvas.hide_point()
+        if self._calibration is None:
+            self._finish(False, "כיול בוטל.")
+            return
+
+        self.status_label.setText("מחשב כיול...")
+        self.status_label.show()
+        app = QApplication.instance()
+        if app is not None:
+            app.processEvents()
 
         try:
             self._calibration_result = self._calibration.compute_and_apply()
@@ -988,9 +1175,8 @@ class EyeCalibrationDialog(QDialog):
             self._abort_calibration()
             self._finish(False, f"חישוב כיול נכשל: {exc}")
             return
-        finally:
-            self._abort_calibration()
 
+        self._abort_calibration()
         if self._calibration_result.status not in SUCCESS_STATUSES:
             self._finish(False, "כיול לא עבר. נסה שוב.")
             return
@@ -1023,9 +1209,10 @@ class EyeCalibrationDialog(QDialog):
         message = "הקליברציה הסתיימה בהצלחה, המשחק יופעל כעת."
         self.status_label.show()
         self.status_label.setText(message)
-        QTimer.singleShot(3200, lambda: self._finish(True, message))
+        QTimer.singleShot(1800, lambda: self._finish(True, message))
 
     def _abort_calibration(self) -> None:
+        self._unsubscribe_gaze_wake()
         if self._calibration is None:
             return
         try:
@@ -1050,6 +1237,10 @@ class EyeCalibrationDialog(QDialog):
         self.close()
 
     def keyPressEvent(self, event) -> None:
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Space):
+            if self._calibration is None and self._position_timer.isActive():
+                self._skip_head_position_phase()
+                return
         if event.key() == Qt.Key.Key_Escape:
             self._position_timer.stop()
             self._unsubscribe_position_guide()
@@ -1059,15 +1250,61 @@ class EyeCalibrationDialog(QDialog):
         super().keyPressEvent(event)
 
 
+def _resolve_calibration_screen(parent, screen):
+    if screen is not None:
+        return screen
+    if parent is not None:
+        if hasattr(parent, "screen"):
+            scr = parent.screen()
+            if scr is not None:
+                return scr
+        if hasattr(parent, "window"):
+            win = parent.window()
+            if win is not None and hasattr(win, "screen"):
+                scr = win.screen()
+                if scr is not None:
+                    return scr
+    return QGuiApplication.primaryScreen()
+
+
+def _present_fullscreen_dialog(dialog: EyeCalibrationDialog, screen) -> None:
+    """Force the calibration overlay onto the monitor where the app runs."""
+    if screen is not None:
+        dialog.setGeometry(screen.geometry())
+    dialog.show()
+    app = QApplication.instance()
+    if app is not None:
+        app.processEvents()
+
+    handle = dialog.windowHandle()
+    if handle is None:
+        dialog.show()
+        if app is not None:
+            app.processEvents()
+        handle = dialog.windowHandle()
+    if handle is not None and screen is not None:
+        handle.setScreen(screen)
+        dialog.setGeometry(screen.geometry())
+
+    dialog.showFullScreen()
+    dialog.raise_()
+    dialog.activateWindow()
+    dialog.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+    if app is not None:
+        app.processEvents()
+
+
 def run_eye_calibration(
-    eyetracker,
+    runtime,
     parent=None,
     screen=None,
     save_dir: Path | None = None,
 ) -> tuple[bool, str, QPixmap | None]:
+    screen = _resolve_calibration_screen(parent, screen)
+
     dialog = EyeCalibrationDialog(
-        eyetracker,
-        parent=parent,
+        runtime,
+        parent=None,
         screen=screen,
         save_dir=save_dir,
     )
@@ -1079,12 +1316,25 @@ def run_eye_calibration(
         outcome["preview"] = dialog.preview_pixmap
 
     dialog.finished_calibration.connect(_on_done)
-    dialog.showFullScreen()
-    dialog.raise_()
-    dialog.activateWindow()
-    QTimer.singleShot(200, dialog.begin)
 
-    loop = QEventLoop()
-    dialog.finished.connect(loop.quit)
-    loop.exec()
+    main_window = None
+    if parent is not None and hasattr(parent, "window"):
+        main_window = parent.window()
+
+    _present_fullscreen_dialog(dialog, screen)
+    if main_window is not None:
+        main_window.hide()
+        app = QApplication.instance()
+        if app is not None:
+            app.processEvents()
+
+    try:
+        dialog.begin()
+        dialog.exec()
+    finally:
+        if main_window is not None:
+            main_window.show()
+            main_window.raise_()
+            main_window.activateWindow()
+
     return outcome["success"], outcome["message"], outcome["preview"]

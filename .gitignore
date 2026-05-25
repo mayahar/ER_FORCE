@@ -205,10 +205,11 @@ game/data/AI/Aircraft/performancedb.xml
 # =========================
 # Packaging / build output
 # =========================
-build/pyinstaller-er-force/
+build/pyinstaller-err-force/
 dist/
+install/ERR_FORCE.spec
 install/ER_FORCE.spec
-# ER_FORCE.exe is committed so collaborators get the launcher for free.
+# ERR_FORCE.exe is committed so collaborators get the launcher for free.
 
 # =========================
 # Runtime data (per-session outputs)

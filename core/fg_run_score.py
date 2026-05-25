@@ -22,7 +22,8 @@ def _runs_root(explicit: str | None = None) -> Path | None:
 
 def _launcher_script(runs_root: Path) -> Path:
     env = (
-        os.environ.get("ER_FORCE_FG_SCRIPT")
+        os.environ.get("ERR_FORCE_FG_SCRIPT")
+        or os.environ.get("ER_FORCE_FG_SCRIPT")
         or os.environ.get("SIVAKS_LOGGING_FG_SCRIPT")
         or ""
     ).strip()

@@ -54,7 +54,7 @@ function Sync-SdkNative {
     & $syncScript -SourceRoot $SourceRoot
 }
 
-Write-Host "ER_FORCE eye-tracking setup check"
+Write-Host "ERR_FORCE eye-tracking setup check"
 Write-Host "Repo: $RepoRoot"
 
 if ($OpenDownloads) {

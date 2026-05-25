@@ -36,6 +36,9 @@ class EyeTrackingRuntime:
         self.calibration_preview_path: str | None = None
 
     def _ensure(self) -> None:
+        from eye_tracking_analysis.stdout_safe import install_safe_stdio
+
+        install_safe_stdio()
         if self.recorder is None:
             self.recorder = EyeTrackerRecorder()
         if self.analyzer is None:
@@ -53,6 +56,14 @@ class EyeTrackingRuntime:
         self.calibration_preview_path = None
 
     def ensure_tracker(self) -> tuple[bool, str]:
+        import sys
+
+        sdk_dir = REPO_ROOT / "TobiiPro_SDK"
+        if sdk_dir.is_dir():
+            sdk_path = str(sdk_dir)
+            if sdk_path not in sys.path:
+                sys.path.insert(0, sdk_path)
+
         self._ensure()
         if self.recorder is None:
             self.tracker_connected = False
@@ -85,19 +96,15 @@ class EyeTrackingRuntime:
     ) -> tuple[bool, str]:
         from .eye_calibration import run_eye_calibration
 
-        connected, error = self.ensure_tracker()
-        if not connected:
-            self.calibration_passed = False
-            self.calibration_message = error
-            return False, error
-
         save_dir = None
         session = getattr(controller, "session", None) if controller else None
         if session is not None and getattr(session, "eye_dir", None):
             save_dir = Path(session.eye_dir)
 
+        # Show the calibration UI first; connect to Tobii inside the dialog so
+        # the user sees a fullscreen window instead of a frozen "מבצע כיול" label.
         success, message, _preview = run_eye_calibration(
-            self.recorder.eyetracker,
+            runtime=self,
             parent=parent,
             screen=screen,
             save_dir=save_dir,
@@ -121,12 +128,14 @@ class EyeTrackingRuntime:
             return
         eye_dir = Path(session.eye_dir)
         eye_dir.mkdir(parents=True, exist_ok=True)
+        from .eye_calibration import DEFAULT_CALIBRATION_POINTS
+
         payload = {
             "passed": True,
             "message": message,
             "tracker": self.tracker_label,
             "completed_at": datetime.now().isoformat(timespec="seconds"),
-            "points": 5,
+            "points": len(DEFAULT_CALIBRATION_POINTS),
         }
         (eye_dir / "calibration.json").write_text(
             json.dumps(payload, ensure_ascii=False, indent=2),

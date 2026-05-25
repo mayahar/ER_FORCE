@@ -6,7 +6,7 @@ set "PYTHONIOENCODING=utf-8"
 set "PYTHONUTF8=1"
 
 echo.
-echo ER_FORCE - eye tracking verify (quick re-check)
+echo ERR_FORCE - eye tracking verify (quick re-check)
 echo For full colleague setup use: eye_tracking_setup\setup_colleague.cmd
 echo Repo: %ROOT%
 echo.
