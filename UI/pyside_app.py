@@ -819,8 +819,9 @@ class GameScreen(BaseScreen):
         self._sync_buttons()
 
     def stop_session(self):
+        self.timer.stop()
+        self.app.fg_finished_handled = True
         self.eye_status_label.setText("מעקב עיניים: מעבד נתונים...")
-        QGuiApplication.processEvents()
 
         eye_features = self.app.eye_runtime.stop_recording(self.app.controller)
         if eye_features:
@@ -828,11 +829,10 @@ class GameScreen(BaseScreen):
             self.eye_status_label.setText("מעקב עיניים: העיבוד הושלם בהצלחה")
         else:
             apply_eye_features_fallback(self.app.controller)
-            error_message = self.app.eye_runtime.last_error or "לא הופקו נתוני עיניים מספקים."
             self.eye_status_label.setText(
-                "מעקב עיניים: לא הופקו נתונים מספקים (הופעלו ערכי גיבוי)"
+                "מעקב עיניים: נשמרו נתונים גולמיים; המדידה לא תיכלל בציון"
             )
-            self.set_error(f"שגיאת מעקב עיניים: {error_message}")
+            self.set_error("")
 
         if self.app.fg_pid:
             ok, error = terminate_session_process(self.app.fg_pid)
@@ -840,38 +840,10 @@ class GameScreen(BaseScreen):
                 self.set_error(f"Failed to stop session: {error}")
                 return
 
-        voice_data = finalize_voice_session(self.app.controller, self.app.voice_session)
-        
-        if voice_data and voice_features_unused(voice_data.get("summary")):
-            msg = QMessageBox(self)
-            msg.setWindowTitle("איכות הקלטת קול")
-            msg.setText("הקלטת הקול לא הפיקה ערכים תקינים. האם ברצונך לבצע הקלטה חוזרת של הקול בלבד?")
-            msg.setStandardButtons(QMessageBox.כן | QMessageBox.לא)
-            msg.setDefaultButton(QMessageBox.כן)
-            msg.setLayoutDirection(Qt.RightToLeft)
-            
-            if msg.exec() == QMessageBox.לא:
-                # יצירת סשן קול חדש ללא השהיה
-                self.app.voice_session = create_voice_session(self.app.controller)
-                for event in self.app.voice_session.events:
-                    event.trigger_time = 0.0  # הקלטה מיידית ללא המתנה של 5 שניות
-                
-                self.app.voice_session.start_session()
-                self.app.fg_pid = 0
-                self.app.voice_only_running = True
-                self.app.fg_started_at = time.time()
-                self.timer.start()
-                self._sync_buttons()
-                self.status_label.setText("מבצע הקלטת קול חוזרת...")
-                return
-
+        self._finalize_voice_for_results()
         self.app.voice_session = None
-        self.app.fg_pid = 0
-        self.app.voice_only_running = False
-        self.app.fg_started_at = None
         self.app.result = None
-        self.timer.stop()
-        self.app.navigate("result")
+        self._finish_to_results()
 
     def _tick(self):
         if self.app.voice_session is not None:
@@ -882,64 +854,48 @@ class GameScreen(BaseScreen):
                 self.set_error(f"Voice session update failed: {exc}")
 
         fg_running = is_pid_running(self.app.fg_pid)
+        if self.app.fg_pid and not fg_running and self.app.fg_finished_handled:
+            return
+
         if self.app.fg_pid and not fg_running:
+            self.app.fg_finished_handled = True
+            self.timer.stop()
             self.eye_status_label.setText("מעקב עיניים: מעבד נתונים...")
-            QGuiApplication.processEvents()
             eye_features = self.app.eye_runtime.stop_recording(self.app.controller)
             if eye_features:
                 self.app.controller.set_eye_features(eye_features)
+                self.eye_status_label.setText("מעקב עיניים: העיבוד הושלם בהצלחה")
             else:
                 apply_eye_features_fallback(self.app.controller)
-                error_message = self.app.eye_runtime.last_error or "לא הופקו נתוני עיניים מספקים."
-                self.set_error(f"שגיאת מעקב עיניים: {error_message}")
+                self.eye_status_label.setText(
+                    "מעקב עיניים: נשמרו נתונים גולמיים; המדידה לא תיכלל בציון"
+                )
+                self.set_error("")
 
             elapsed = time.time() - float(self.app.fg_started_at or time.time())
             if elapsed < 8.0:
                 self.app.fg_pid = 0
+                self.app.voice_session = None
+                self.app.voice_only_running = False
                 self.app.fg_started_at = None
                 self.set_error(
                     "FlightGear closed too quickly. Check the FlightGear path and run logging_fg_start_ver5.py from a terminal for details."
                 )
+                self._finish_to_results()
+                return
             else:
-                voice_data = finalize_voice_session(self.app.controller, self.app.voice_session)
-                
-                if voice_data and voice_features_unused(voice_data.get("summary")):
-                    msg = QMessageBox(self)
-                    msg.setWindowTitle("איכות הקלטת קול")
-                    msg.setText("הקלטת הקול לא הפיקה ערכים תקינים. האם ברצונך לבצע הקלטה חוזרת של הקול בלבד?")
-                    msg.setStandardButtons(QMessageBox.כן | QMessageBox.לא)
-                    msg.setDefaultButton(QMessageBox.כן)
-                    msg.setLayoutDirection(Qt.RightToLeft)
-                    
-                    if msg.exec() == QMessageBox.לא:
-                        self.app.voice_session = create_voice_session(self.app.controller)
-                        for event in self.app.voice_session.events:
-                            event.trigger_time = 0.0
-                        self.app.voice_session.start_session()
-                        self.app.fg_pid = 0
-                        self.app.voice_only_running = True
-                        self.app.fg_started_at = time.time()
-                        self._sync_buttons()
-                        self.status_label.setText("מבצע הקלטת קול חוזרת...")
-                        return
-
+                self._finalize_voice_for_results()
                 self.app.voice_session = None
-                self.app.fg_pid = 0
-                self.app.fg_started_at = None
-                self.timer.stop()
-                self.app.navigate("result")
+                self._finish_to_results()
                 return
 
         # בדיקה לסיום הקלטת קול חוזרת (במצב שאין משחק רץ)
         if self.app.voice_only_running and not fg_running:
             vs = self.app.voice_session
             if vs and not vs.pending_events and not vs.active_event:
-                finalize_voice_session(self.app.controller, vs)
+                self._finalize_voice_for_results()
                 self.app.voice_session = None
-                self.app.voice_only_running = False
-                self.app.fg_started_at = None
-                self.timer.stop()
-                self.app.navigate("result")
+                self._finish_to_results()
                 return
 
         runtime = int(time.time() - self.app.fg_started_at) if self.app.fg_started_at else 0
@@ -955,6 +911,54 @@ class GameScreen(BaseScreen):
                 f"Voice: {prompt}\nCompleted events: {completed_count} | Pending: {pending_count}"
             )
         self._sync_buttons()
+
+    def _finish_to_results(self):
+        self.timer.stop()
+        self.app.fg_pid = 0
+        self.app.voice_only_running = False
+        self.app.fg_started_at = None
+        self.app.fg_finished_handled = True
+        print("[ER Force] Session finished; navigating to results.")
+        QTimer.singleShot(0, self._navigate_to_results)
+
+    def _finalize_voice_for_results(self):
+        manager = self.app.voice_session
+        if manager is None:
+            return None
+
+        future = getattr(manager, "_active_future", None)
+        if future is not None and not future.done():
+            if hasattr(self.app.controller, "attach_voice_session_result"):
+                self.app.controller.attach_voice_session_result({
+                    "events": [],
+                    "summary": {},
+                    "error": "Voice recording was still active when the game ended.",
+                })
+            self.set_error("Voice recording was still active when the game ended; continuing to results without voice features.")
+            return None
+
+        try:
+            voice_data = finalize_voice_session(self.app.controller, manager)
+        except Exception as exc:
+            if hasattr(self.app.controller, "attach_voice_session_result"):
+                self.app.controller.attach_voice_session_result({
+                    "events": [],
+                    "summary": {},
+                    "error": str(exc),
+                })
+            self.set_error(f"Voice finalization failed; continuing to results: {exc}")
+            return None
+
+        if voice_data and voice_features_unused(voice_data.get("summary")):
+            self.set_error("Voice recording did not produce valid values; continuing to results without voice features.")
+        return voice_data
+
+    def _navigate_to_results(self):
+        try:
+            self.app.navigate("result")
+        except Exception as exc:
+            self.set_error(f"Failed to open results screen: {exc}")
+            print(f"[ER Force error] Failed to open results screen: {exc}")
 
     def _sync_buttons(self):
         running = bool(self.app.voice_only_running or is_pid_running(self.app.fg_pid))

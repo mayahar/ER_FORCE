@@ -16,7 +16,7 @@ function Ensure-Python310 {
         $py310 = & py -3.10 -c "import sys; print(sys.executable)" 2>$null
     }
     if (-not $py310) {
-        throw "Python 3.10 is required for Tobii Pro SDK bindings."
+        throw "Python 3.10 is required for the tobii-research Python package."
     }
     return $py310.Trim()
 }
@@ -38,8 +38,7 @@ if (-not $SkipDownloads) {
     $downloadPages = @(
         "https://connect.tobii.com/s/fusion-downloads?language=en_US",
         "https://connect.tobii.com/s/lab-downloads?language=en_US&p=tobii_pro_eye_tracker_manager",
-        "https://www.tobii.com/products/software/applications-and-developer-kits/tobii-pro-eye-tracker-manager#downloads",
-        "https://connect.tobii.com/s/sdk-downloads"
+        "https://www.tobii.com/products/software/applications-and-developer-kits/tobii-pro-eye-tracker-manager#downloads"
     )
     foreach ($url in $downloadPages) {
         Start-Process $url

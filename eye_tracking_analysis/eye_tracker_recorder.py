@@ -3,34 +3,19 @@ Tobii Pro Eye Tracker Recording and Real-Time Gaze Data Collection
 Automatically starts recording, collects gaze data, and returns extracted data to the application.
 """
 import importlib
-import os
 import sys
 
 from eye_tracking_analysis.stdout_safe import install_safe_stdio
 
 install_safe_stdio()
 
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SDK_DIR = os.path.join(ROOT_DIR, "TobiiPro_SDK")
-
 
 def _load_tobii_research():
     try:
         return importlib.import_module("tobii_research")
     except Exception as first_exc:
-        if os.environ.get("ER_FORCE_ALLOW_LOCAL_TOBII_SDK") == "1":
-            for path in (ROOT_DIR, SDK_DIR):
-                if path not in sys.path:
-                    sys.path.insert(0, path)
-            try:
-                return importlib.import_module("tobii_research")
-            except Exception as exc:
-                print(
-                    f"Warning: Could not import local Tobii SDK module 'tobii_research' ({exc.__class__.__name__}: {exc})"
-                )
-                return None
         print(
-            "Warning: Could not import installed Tobii SDK module "
+            "Warning: Could not import installed Tobii Research module "
             f"'tobii_research' ({first_exc.__class__.__name__}: {first_exc}). "
             "Run eye_tracking_setup\\setup_colleague.cmd to install Python 3.10 dependencies."
         )
@@ -40,7 +25,7 @@ def _load_tobii_research():
 tr = _load_tobii_research()
 import time
 from dataclasses import dataclass
-from typing import List, Optional, Callable
+from typing import Any, List, Mapping, Optional
 from datetime import datetime
 from threading import Lock
 import json
@@ -58,6 +43,59 @@ def _safe_print(*args, sep=" ", end="\n", flush=False):
         stream.flush()
 
 
+def _get_gaze_value(gaze_data: Any, key: str, default=None):
+    if isinstance(gaze_data, Mapping):
+        return gaze_data.get(key, default)
+    return getattr(gaze_data, key, default)
+
+
+def _validity_is_valid(value) -> Optional[bool]:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return int(value) == 1
+
+    text = str(value).strip().lower()
+    if text in {"0", "false", "invalid", "validity.invalid"} or text.endswith(".invalid"):
+        return False
+    if text in {"1", "true", "valid", "validity.valid"} or text.endswith(".valid"):
+        return True
+
+    name = getattr(value, "name", None)
+    if name:
+        name_text = str(name).strip().lower()
+        if name_text.endswith("invalid"):
+            return False
+        if name_text.endswith("valid"):
+            return True
+    return None
+
+
+def _point_coord(point, index: int):
+    if point is None:
+        return None
+    try:
+        value = point[index]
+    except (IndexError, KeyError, TypeError):
+        return None
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return None
+    return numeric
+
+
+def _coord_if_present(point, index: int, validity: Optional[bool]):
+    value = _point_coord(point, index)
+    if value is None:
+        return None
+    if validity is False:
+        return None
+    return value
+
+
 @dataclass
 class GazeData:
     """Represents a single gaze sample"""
@@ -69,6 +107,8 @@ class GazeData:
     left_pupil_diameter: Optional[float] = None
     right_pupil_diameter: Optional[float] = None
     validity: Optional[str] = None
+    left_gaze_point_validity: Optional[bool] = None
+    right_gaze_point_validity: Optional[bool] = None
 
 
 class EyeTrackerRecorder:
@@ -137,36 +177,54 @@ class EyeTrackerRecorder:
         """Callback function for incoming gaze data"""
         if not self.is_recording:
             return
-        
-        # Extract gaze points (normalized 0-1 on display area)
-        left_point = gaze_data["left_gaze_point_on_display_area"]
-        right_point = gaze_data["right_gaze_point_on_display_area"]
-        timestamp = gaze_data["system_time_stamp"]
-        
-        # Extract pupil diameters
-        left_pupil = gaze_data["left_pupil_diameter"]
-        right_pupil = gaze_data["right_pupil_diameter"]
-        
-        # Determine validity
-        left_validity = gaze_data["left_gaze_point_validity"]
-        right_validity = gaze_data["right_gaze_point_validity"]
-        validity = "both_valid" if (left_validity == 1 and right_validity == 1) else \
-                   "left_valid" if left_validity == 1 else \
-                   "right_valid" if right_validity == 1 else "invalid"
-        
-        sample = GazeData(
-            timestamp=timestamp,
-            left_x=left_point[0] if left_validity else None,
-            left_y=left_point[1] if left_validity else None,
-            right_x=right_point[0] if right_validity else None,
-            right_y=right_point[1] if right_validity else None,
-            left_pupil_diameter=left_pupil,
-            right_pupil_diameter=right_pupil,
-            validity=validity
-        )
-        
-        with self.data_lock:
-            self.gaze_data_buffer.append(sample)
+
+        try:
+            # Extract gaze points (normalized 0-1 on display area).
+            left_point = _get_gaze_value(gaze_data, "left_gaze_point_on_display_area")
+            right_point = _get_gaze_value(gaze_data, "right_gaze_point_on_display_area")
+            timestamp = _get_gaze_value(gaze_data, "system_time_stamp")
+            if timestamp is None:
+                timestamp = _get_gaze_value(gaze_data, "device_time_stamp")
+            if timestamp is None:
+                timestamp = time.time()
+
+            left_pupil = _get_gaze_value(gaze_data, "left_pupil_diameter")
+            right_pupil = _get_gaze_value(gaze_data, "right_pupil_diameter")
+
+            left_validity = _validity_is_valid(
+                _get_gaze_value(gaze_data, "left_gaze_point_validity")
+            )
+            right_validity = _validity_is_valid(
+                _get_gaze_value(gaze_data, "right_gaze_point_validity")
+            )
+            if left_validity is True and right_validity is True:
+                validity = "both_valid"
+            elif left_validity is True:
+                validity = "left_valid"
+            elif right_validity is True:
+                validity = "right_valid"
+            elif left_validity is None and right_validity is None:
+                validity = "unknown"
+            else:
+                validity = "invalid"
+
+            sample = GazeData(
+                timestamp=float(timestamp),
+                left_x=_coord_if_present(left_point, 0, left_validity),
+                left_y=_coord_if_present(left_point, 1, left_validity),
+                right_x=_coord_if_present(right_point, 0, right_validity),
+                right_y=_coord_if_present(right_point, 1, right_validity),
+                left_pupil_diameter=left_pupil,
+                right_pupil_diameter=right_pupil,
+                validity=validity,
+                left_gaze_point_validity=left_validity,
+                right_gaze_point_validity=right_validity,
+            )
+
+            with self.data_lock:
+                self.gaze_data_buffer.append(sample)
+        except Exception as exc:
+            _safe_print(f"Warning: Failed to parse gaze sample: {exc}")
     
     def start_recording(self) -> bool:
         """Start eye tracking recording"""
@@ -259,7 +317,9 @@ class EyeTrackerRecorder:
                     "right_y": sample.right_y,
                     "left_pupil_diameter": sample.left_pupil_diameter,
                     "right_pupil_diameter": sample.right_pupil_diameter,
-                    "validity": sample.validity
+                    "validity": sample.validity,
+                    "left_gaze_point_validity": sample.left_gaze_point_validity,
+                    "right_gaze_point_validity": sample.right_gaze_point_validity,
                 } for sample in self.gaze_data_buffer]
             
             with open(filename, 'w') as f:
@@ -290,7 +350,8 @@ class EyeTrackerRecorder:
                     writer = csv.writer(f)
                     writer.writerow([
                         'Timestamp', 'Left_X', 'Left_Y', 'Right_X', 'Right_Y',
-                        'Left_Pupil_Diameter', 'Right_Pupil_Diameter', 'Validity'
+                        'Left_Pupil_Diameter', 'Right_Pupil_Diameter', 'Validity',
+                        'Left_Gaze_Point_Validity', 'Right_Gaze_Point_Validity'
                     ])
                     
                     for sample in self.gaze_data_buffer:
@@ -302,7 +363,9 @@ class EyeTrackerRecorder:
                             sample.right_y,
                             sample.left_pupil_diameter,
                             sample.right_pupil_diameter,
-                            sample.validity
+                            sample.validity,
+                            sample.left_gaze_point_validity,
+                            sample.right_gaze_point_validity,
                         ])
             
             _safe_print(f"Data exported to {filename}")

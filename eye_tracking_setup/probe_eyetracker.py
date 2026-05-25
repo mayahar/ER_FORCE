@@ -23,12 +23,12 @@ def main() -> int:
     try:
         tr = _import_tobii()
     except Exception as exc:
-        print("Tobii Pro SDK is not ready yet.")
+        print("tobii-research is not ready yet.")
         print(f"Import error: {exc!r}")
-        print("Install Tobii Pro SDK, then run eye_tracking_setup\\sync_sdk_native.ps1")
+        print("Install the Python package with: python -m pip install tobii-research==2.1.0")
         return 1
 
-    print(f"Tobii Pro SDK version: {tr.__version__}")
+    print(f"tobii_research version: {tr.__version__}")
     trackers = tr.find_all_eyetrackers()
     if not trackers:
         print("No Tobii eye trackers found.")

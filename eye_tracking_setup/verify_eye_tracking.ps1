@@ -1,6 +1,5 @@
 param(
-    [switch]$OpenDownloads,
-    [string]$SdkSourceRoot = $env:TOBII_SDK_SOURCE
+    [switch]$OpenDownloads
 )
 
 $ErrorActionPreference = "Stop"
@@ -40,18 +39,8 @@ function Open-FirstTimeDownloads {
     Write-Host "Opening Tobii download pages (first-time setup)..."
     @(
         "https://connect.tobii.com/s/fusion-downloads?language=en_US",
-        "https://connect.tobii.com/s/lab-downloads?language=en_US&p=tobii_pro_eye_tracker_manager",
-        "https://connect.tobii.com/s/sdk-downloads"
+        "https://connect.tobii.com/s/lab-downloads?language=en_US&p=tobii_pro_eye_tracker_manager"
     ) | ForEach-Object { Start-Process $_ }
-}
-
-function Sync-SdkNative {
-    param([string]$SourceRoot)
-    if (-not $SourceRoot) {
-        $SourceRoot = Join-Path ([Environment]::GetFolderPath("Desktop")) "TobiiProSDKPython\64"
-    }
-    $syncScript = Join-Path $ScriptDir "sync_sdk_native.ps1"
-    & $syncScript -SourceRoot $SourceRoot
 }
 
 Write-Host "ER_FORCE eye-tracking setup check"

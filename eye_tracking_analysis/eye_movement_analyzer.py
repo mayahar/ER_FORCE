@@ -72,8 +72,14 @@ class EyeMovementAnalyzer:
         self.viewing_distance_cm = viewing_distance_cm
         
         # ספים דינמיים שיעודכנו אוטומטית בכל ריצה בהתאם לאיכות האות
+        self.base_dispersion_threshold = base_dispersion_threshold
+        self.base_velocity_threshold = base_velocity_threshold
         self.dispersion_threshold = base_dispersion_threshold
         self.velocity_threshold = base_velocity_threshold
+
+    def reset_thresholds(self) -> None:
+        self.dispersion_threshold = self.base_dispersion_threshold
+        self.velocity_threshold = self.base_velocity_threshold
 
     def _auto_calibrate_thresholds(self, gaze_x: np.ndarray, gaze_y: np.ndarray):
         """
@@ -198,6 +204,7 @@ class EyeMovementAnalyzer:
     
     def analyze_gaze_data(self, gaze_x: np.ndarray, gaze_y: np.ndarray, timestamps: np.ndarray) -> EyeMovementMetrics:
         """Main pipeline: dynamically self-calibrates, smooths, and extracts normalized metrics"""
+        self.reset_thresholds()
         valid_mask = ~(np.isnan(gaze_x) | np.isnan(gaze_y))
         gaze_x_valid = gaze_x[valid_mask]
         gaze_y_valid = gaze_y[valid_mask]

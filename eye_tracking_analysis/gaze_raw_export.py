@@ -99,6 +99,8 @@ def _samples_to_rows(samples: list[GazeData]) -> list[dict]:
                 "left_pupil_diameter": sample.left_pupil_diameter,
                 "right_pupil_diameter": sample.right_pupil_diameter,
                 "validity": sample.validity,
+                "left_gaze_point_validity": sample.left_gaze_point_validity,
+                "right_gaze_point_validity": sample.right_gaze_point_validity,
             }
         )
     return rows
@@ -150,6 +152,8 @@ def write_raw_gaze_csv(samples: list[GazeData], csv_path: Path) -> None:
             "Left_Pupil_Diameter",
             "Right_Pupil_Diameter",
             "Validity",
+            "Left_Gaze_Point_Validity",
+            "Right_Gaze_Point_Validity",
         ])
         for row in _samples_to_rows(samples):
             writer.writerow([
@@ -162,6 +166,8 @@ def write_raw_gaze_csv(samples: list[GazeData], csv_path: Path) -> None:
                 row["left_pupil_diameter"],
                 row["right_pupil_diameter"],
                 row["validity"],
+                row["left_gaze_point_validity"],
+                row["right_gaze_point_validity"],
             ])
 
 
