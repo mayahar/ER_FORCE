@@ -760,7 +760,7 @@ class GameScreen(BaseScreen):
             self.timer.start()
         else:
             self.timer.stop()
-            self.status_label.setText("Ready")
+            self.status_label.setText("מוכן")
             self.voice_label.clear()
             self.eye_status_label.setText("מצלמה: מוכנה להקלטה")
 
@@ -809,7 +809,7 @@ class GameScreen(BaseScreen):
         except Exception as exc:
             terminate_session_process(pid)
             self.app.eye_runtime.stop_recording(self.app.controller)
-            self.set_error(f"FlightGear started, but voice session failed: {exc}")
+            self.set_error(f"FlightGear הופעל, אבל הפעלת הקלטת הקול נכשלה: {exc}")
             return
 
         self.app.fg_pid = pid
@@ -837,10 +837,12 @@ class GameScreen(BaseScreen):
         if self.app.fg_pid:
             ok, error = terminate_session_process(self.app.fg_pid)
             if not ok:
-                self.set_error(f"Failed to stop session: {error}")
+                self.set_error(f"עצירת הסשן נכשלה: {error}")
                 return
 
-        self._finalize_voice_for_results()
+        voice_data = self._finalize_voice_for_results()
+        if self._maybe_start_voice_rerecord(voice_data):
+            return
         self.app.voice_session = None
         self.app.result = None
         self._finish_to_results()
@@ -851,7 +853,7 @@ class GameScreen(BaseScreen):
             try:
                 self.app.voice_session.update(elapsed)
             except Exception as exc:
-                self.set_error(f"Voice session update failed: {exc}")
+                self.set_error(f"עדכון הקלטת הקול נכשל: {exc}")
 
         fg_running = is_pid_running(self.app.fg_pid)
         if self.app.fg_pid and not fg_running and self.app.fg_finished_handled:
@@ -879,12 +881,14 @@ class GameScreen(BaseScreen):
                 self.app.voice_only_running = False
                 self.app.fg_started_at = None
                 self.set_error(
-                    "FlightGear closed too quickly. Check the FlightGear path and run logging_fg_start_ver5.py from a terminal for details."
+                    "FlightGear נסגר מהר מדי. בדקי את נתיב FlightGear והריצי את logging_fg_start_ver5.py מטרמינל לפרטים."
                 )
                 self._finish_to_results()
                 return
             else:
-                self._finalize_voice_for_results()
+                voice_data = self._finalize_voice_for_results()
+                if self._maybe_start_voice_rerecord(voice_data):
+                    return
                 self.app.voice_session = None
                 self._finish_to_results()
                 return
@@ -893,22 +897,25 @@ class GameScreen(BaseScreen):
         if self.app.voice_only_running and not fg_running:
             vs = self.app.voice_session
             if vs and not vs.pending_events and not vs.active_event:
-                self._finalize_voice_for_results()
+                voice_data = self._finalize_voice_for_results(wait_for_active=True)
+                if self._maybe_start_voice_rerecord(voice_data):
+                    return
                 self.app.voice_session = None
                 self._finish_to_results()
                 return
 
         runtime = int(time.time() - self.app.fg_started_at) if self.app.fg_started_at else 0
-        mode = "Game running"
-        self.status_label.setText(f"{mode} | {runtime} seconds")
+        mode = "המשחק רץ"
+        self.status_label.setText(f"{mode} | {runtime} שניות")
 
         voice_session = self.app.voice_session
         if voice_session is not None:
             completed_count = len(voice_session.completed_events)
             pending_count = len(voice_session.pending_events)
-            prompt = voice_session.current_prompt or "No scheduled prompt yet."
+            prompt = voice_session.current_prompt or "אין עדיין הנחיית קול מתוזמנת."
+            prompt = self._voice_prompt_hebrew(prompt)
             self.voice_label.setText(
-                f"Voice: {prompt}\nCompleted events: {completed_count} | Pending: {pending_count}"
+                f"קול: {prompt}\nאירועים שהושלמו: {completed_count} | ממתינים: {pending_count}"
             )
         self._sync_buttons()
 
@@ -918,47 +925,90 @@ class GameScreen(BaseScreen):
         self.app.voice_only_running = False
         self.app.fg_started_at = None
         self.app.fg_finished_handled = True
-        print("[ER Force] Session finished; navigating to results.")
+        print("[ER Force] הסשן הסתיים; מעבר למסך התוצאות.")
         QTimer.singleShot(0, self._navigate_to_results)
 
-    def _finalize_voice_for_results(self):
+    def _finalize_voice_for_results(self, wait_for_active: bool = False):
         manager = self.app.voice_session
         if manager is None:
             return None
 
         future = getattr(manager, "_active_future", None)
-        if future is not None and not future.done():
+        if future is not None and not future.done() and not wait_for_active:
+            voice_data = {
+                "events": [],
+                "summary": {},
+                "error": "הקלטת הקול עדיין הייתה פעילה כשהמשחק הסתיים.",
+            }
             if hasattr(self.app.controller, "attach_voice_session_result"):
-                self.app.controller.attach_voice_session_result({
-                    "events": [],
-                    "summary": {},
-                    "error": "Voice recording was still active when the game ended.",
-                })
-            self.set_error("Voice recording was still active when the game ended; continuing to results without voice features.")
-            return None
+                self.app.controller.attach_voice_session_result(voice_data)
+            self.set_error("הקלטת הקול עדיין הייתה פעילה כשהמשחק הסתיים.")
+            return voice_data
 
         try:
             voice_data = finalize_voice_session(self.app.controller, manager)
         except Exception as exc:
+            voice_data = {
+                "events": [],
+                "summary": {},
+                "error": str(exc),
+            }
             if hasattr(self.app.controller, "attach_voice_session_result"):
-                self.app.controller.attach_voice_session_result({
-                    "events": [],
-                    "summary": {},
-                    "error": str(exc),
-                })
-            self.set_error(f"Voice finalization failed; continuing to results: {exc}")
-            return None
+                self.app.controller.attach_voice_session_result(voice_data)
+            self.set_error(f"סיום עיבוד הקול נכשל: {exc}")
+            return voice_data
 
         if voice_data and voice_features_unused(voice_data.get("summary")):
-            self.set_error("Voice recording did not produce valid values; continuing to results without voice features.")
+            self.set_error("הקלטת הקול לא הפיקה ערכים תקינים.")
         return voice_data
+
+    def _maybe_start_voice_rerecord(self, voice_data) -> bool:
+        if not voice_data or not voice_features_unused(voice_data.get("summary")):
+            return False
+
+        msg = QMessageBox(self)
+        msg.setWindowTitle("איכות הקלטת קול")
+        msg.setText("הקלטת הקול לא הפיקה ערכים תקינים. האם ברצונך לבצע הקלטה חוזרת של הקול בלבד?")
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg.button(QMessageBox.Yes).setText("כן")
+        msg.button(QMessageBox.No).setText("לא")
+        msg.setDefaultButton(QMessageBox.Yes)
+        msg.setLayoutDirection(Qt.RightToLeft)
+
+        if msg.exec() != QMessageBox.Yes:
+            return False
+
+        self.set_error("")
+        self.app.voice_session = create_voice_session(self.app.controller)
+        for event in self.app.voice_session.events:
+            event.trigger_time = 0.0
+        self.app.voice_session.start_session()
+        self.app.fg_pid = 0
+        self.app.fg_finished_handled = False
+        self.app.voice_only_running = True
+        self.app.fg_started_at = time.time()
+        self.timer.start()
+        self._sync_buttons()
+        self.status_label.setText("מבצע הקלטת קול חוזרת...")
+        self.voice_label.setText("קול: ההקלטה החוזרת תתחיל מיד")
+        return True
 
     def _navigate_to_results(self):
         try:
             self.app.navigate("result")
         except Exception as exc:
-            self.set_error(f"Failed to open results screen: {exc}")
-            print(f"[ER Force error] Failed to open results screen: {exc}")
+            self.set_error(f"פתיחת מסך התוצאות נכשלה: {exc}")
+            print(f"[ER Force error] פתיחת מסך התוצאות נכשלה: {exc}")
+
+    @staticmethod
+    def _voice_prompt_hebrew(prompt: str) -> str:
+        if prompt.startswith("Recording now:"):
+            return "מקליטים עכשיו: " + prompt.split(":", 1)[1].strip()
+        if prompt.startswith("Upcoming prompt in the session:"):
+            return "הנחיית הקול הבאה: " + prompt.split(":", 1)[1].strip()
+        if prompt == "No scheduled prompt yet.":
+            return "אין עדיין הנחיית קול מתוזמנת."
+        return prompt
 
     def _sync_buttons(self):
         running = bool(self.app.voice_only_running or is_pid_running(self.app.fg_pid))
@@ -978,7 +1028,7 @@ class ResultsScreen(BaseScreen):
         clear_layout(self.content)
 
         if self.app.controller.subject is None:
-            self.content.addWidget(message("No subject loaded.", "errorText"))
+            self.content.addWidget(message("לא נטען משתתף.", "errorText"))
             return
 
         if self.app.state.get("baseline_capture"):
@@ -1043,7 +1093,7 @@ class ResultsScreen(BaseScreen):
         score_label.setAlignment(Qt.AlignCenter)
         score_label.setStyleSheet("font-size: 20px; font-weight: 800; color: #bfd7ff;")
 
-        score_value = QLabel(f"{score:.2f}" if isinstance(score, (int, float)) else "Unavailable")
+        score_value = QLabel(f"{score:.2f}" if isinstance(score, (int, float)) else "לא זמין")
         score_value.setAlignment(Qt.AlignCenter)
 
         if isinstance(score, (int, float)):
@@ -1088,7 +1138,7 @@ class ResultsScreen(BaseScreen):
             table_layout.addWidget(self._build_table(table_rows))
             self.tabs.addTab(tab_table, "טבלת מדדים")
         else:
-            self.tabs.addTab(message("No graph data available."), "מדדים")
+            self.tabs.addTab(message("אין נתוני גרף זמינים."), "מדדים")
 
         if table_rows and not ordered_rows:
             tab_table = QWidget()
@@ -1286,14 +1336,13 @@ class ResultsScreen(BaseScreen):
 class BaselineSavedScreen(BaseScreen):
     def __init__(self, app_window):
         super().__init__(app_window)
-        self.root.addWidget(title("Baseline Saved"))
+        self.root.addWidget(title("נתוני הבסיס נשמרו"))
         self.root.addWidget(
             message(
-                "The participant baseline was saved. The next run for this participant "
-                "will compare current measurements against this baseline."
+                "נתוני הבסיס של המשתתף נשמרו. בהרצה הבאה המדידות הנוכחיות יושוו אליהם."
             )
         )
-        button = QPushButton("Back to Start")
+        button = QPushButton("חזרה להתחלה")
         button.clicked.connect(lambda: self._back())
         self.root.addWidget(button, alignment=Qt.AlignCenter)
         self.root.addStretch()
