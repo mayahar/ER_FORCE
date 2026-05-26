@@ -1,7 +1,7 @@
 import time
 import numpy as np
 import sounddevice as sd
-from processing import VoiceFeatureExtractor
+from processing import VoiceFeatureExtractor, VoiceFeatureExtractionError
 
 
 def run_live_voice_test():
@@ -11,7 +11,7 @@ def run_live_voice_test():
     print("\n" + "="*60)
     print("=== VOICE TASK VALIDATION SYSTEM (DIAGNOSTIC MODE) ===")
     print("="*60)
-    print(f"Instructions: Produce a sustained, loud 'Ah' sound for {duration} seconds.")
+    print("Instructions: Produce a sustained 'Ah' sound. Recording is 10 seconds.")
     print("The recording will start in 3 seconds... Prepare your voice!")
     print("-"*60)
     
@@ -20,15 +20,13 @@ def run_live_voice_test():
         time.sleep(1)
         
     print("\n🔴 RECORDING NOW... Say 'Ahhhhh'!")
-    
     recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='float32')
     sd.wait()  
     
-    print("⏹️ Recording finished. Analyzing raw signals...")
+    print("⏹️ Recording finished. Testing pipeline results...")
     print("-"*60)
     
     audio_data = recording.flatten()
-    
     global_rms = float(np.sqrt(np.mean(audio_data**2)))
     max_amplitude = float(np.max(np.abs(audio_data)))
     
@@ -41,12 +39,10 @@ def run_live_voice_test():
     frames = np.lib.stride_tricks.as_strided(audio_data, shape=shape, strides=strides)
     frame_rms = np.sqrt(np.mean(frames**2, axis=1))
     
-    features = VoiceFeatureExtractor.extract_features(audio_data, sample_rate)
-    
     energy_thresh = getattr(VoiceFeatureExtractor, 'MIN_ENERGY_THRESHOLD', 0.0004)
-    duration_thresh = getattr(VoiceFeatureExtractor, 'MIN_TOTAL_SPEECH_DURATION_S', 2.5)
-    flux_std_thresh = getattr(VoiceFeatureExtractor, 'MAX_FLUX_STD', 0.035)
-    pitch_cv_thresh = getattr(VoiceFeatureExtractor, 'MAX_PITCH_REL_VARIATION', 0.38)
+    duration_thresh = getattr(VoiceFeatureExtractor, 'MIN_TOTAL_SPEECH_DURATION_S', 5.0)
+    flux_std_thresh = getattr(VoiceFeatureExtractor, 'MAX_FLUX_STD', 0.045)
+    pitch_cv_thresh = getattr(VoiceFeatureExtractor, 'MAX_PITCH_REL_VARIATION', 0.55)
     
     speech_frames = frame_rms > energy_thresh
     detected_duration = (np.sum(speech_frames) * 10) / 1000.0
@@ -76,7 +72,13 @@ def run_live_voice_test():
     print(f"  5. Relative Pitch Variation  : {pitch_cv:.4f}  (Required: <= {pitch_cv_thresh})")
     print(f"     [Pitch Mean: {pitch_mean:.1f} Hz, Pitch Std: {pitch_std:.2f}]")
     print("-"*60)
-    
+
+    features = {"pitch": None, "mfcc": None}
+    try:
+        features = VoiceFeatureExtractor.extract_features(audio_data, sample_rate)
+    except Exception:
+        pass
+
     if features["pitch"] is None or features["mfcc"] is None:
         print("❌ PIPELINE RESULT: REJECTED (Returns Empty / None Values)")
         print("\n💡 DIAGNOSTIC CONCLUSION:")
@@ -93,7 +95,7 @@ def run_live_voice_test():
         print(f"   -> Extracted Pitch Mean      : {pitch_mean:.1f} Hz")
         print(f"   -> Extracted Pitch Std Dev   : {pitch_std:.2f}")
         print(f"   -> Total Valid Pitch Frames  : {valid_pitches.size}")
-            
+        
     print("="*60 + "\n")
 
 

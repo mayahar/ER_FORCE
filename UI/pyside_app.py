@@ -753,10 +753,6 @@ class GameScreen(BaseScreen):
         self.error_label = message("", "errorText")
 
         self.camera_preview = QLabel()
-        #self.camera_preview.setFixedSize(320, 240)
-        #self.camera_preview.setAlignment(Qt.AlignCenter)
-        #self.camera_preview.setStyleSheet("border: 2px dashed #004466; background-color: #001a33;")
-        #self.camera_preview.setText("תצוגה מקדימה של המצלמה")
 
         self.root.addWidget(title("הפעלת משחק"))
         info_panel = panel()
@@ -784,7 +780,6 @@ class GameScreen(BaseScreen):
 
         buttons = QHBoxLayout()
         buttons.addWidget(self.start_button)
-        # buttons.addWidget(self.stop_button)
         buttons.addStretch()
         self.root.addLayout(buttons)
         self.root.addWidget(self.status_label)
@@ -794,7 +789,6 @@ class GameScreen(BaseScreen):
         self.root.addStretch()
 
         self.start_button.clicked.connect(self.start_session)
-        # self.stop_button.clicked.connect(self.stop_session)
 
     def activate(self):
         self.error_label.clear()
@@ -819,17 +813,14 @@ class GameScreen(BaseScreen):
 
     def start_session(self):
         self.error_label.clear()
-
-        self.app.eye_runtime.stop_preview()
-        self.camera_preview.clear()
-        self.camera_preview.setText("מקליט...")
-        self.eye_status_label.setText("עקיב עיניים: מוכן לכיול")
-
-    def start_session(self):
-        self.error_label.clear()
         self.start_button.setEnabled(False)
         self.eye_status_label.setText("מעקב עיניים: מתחבר...")
         QGuiApplication.processEvents()
+
+        # עצירת תצוגה מקדימה כחלק מהתחלת סשן רשמי
+        self.app.eye_runtime.stop_preview()
+        self.camera_preview.clear()
+        self.camera_preview.setText("מקליט...")
 
         if not self.app.eye_runtime.calibration_passed:
             self.eye_status_label.setText("מעקב עיניים: מבצע כיול...")
@@ -853,7 +844,6 @@ class GameScreen(BaseScreen):
         if not eye_ok:
             self.eye_status_label.setText("מעקב עיניים: נכשל באתחול (נעשה שימוש בגיבוי)")
 
-        
         pid, error = start_flightgear_session(self.app.controller)
         if error:
             self.set_error(error)
@@ -961,7 +951,7 @@ class GameScreen(BaseScreen):
                 return
 
         runtime = int(time.time() - self.app.fg_started_at) if self.app.fg_started_at else 0
-        mode = "המשחק רץ"
+        mode = "המשחק רץ" if not self.app.voice_only_running else "הקלטת קול בלבד"
         self.status_label.setText(f"{mode} | {runtime} שניות")
 
         voice_session = self.app.voice_session
@@ -1022,12 +1012,45 @@ class GameScreen(BaseScreen):
         if not voice_data or not voice_features_unused(voice_data.get("summary")):
             return False
 
+        summary = voice_data.get("summary", {})
+        error_code = summary.get("error_code", None)
+
+        if error_code in ("NO_INPUT_DEVICE", "RECORDING_FAILED"):
+            specific_tip = "הפעלת המיקרופון נכשלה. ודא שהמיקרופון מחובר, נבחר כהתקן קלט פעיל, אינו בשימוש בלעדי על ידי תוכנה אחרת ושיש לאפליקציה הרשאת גישה אליו."
+
+        elif error_code == "MUTE":
+            specific_tip = "לא נקלט קול בהקלטה. ודא שהמיקרופון מחובר, אינו מושתק פיזית או במערכת ההפעלה, ושניתנו לאפליקציה הרשאות גישה."
+
+        elif error_code == "HARDWARE_SHORT":
+            specific_tip = "קובץ ההקלטה נקטע באופן מיידי עקב שגיאה טכנית. ודא שחיבור המיקרופון יציב ושתהליך ההקלטה לא נחסם על ידי מערכת ההפעלה."
+
+        elif error_code == "SILENT":
+            specific_tip = "הקול שהוקלט חלש מדי או שנשמעה לחישה בלבד. מומלץ להתקרב מעט למיקרופון, לדבר בקול רם וברור, או להגביר את רגישות הקלט במחשב."
+
+        elif error_code == "SPEECH":
+            specific_tip = "המערכת זיהתה דפוסי דיבור, מילים או הברות משתנות. אנא הקפד להפיק אך ורק צליל 'אההה' קבוע, אחיד ורציף ללא מילים."
+
+        elif error_code == "SHORT":
+            specific_tip = "משך צליל ה-'אה' קצר מהנדרש. אנא נסה שוב והחזק את הצליל ברציפות לאורך זמן רב יותר, עד להגעה ל-5 שניות מצטברות לפחות."
+
+        elif error_code == "UNSTABLE_PITCH":
+            specific_tip = "גובה הטון רעד או השתנה בצורה קיצונית. נסה לשמור על קול מונוטוני, יציב ורגוע ככל האפשר, ללא שינויי מנגינה או אינטונציה."
+
+        else:
+            specific_tip = "זוהו רעשי רקע חזקים, הפרעות או תנודות חריגות שהשפיעו על איכות האות. מומלץ להקליט שוב בסביבה שקטה לחלוטין."
+        dialog_message = (
+            f"הקלטת הקול הסתיימה, אך איכות האות אינה אופטימלית למחקר.\n\n"
+            f"🔍 אבחון המערכת:\n{specific_tip}\n\n"
+            f"האם ברצונך לבצע הקלטה חוזרת של הקול בלבד כדי לשפר את איכות הנתונים, או להמשיך בכל זאת לתוצאות?"
+        )
+
         msg = QMessageBox(self)
-        msg.setWindowTitle("איכות הקלטת קול")
-        msg.setText("הקלטת הקול לא הפיקה ערכים תקינים. האם ברצונך לבצע הקלטה חוזרת של הקול בלבד?")
+        msg.setIcon(QMessageBox.Warning)
+        msg.setWindowTitle("בדיקת איכות הקלטת קול")
+        msg.setText(dialog_message)
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        msg.button(QMessageBox.Yes).setText("כן")
-        msg.button(QMessageBox.No).setText("לא")
+        msg.button(QMessageBox.Yes).setText("כן, הקלט מחדש (מומלץ)")
+        msg.button(QMessageBox.No).setText("לא, המשך בכל זאת")
         msg.setDefaultButton(QMessageBox.Yes)
         msg.setLayoutDirection(Qt.RightToLeft)
 
@@ -1038,7 +1061,6 @@ class GameScreen(BaseScreen):
         self.app.voice_session = create_voice_session(self.app.controller)
         for event in self.app.voice_session.events:
             event.trigger_time = 0.0
-        self.app.voice_session.start_session()
         self.app.fg_pid = 0
         self.app.fg_finished_handled = False
         self.app.voice_only_running = True
@@ -1046,7 +1068,7 @@ class GameScreen(BaseScreen):
         self.timer.start()
         self._sync_buttons()
         self.status_label.setText("מבצע הקלטת קול חוזרת...")
-        self.voice_label.setText("קול: ההקלטה החוזרת תתחיל מיד")
+        self.voice_label.setText(f"קול: {specific_tip}\nההקלטה החוזרת תתחיל מיד.")
         return True
 
     def _navigate_to_results(self):
@@ -1069,8 +1091,6 @@ class GameScreen(BaseScreen):
     def _sync_buttons(self):
         running = bool(self.app.voice_only_running or is_pid_running(self.app.fg_pid))
         self.start_button.setDisabled(running)
-        #self.stop_button.setVisible(running)
-
 
 class ResultsScreen(BaseScreen):
     def __init__(self, app_window):

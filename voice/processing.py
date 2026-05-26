@@ -4,27 +4,89 @@ from scipy.signal import lfilter, resample_poly, medfilt
 
 
 class VoiceFeatureExtractionError(Exception):
-    pass
+    """חריגה מותאמת אישית עבור כשלים בחילוץ פיצ'רים אקוסטיים"""
+    def __init__(self, message, error_code=None, partial_features=None):
+        super().__init__(message)
+        self.error_code = error_code
+        self.partial_features = partial_features or {
+            "mfcc": None, "pitch": None, "lpc": None, "parcor": None, "delta_lpc": None
+        }
 
 
 class VoiceFeatureExtractor:
+    """
+    מערכת חכמה לסינון, עיבוד וחילוץ מאפיינים אקוסטיים (Features) מקול אנושי.
+    המערכת מותאמת למשימות קליניות של הפקת צליל מתמשך ("אההה") ומיועדת להבטיח איכות דאטה מקסימלית.
+
+    ================================================================================
+    1. פירוט קודי השגיאה ומתי הם מתרחשים (לפי סדר קדימויות פיזי בקוד):
+    ================================================================================
+    * MUTE:
+      - מתי: עוצמת הסיגנל הכוללת (Global RMS) נמוכה מ-0.0001 או האמפליטודה המקסימלית נמוכה מ-0.001.
+      - משמעות: המיקרופון מושתק, כבוי, או שלא הופק שום צליל משמעותי (אפילו לא נשימה או רעש רקע).
+      - עדיפות: ראשון. אם אין סיגנל, הריצה נעצרת מיד.
+
+    * HARDWARE_SHORT:
+      - מתי: אורך מערך האודיו קטן פיזית מאורך של פריים בודד (25 מילישניות, פחות מ-400 דגימות ב-16kHz).
+      - משמעות: כשל טכני/מכני חמור (קריסת דרייבר המיקרופון, נעילת הסיגנל ע"י אפליקציה אחרת, או הקלטה שנסגרה מיד).
+      - עדיפות: שני. מפריד כשל חומרתי מכשל התנהגותי של המשתמש.
+
+    * SPEECH:
+      - מתי: מזוהה תנודתיות ספקטרלית דינמית (Spectral Flux גבוה) המאפיינת דיבור מילולי/הברתי ולא צליל מונוטוני,
+             ובמקביל לא הצטברו 5 שניות של "אה" נקי ותקין.
+      - משמעות: הנבדק דיבר, אמר מילים או משפטים במקום להפיק צליל יציב ורציף.
+      - עדיפות: שלישי (נבדק רק אם לא הגענו לרף ה-5 שניות של צליל תקין).
+
+    * SHORT:
+      - מתי: סך כל קטעי ה"אה" הנקיים והתקינים שנמצאו קטן מ-5 שניות (אך גדול מ-0.5 שניות).
+      - משמעות: כשל התנהגותי. הנבדק הפסיק את הפקת הצליל מוקדם מדי. המערכת דורשת הקלטה חוזרת ארוכה יותר.
+      - עדיפות: רביעי. קורה רק אם המשתמש לא דיבר (לא נזרק SPEECH) אך פשוט קיצר בזמן.
+
+    * SILENT:
+      - מתי: אורך ה"אה" התקין קטן מ-0.5 שניות, או שלא נמצאו פריימים תקינים בכלל (אך האודיו לא מוגדר כ-MUTE).
+      - משמעות: הנבדק לחש, נשף קלות, או שהיה רעש רקע חלש ומיתר הקול לא רטט בפועל.
+      - עדיפות: חמישי (סוף שלב קדם-העיבוד).
+
+    * UNSTABLE_PITCH:
+      - מתי: מקדם המשתנות של תדר היסודי (Pitch CV = Pitch Std / Pitch Mean) גבוה מ-0.55 (55%).
+      - משמעות: הקול של הנבדק רעד בצורה קיצונית, או שהשתנתה האינטונציה בצורה חדה (שירה/זמזום מנגינה).
+      - עדיפות: שישי (שלב בקרת האיכות הסופית, לאחר מעבר קדם-העיבוד).
+
+    ================================================================================
+    2. הסבר מתמטי ואקוסטי על המדדים המרכזיים:
+    ================================================================================
+    * Spectral Flux (שטף ספקטרלי):
+      - מודד את קצב השינוי של הגרף הספקטרלי (תדרים) בין פריים לפריים ע"י חישוב המרחק האוקלידי בין וקטורי ה-FFT.
+      - צליל "אההה" יציב מניב Spectral Flux נמוך מאוד וקבוע. דיבור מילולי (עיצורים ותנועות משתנות) מקפיץ את ה-Flux.
+      - אנחנו מחשבים את סטיית התקן של השטף (Flux STD); אם היא עוברת את `0.045`, זהו סימן מובהק לדיבור (SPEECH).
+
+    * Pitch CV (Coefficient of Variation):
+      - מחושב כסטיית התקן של הפיץ' חלקי ממוצע הפיץ' (בקטעים שזוהה בהם קול).
+      - מדד זה מייצג את "רוטציה והרעד" של מיתרי הקול. רף של `0.55` מאפשר גמישות רבה (עבור חולים או קולות עייפים), 
+        אך חוסם תנודות קיצוניות שאינן מאפשרות הפקת מדדים אמינים.
+
+    ================================================================================
+    3. לוגיקת סדר העדיפויות ומניעת דריסות (Anti-Overriding Logic):
+    ================================================================================
+    כדי למנוע מצב שבו מילה קטנה בתחילת ההקלטה תפסול 7 שניות של "אה" מדהים ויציב, הלוגיקה עובדת כך:
+    א. המערכת קודם כל אוספת ומסכמת את משך הזמן של הסגמנטים התקינים (`total_valid_duration`).
+    ב. תנאי עליון: אם הצטברו לפחות 5 שניות של "אה" נקי - ההקלטה מתקבלת מיד! נתוני הדיבור/רעש האחרים נזרקים והקוד ממשיך לחילוץ.
+    ג. רק אם אין 5 שניות של דאטה תקין, המערכת נכנסת לשרשרת אבחון מדורגת (SPEECH -> SHORT -> SILENT) כדי לקבוע את סיבת הכשל המדויקת ביותר עבור ה-UI.
+    """
+
     SAMPLE_RATE = 16000
     PREEMPHASIS = 0.97
     FRAME_LENGTH_MS = 25
     HOP_LENGTH_MS = 10
     LPC_ORDER = 12 
     
-    # הרחבת הטווח ל-40Hz כדי לתפוס קולות בס גבריים נמוכים ועמוקים
     FMIN = 40.0
     FMAX = 500.0
     
-    # -------------------------------------------------------------
-    # ספים מנורמלים למניעת אפליה של קולות עמוקים
-    # -------------------------------------------------------------
     MIN_ENERGY_THRESHOLD = 0.0004      
-    MIN_TOTAL_SPEECH_DURATION_S = 2.5  
-    MAX_FLUX_STD = 0.045            
-    MAX_PITCH_REL_VARIATION = 0.55 # מדד CV יחסי (סטיית תקן חלקי ממוצע). חוסם דיבור חופשי, מאשר קול עמוק.
+    MIN_TOTAL_SPEECH_DURATION_S = 5.0  
+    MAX_FLUX_STD = 0.045000            
+    MAX_PITCH_REL_VARIATION = 0.550000 
 
     @classmethod
     def preprocess_audio(cls, audio: np.ndarray, sample_rate: int):
@@ -32,6 +94,12 @@ class VoiceFeatureExtractor:
             audio = np.mean(audio, axis=-1)
 
         audio = np.asarray(audio, dtype=np.float32)
+
+        # 1. בדיקת השתקה / חוסר מיקרופון גלובלי
+        global_rms = float(np.sqrt(np.mean(audio**2)))
+        max_amplitude = float(np.max(np.abs(audio)))
+        if global_rms < 0.0001 or max_amplitude < 0.001:
+            return None, "MUTE"
 
         if sample_rate != cls.SAMPLE_RATE:
             gcd = np.gcd(int(sample_rate), int(cls.SAMPLE_RATE))
@@ -44,44 +112,79 @@ class VoiceFeatureExtractor:
         frame_length = cls._frame_length(cls.SAMPLE_RATE)
         hop_length = cls._hop_length(cls.SAMPLE_RATE)
         
+        # 2. הפרדה לשגיאה טכנית: הקובץ קצר מכדי להכיל אפילו פריים בודד (בעיית חומרה/דרייבר)
         if len(audio) < frame_length:
-            raise VoiceFeatureExtractionError("Audio file is too short.")
+            return None, "HARDWARE_SHORT"
 
         frame_count = 1 + max(0, (len(audio) - frame_length) // hop_length)
         shape = (frame_count, frame_length)
         strides = (audio.strides[0] * hop_length, audio.strides[0])
         frames = np.lib.stride_tricks.as_strided(audio, shape=shape, strides=strides)
 
-        # 1. בדיקת עוצמה ומשך זמן מצטבר
         frame_rms = np.sqrt(np.mean(frames**2, axis=1))
-        speech_frames = frame_rms > cls.MIN_ENERGY_THRESHOLD
-        speech_duration = (np.sum(speech_frames) * cls.HOP_LENGTH_MS) / 1000.0
+        speech_frames = (frame_rms > cls.MIN_ENERGY_THRESHOLD).astype(np.int32)
+        smoothed_speech = medfilt(speech_frames, kernel_size=5)
 
-        if speech_duration < cls.MIN_TOTAL_SPEECH_DURATION_S:
-            raise VoiceFeatureExtractionError("Valid speech duration too short.")
+        padded = np.pad(smoothed_speech, (1, 1), 'constant', constant_values=0)
+        diffs = np.diff(padded)
+        starts = np.where(diffs == 1)[0]
+        ends = np.where(diffs == -1)[0]
 
-        # 2. ניתוח תבנית השטף הספקטרלי
-        core_speech_frames = frame_rms > (cls.MIN_ENERGY_THRESHOLD * 2.5)
-        valid_frames = frames[core_speech_frames]
+        valid_audio_segments = []
+        total_valid_duration = 0.0
         
-        if len(valid_frames) > 10:
-            fft_data = np.abs(np.fft.rfft(valid_frames, n=512, axis=1))
-            fft_norm = fft_data / (np.sum(fft_data, axis=1, keepdims=True) + 1e-3)
-            flux_per_frame = np.sqrt(np.sum(np.diff(fft_norm, axis=0)**2, axis=1))
-            flux_std = float(np.std(flux_per_frame))
+        any_speech_detected_at_all = False
+        speech_rejected_due_to_flux = False
+
+        for s, e in zip(starts, ends):
+            seg_len_frames = e - s
+            seg_duration = (seg_len_frames * cls.HOP_LENGTH_MS) / 1000.0
             
-            if flux_std > cls.MAX_FLUX_STD:
-                raise VoiceFeatureExtractionError("Audio contains highly dynamic speech patterns (Flux).")
+            if seg_duration < 0.3:
+                continue
 
-        # 3. ניקוי רעשים דיגיטלי
-        try:
-            from scipy.signal import butter, sosfilt
-            sos = butter(4, [60.0, 4000.0], btype='bandpass', fs=cls.SAMPLE_RATE, output='sos')
-            audio = sosfilt(sos, audio)
-        except ImportError:
-            pass
+            any_speech_detected_at_all = True
+            seg_frames = frames[s:e]
+            seg_rms = frame_rms[s:e]
+            
+            core_seg_frames = seg_frames[seg_rms > (cls.MIN_ENERGY_THRESHOLD * 2.5)]
+            if len(core_seg_frames) > 5:
+                fft_data = np.abs(np.fft.rfft(core_seg_frames, n=512, axis=1))
+                fft_norm = fft_data / (np.sum(fft_data, axis=1, keepdims=True) + 1e-3)
+                flux_per_frame = np.sqrt(np.sum(np.diff(fft_norm, axis=0)**2, axis=1))
+                flux_std = float(np.std(flux_per_frame))
+                
+                if flux_std > cls.MAX_FLUX_STD:
+                    speech_rejected_due_to_flux = True
+                    continue
 
-        # 4. נרמול עוצמה גלובלי
+            start_sample = s * hop_length
+            end_sample = min(len(audio), e * hop_length + (frame_length - hop_length))
+            valid_audio_segments.append(audio[start_sample:end_sample])
+            total_valid_duration += seg_duration
+
+        # 3. בדיקת רף ה-5 שניות של צליל "אה" תקין ונקי
+        if total_valid_duration >= cls.MIN_TOTAL_SPEECH_DURATION_S and len(valid_audio_segments) > 0:
+            pass 
+        
+        # 4. אם אין מספיק דאטה תקין, נפעיל אבחון סיבות לפי סדר עדיפויות מוגדר:
+        else:
+            # א. האם נפסל קול בגלל דיבור/מילים דינמיות?
+            if speech_rejected_due_to_flux or (any_speech_detected_at_all and len(valid_audio_segments) == 0):
+                return None, "SPEECH"
+            
+            # ב. שגיאה התנהגותית: הפיק צליל "אה" תקין, אך הפסיק מוקדם מדי (פחות מ-5 שניות)
+            if total_valid_duration > 0.5:
+                return None, "SHORT"
+            
+            # ג. לא נקלט קול משמעותי בכלל (לחישה, נשימה או שקט)
+            return None, "SILENT"
+
+        if len(valid_audio_segments) == 0:
+            return None, "SILENT"
+
+        audio = np.concatenate(valid_audio_segments)
+
         global_rms = np.sqrt(np.mean(audio**2))
         if global_rms > 1e-5:
             target_rms = 0.1
@@ -149,7 +252,6 @@ class VoiceFeatureExtractor:
             if peak >= 0.25:
                 pitches[index] = float(sr / lag)
 
-        # החלקת קפיצות הרמוניות (Pitch Doubling/Halving) באמצעות פילטר מדיאני (חלון 5)
         valid_indices = ~np.isnan(pitches)
         if np.sum(valid_indices) > 5:
             smoothed_valid = medfilt(pitches[valid_indices], kernel_size=5)
@@ -226,36 +328,48 @@ class VoiceFeatureExtractor:
         return np.vstack([padding, delta]).astype(np.float32)
 
     @classmethod
-    def extract_features(cls, audio: np.ndarray, sample_rate: int):
-        try:
-            audio, sr = cls.preprocess_audio(audio, sample_rate)
-        except VoiceFeatureExtractionError:
-            return {
-                "mfcc": None, "pitch": None, "lpc": None, "parcor": None, "delta_lpc": None
-            }
+    def extract_features(cls, raw_audio: np.ndarray, sample_rate: int):
+        preprocessed_res = cls.preprocess_audio(raw_audio, sample_rate)
         
-        mfcc = cls.extract_mfcc(audio, sr)
-        pitch = cls.extract_pitch(audio, sr)
-        lpc = cls.extract_lpc(audio, sr)
-        parcor = cls.extract_parcor(audio, sr)
+        empty_features = {
+            "mfcc": None, "pitch": None, "lpc": None, "parcor": None, "delta_lpc": None
+        }
+
+        if isinstance(preprocessed_res, tuple) and preprocessed_res[0] is None:
+            raise VoiceFeatureExtractionError(
+                f"Audio preprocessing failed with code: {preprocessed_res[1]}", 
+                error_code=preprocessed_res[1],
+                partial_features=empty_features
+            )
+
+        working_audio, working_sr = preprocessed_res
+
+        mfcc = cls.extract_mfcc(working_audio, working_sr)
+        pitch = cls.extract_pitch(working_audio, working_sr)
+        lpc = cls.extract_lpc(working_audio, working_sr)
+        parcor = cls.extract_parcor(working_audio, working_sr)
         delta_lpc = cls.compute_delta_lpc(lpc)
 
-        # -------------------------------------------------------------
-        # ולידציה מנורמלת יחסית (CV) במקום סטיית תקן אבסולוטית
-        # -------------------------------------------------------------
         valid_pitches = pitch[~np.isnan(pitch)]
         if valid_pitches.size > 2:
             pitch_mean = float(np.mean(valid_pitches))
             pitch_std = float(np.std(valid_pitches))
-            
             if pitch_mean > 0:
                 pitch_cv = pitch_std / pitch_mean
                 if pitch_cv > cls.MAX_PITCH_REL_VARIATION:
-                    return {
-                        "mfcc": None, "pitch": None, "lpc": None, "parcor": None, "delta_lpc": None
-                    }
+                    raise VoiceFeatureExtractionError(
+                        "Audio pitch stability verification failed.", 
+                        error_code="UNSTABLE_PITCH",
+                        partial_features=empty_features
+                    )
 
         target_frames = pitch.shape[0]
+        if target_frames == 0:
+            raise VoiceFeatureExtractionError(
+                "No valid audio frames detected.", 
+                error_code="SILENT",
+                partial_features=empty_features
+            )
 
         def adjust_time_dimension(arr, target_len):
             curr_len = arr.shape[0]
@@ -268,11 +382,6 @@ class VoiceFeatureExtractor:
                 return np.pad(arr, (0, pad_width), mode='edge')
             else:
                 return np.pad(arr, ((0, pad_width), (0, 0)), mode='edge')
-
-        if target_frames == 0:
-            return {
-                "mfcc": None, "pitch": None, "lpc": None, "parcor": None, "delta_lpc": None
-            }
 
         return {
             "mfcc": adjust_time_dimension(mfcc, target_frames),

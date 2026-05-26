@@ -210,10 +210,15 @@ class VoiceSessionManager:
 
         except VoiceRecordingError as exc:
             event.error = str(exc)
+            if "No microphone input device available" in str(exc):
+                event.metadata["error_code"] = "NO_INPUT_DEVICE"
+            else:
+                event.metadata["error_code"] = "RECORDING_FAILED"
             event.status = "failed"
 
         except Exception as exc:
             event.error = f"Unexpected recording failure: {exc}"
+            event.metadata["error_code"] = "RECORDING_FAILED"
             event.status = "failed"
 
     def finalize_session(self) -> Dict[str, Any]:
@@ -262,8 +267,15 @@ class VoiceSessionManager:
                     }
                 )
 
-            except (VoiceFeatureExtractionError, Exception) as exc:
+            except VoiceFeatureExtractionError as exc:
                 event.error = str(exc)
+                event.metadata["error_code"] = getattr(exc, "error_code", None) or "FEATURE_EXTRACTION_FAILED"
+                event.status = "failed"
+                print(f"Voice feature extraction failed for {event.event_id}: {exc}")
+
+            except Exception as exc:
+                event.error = str(exc)
+                event.metadata["error_code"] = "FEATURE_EXTRACTION_FAILED"
                 event.status = "failed"
                 print(f"Voice feature extraction failed for {event.event_id}: {exc}")
 
@@ -282,6 +294,7 @@ class VoiceSessionManager:
                         if event.audio_path else None
                     ),
                     "error": event.error,
+                    "error_code": event.metadata.get("error_code"),
                 }
             )
 
@@ -312,13 +325,20 @@ class VoiceSessionManager:
         if not include_feature_arrays:
             events = [self._compact_event_result(event) for event in self._event_results]
 
+        summary = self._aggregate_summary()
+        for event in events:
+            error_code = event.get("error_code")
+            if error_code:
+                summary["error_code"] = error_code
+                break
+
         return {
             "session_id": self.session_id,
             "subject_id": self.subject_id,
             "started_at": self.start_timestamp,
             "finished_at": self.finish_timestamp,
             "events": events,
-            "summary": self._aggregate_summary(),
+            "summary": summary,
         }
 
     def _compact_event_result(self, event: Dict[str, Any]) -> Dict[str, Any]:
