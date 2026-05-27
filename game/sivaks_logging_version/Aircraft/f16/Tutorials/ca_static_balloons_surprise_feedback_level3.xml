@@ -732,6 +732,10 @@ This Scenario announces if you hit or miss.
 		setprop("/sim/presets/offset-azimuth-deg", 0);
 		setprop("/sim/presets/offset-distance-nm", 0);
 		fgcommand("reposition");
+		if (contains(globals, "sivaksScheduleCruiseToTakeoffHandoff"))
+			globals.sivaksScheduleCruiseToTakeoffHandoff(
+				contains(globals, "sivaksCruiseHandoffSec") ? globals.sivaksCruiseHandoffSec : 4.0
+			);
 
 		settimer(func {
 			if (thisResetGeneration != resetGeneration)

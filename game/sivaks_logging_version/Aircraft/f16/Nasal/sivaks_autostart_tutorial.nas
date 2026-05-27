@@ -13,6 +13,31 @@ globals.sivaksWasAirborne = 0;
 globals.sivaksCrashResetBusy = 0;
 globals.sivaksLowSince = nil;
 globals.sivaksCrashExitGraceSec = 20.0;
+globals.sivaksCruiseHandoffSec = 4.0;
+globals.sivaksHandoffToken = 0;
+
+# Take-off state overlay (running.xml): engine/avionics like cruise, no cruise FBW integrator / fixed throttle.
+globals.sivaksApplyTakeoffFlightMode = func() {
+    setprop("/fdm/jsbsim/fcs/fly-by-wire/pitch/integrator-trigger", 0);
+    setprop("/controls/gear/gear-down", 0);
+    setprop("/controls/gear/brake-parking", 0);
+    setprop("/controls/flight/flaps", 0);
+    setprop("/controls/flight/speedbrake", 0);
+};
+
+# Launcher uses --state=cruise; after a few seconds switch handling to take-off-like (stable) mode.
+globals.sivaksScheduleCruiseToTakeoffHandoff = func(delay_sec) {
+    if (delay_sec == nil)
+        delay_sec = globals.sivaksCruiseHandoffSec;
+    globals.sivaksHandoffToken += 1;
+    var token = globals.sivaksHandoffToken;
+    settimer(func {
+        if (token != globals.sivaksHandoffToken)
+            return;
+        globals.sivaksApplyTakeoffFlightMode();
+        setprop("/sim/messages/copilot", "TAKEOFF MODE");
+    }, delay_sec);
+};
 
 globals.sivaksApplyCruiseAttitude = func() {
     # Slightly higher power helps prevent “pulled down” feel after reposition.
@@ -153,6 +178,8 @@ globals.sivaksRepositionToCorrActions = func() {
     globals.sivaksApplyCruiseAttitude();
     setprop("/sim/messages/copilot", "RETRY");
 
+    globals.sivaksScheduleCruiseToTakeoffHandoff(globals.sivaksCruiseHandoffSec);
+
     settimer(func {
         globals.sivaksPurgeCorrTargetsBurst();
         globals.sivaksRepairAircraft();
@@ -264,6 +291,7 @@ var _start = func {
         tutorial.startTutorial();
         if (!_was_frozen)
             setprop("/sim/freeze/master", 0);
+        globals.sivaksScheduleCruiseToTakeoffHandoff(globals.sivaksCruiseHandoffSec);
     }, 0);
 };
 

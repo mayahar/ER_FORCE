@@ -641,6 +641,7 @@ if __name__ == "__main__":
         # TerraSync needs working DNS for terrasync.flightgear.org; disable to avoid ALRT spam when offline/DNS fails.
         '--disable-terrasync',
         '--disable-sentry',
+        # Cruise for first ~4s (engine/gear), then Nasal switches to take-off-like FBW (see sivaks_autostart_tutorial.nas).
         '--state=cruise',
         '--prop:/sim/sivaks/autostart-tutorial-enabled=true',
         '--prop:/sim/sivaks/autostart-tutorial=' + autostart_tutorial_name,
