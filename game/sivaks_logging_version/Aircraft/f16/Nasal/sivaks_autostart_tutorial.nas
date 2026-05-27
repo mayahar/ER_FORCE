@@ -5,6 +5,8 @@
 
 props.globals.initNode("/sim/sivaks/autostart-tutorial-enabled", 0, "BOOL");
 props.globals.initNode("/sim/sivaks/autostart-tutorial", "CorrActions DEFAULT", "STRING");
+props.globals.initNode("/sim/sivaks/corractions-reset-request", 0, "INT");
+props.globals.initNode("/algorithm/game/retry-count", 0, "INT");
 
 var _autostart_done = 0;
 var _was_frozen = 0;

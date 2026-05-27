@@ -644,6 +644,8 @@ if __name__ == "__main__":
         '--state=cruise',
         '--prop:/sim/sivaks/autostart-tutorial-enabled=true',
         '--prop:/sim/sivaks/autostart-tutorial=' + autostart_tutorial_name,
+        '--prop:/sim/sivaks/corractions-reset-request=0',
+        '--prop:/algorithm/game/retry-count=0',
     ]
 
     # Optional: skip JSBSim trim at startup (can be unstable for some aircraft/states).

@@ -1018,11 +1018,15 @@ class GameScreen(BaseScreen):
         return voice_data
 
     def _maybe_start_voice_rerecord(self, voice_data) -> bool:
-        if not voice_data or not voice_features_unused(voice_data.get("summary")):
+        if not voice_data:
             return False
 
-        summary = voice_data.get("summary", {})
-        error_code = summary.get("error_code", None)
+        summary = voice_data.get("summary") or {}
+        error_code = summary.get("error_code")
+        if not error_code and voice_data.get("error"):
+            error_code = "GENERIC"
+        if not voice_features_unused(summary) and not error_code:
+            return False
 
         if error_code in ("NO_INPUT_DEVICE", "RECORDING_FAILED"):
             specific_tip = "הפעלת המיקרופון נכשלה. ודא שהמיקרופון מחובר, נבחר כהתקן קלט פעיל, אינו בשימוש בלעדי על ידי תוכנה אחרת ושיש לאפליקציה הרשאת גישה אליו."
@@ -1070,6 +1074,7 @@ class GameScreen(BaseScreen):
         self.app.voice_session = create_voice_session(self.app.controller)
         for event in self.app.voice_session.events:
             event.trigger_time = 0.0
+        self.app.voice_session.start_session()
         self.app.fg_pid = 0
         self.app.fg_finished_handled = False
         self.app.voice_only_running = True
