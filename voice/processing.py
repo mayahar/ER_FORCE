@@ -1,3 +1,5 @@
+import os
+import json
 import numpy as np
 from scipy.fftpack import dct
 from scipy.signal import lfilter, resample_poly
@@ -32,8 +34,17 @@ class VoiceFeatureExtractor:
     MIN_ENERGY_THRESHOLD = 0.001      
     MIN_TOTAL_SPEECH_DURATION_S = 5.0  
     MAX_FLUX_STD = 0.045000            
-    MAX_PITCH_REL_VARIATION = 0.550000 
+    MAX_PITCH_REL_VARIATION = 0.550000
 
+    CALIB_FILE = ".voice_calib.json"
+    if os.path.exists(CALIB_FILE):
+        try:
+            with open(CALIB_FILE, "r") as f:
+                _config = json.load(f)
+                MIN_ENERGY_THRESHOLD = _config.get("MIN_ENERGY_THRESHOLD", MIN_ENERGY_THRESHOLD)
+                MAX_FLUX_STD = _config.get("MAX_FLUX_STD", MAX_FLUX_STD)
+        except Exception as e:
+            print(f"[Warning] Failed to load calibration file, using defaults: {e}")
     @classmethod
     def preprocess_audio(cls, audio: np.ndarray, sample_rate: int):
         if audio.ndim > 1:
