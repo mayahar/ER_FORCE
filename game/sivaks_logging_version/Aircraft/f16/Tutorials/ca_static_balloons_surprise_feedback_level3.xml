@@ -70,39 +70,7 @@ This Scenario announces if you hit or miss.
 				settimer(apply_intro_level_attitude, 0.5);
 				settimer(apply_intro_cruise_power, 2.0);
 				settimer(apply_intro_level_attitude, 2.0);
-
-				# Early crash guard: reposition before the main tutorial step loads (mayahar working behavior).
-				globals.sivaksEarlyCrashResetBusy = 0;
-				globals.sivaksMainTutorialLoaded = 0;
-				var sivaksEarlyCrashReset = func() {
-					if (globals.sivaksMainTutorialLoaded)
-						return;
-					if (globals.sivaksEarlyCrashResetBusy)
-						return;
-					var crashed = getprop("/sim/crashed");
-					var agl = getprop("/position/altitude-agl-ft");
-					if ((crashed != nil and crashed > 0) or (agl != nil and agl < 20)) {
-						globals.sivaksEarlyCrashResetBusy = 1;
-						setprop("/sim/crashed", 0);
-						setprop("/sim/freeze/master", 0);
-						setprop("/sim/presets/airport-id", "PHTO");
-						setprop("/sim/presets/on-ground", 0);
-						setprop("/sim/presets/latitude-deg", 19.72415017471669);
-						setprop("/sim/presets/longitude-deg", -155.0518970894882);
-						setprop("/sim/presets/altitude-ft", 2000);
-						setprop("/sim/presets/heading-deg", 0);
-						setprop("/sim/presets/airspeed-kt", 350);
-						setprop("/sim/presets/glideslope-deg", 0);
-						setprop("/sim/presets/offset-azimuth-deg", 0);
-						setprop("/sim/presets/offset-distance-nm", 0);
-						fgcommand("reposition");
-						apply_intro_cruise_power();
-						apply_intro_level_attitude();
-						setprop("/sim/messages/copilot", "RETRY");
-						settimer(func { globals.sivaksEarlyCrashResetBusy = 0; }, 2.0);
-					}
-				};
-				maketimer(sivaksEarlyCrashReset, 0.05);
+				# Crash retry is handled globally in Nasal/sivaks_autostart_tutorial.nas
 				]]>
             </script>
         </nasal>			
@@ -773,6 +741,8 @@ This Scenario announces if you hit or miss.
 			setprop("/controls/gear/brake-parking", 0);
 			apply_cruise_power();
 			apply_level_attitude();
+			if (contains(globals, "sivaksRepairAircraft"))
+				globals.sivaksRepairAircraft();
 			destroyActiveTarget();
 			purgeCorrTargetModels();
 		}, 0.4);
@@ -828,28 +798,44 @@ This Scenario announces if you hit or miss.
 			return;
 		}
 
-		var crashed = getprop("/sim/crashed");
 		var agl_ft = getprop("/position/altitude-agl-ft");
 		var alt_ft = getprop("/position/altitude-ft");
-		var low_altitude = 0;
-		if (sim_elapsed > 0.5 and agl_ft != nil and agl_ft < 20)
-			low_altitude = 1;
-		if (sim_elapsed > 0.5 and alt_ft != nil and alt_ft < 20)
-			low_altitude = 1;
-		if (low_altitude > 0) {
-			if (lowAltitudeSince == nil)
-				lowAltitudeSince = sim_elapsed;
-			if ((sim_elapsed - lowAltitudeSince) >= 0.3) {
-				resetCorrActionsAttempt("low-altitude");
-				return;
-			}
-		}
-		else {
+		if (agl_ft != nil and agl_ft > 150)
+			globals.sivaksWasAirborne = 1;
+
+		var recovered = 0;
+		if (agl_ft != nil and agl_ft > 500)
+			recovered = 1;
+		if (alt_ft != nil and alt_ft > 1500)
+			recovered = 1;
+		if (recovered) {
+			globals.sivaksLowSince = nil;
 			lowAltitudeSince = nil;
 		}
-		if (crashed != nil and crashed > 0) {
-			resetCorrActionsAttempt("crashed");
-			return;
+		else {
+			var fallen = 0;
+			var crashed = getprop("/sim/crashed");
+			if (globals.sivaksWasAirborne) {
+				if (crashed != nil and crashed > 0)
+					fallen = 1;
+				if (agl_ft != nil and agl_ft < 200)
+					fallen = 1;
+				if (alt_ft != nil and alt_ft < 200)
+					fallen = 1;
+			}
+			if (fallen) {
+				if (globals.sivaksLowSince == nil)
+					globals.sivaksLowSince = sim_elapsed;
+				if ((sim_elapsed - globals.sivaksLowSince) >= 20.0) {
+					setprop("/sim/messages/copilot", "SESSION END");
+					fgcommand("exit");
+					return;
+				}
+				resetCorrActionsAttempt(
+					(crashed != nil and crashed > 0) ? "crashed" : "low-altitude"
+				);
+				return;
+			}
 		}
 
 		forindex (var i; balloonsArray)
@@ -1313,35 +1299,10 @@ This Scenario announces if you hit or miss.
   
 
    
+    <!-- Crash retry + 20s exit are handled in Nasal (not tutorial error/exit — those quit immediately). -->
     <step>
-<!--	
-        <message>Hit balloons</message>
--->     
-		<message></message>
-
-        <error>
-            <message>You are too low. Keep 2000 feet.</message>
-            <condition>
-                <less-than>
-                    <property>/instrumentation/altimeter/indicated-altitude-ft</property>
-                    <value>800</value>
-                </less-than>
-            </condition>
-				
-        </error>
-		
-        <error>
-            <message>You are too high. Keep 2000 feet.</message>
-            <condition>
-                <greater-than>
-                    <property>/instrumentation/altimeter/indicated-altitude-ft</property>
-                    <value>4000</value>
-                </greater-than>
-            </condition>
-			
-        </error>
-		
-		
+        <message></message>
+        <wait>3600</wait>
     </step>
 
     <step>
