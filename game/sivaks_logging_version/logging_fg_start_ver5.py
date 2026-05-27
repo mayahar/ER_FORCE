@@ -641,7 +641,7 @@ if __name__ == "__main__":
         # TerraSync needs working DNS for terrasync.flightgear.org; disable to avoid ALRT spam when offline/DNS fails.
         '--disable-terrasync',
         '--disable-sentry',
-        '--state=cruise',
+        '--state=take-off',
         '--prop:/sim/sivaks/autostart-tutorial-enabled=true',
         '--prop:/sim/sivaks/autostart-tutorial=' + autostart_tutorial_name,
         '--prop:/sim/sivaks/corractions-reset-request=0',
