@@ -15,10 +15,11 @@ globals.sivaksLowSince = nil;
 globals.sivaksCrashExitGraceSec = 20.0;
 
 globals.sivaksApplyCruiseAttitude = func() {
-    setprop("/controls/engines/throttle-all", 0.85);
-    setprop("/controls/engines/engine[0]/throttle", 0.85);
+    # Slightly higher power helps prevent “pulled down” feel after reposition.
+    setprop("/controls/engines/throttle-all", 0.92);
+    setprop("/controls/engines/engine[0]/throttle", 0.92);
     setprop("/controls/flight/elevator", 0);
-    setprop("/controls/flight/elevator-trim", 0.06);
+    setprop("/controls/flight/elevator-trim", 0.08);
     setprop("/controls/flight/aileron", 0);
     setprop("/controls/flight/rudder", 0);
     setprop("/controls/gear/gear-down", 0);
@@ -31,6 +32,27 @@ globals.sivaksPurgeCorrTargets = func() {
     if (root == nil)
         return;
     var ids_to_remove = [];
+    var cs_to_remove = [];
+
+    var _is_corr_model = func(cs_v, model_v) {
+        if (cs_v != "" and (
+            find(cs_v, "sivaks_bsign") >= 0 or
+            find(cs_v, "ca_corr_") >= 0 or
+            find(cs_v, "ca_corr") >= 0 or
+            find(cs_v, "ca_corr_dot") >= 0))
+            return 1;
+        if (model_v != "" and (
+            find(model_v, "ca_sivaks_balloon") >= 0 or
+            find(model_v, "balloon1t") >= 0 or
+            find(model_v, "ca_sivaks_bullseye") >= 0 or
+            find(model_v, "ca_sivaks_bullseye_sign") >= 0 or
+            find(model_v, "ca_sivaks_aim_dot") >= 0))
+            return 1;
+        return 0;
+    };
+
+    # Match the tutorial’s traversal: /ai/models/<type>[i]
+    # (Some FG builds don’t expose useful children via root.getChildren()).
     var types = ["static", "aircraft", "multiplayer", "wingman"];
     foreach (var typ; types)
     {
@@ -44,29 +66,33 @@ globals.sivaksPurgeCorrTargets = func() {
                 model = m.getNode("path");
             var cs_v = (cs != nil) ? cs.getValue() : "";
             var model_v = (model != nil) ? model.getValue() : "";
-            var is_ours = 0;
-            if (cs_v != "" and (
-                find(cs_v, "sivaks_bsign") >= 0 or
-                find(cs_v, "ca_corr_") >= 0 or
-                find(cs_v, "ca_corr") >= 0 or
-                find(cs_v, "ca_corr_dot") >= 0))
-                is_ours = 1;
-            if (!is_ours and model_v != "" and (
-                find(model_v, "ca_sivaks_balloon") >= 0 or
-                find(model_v, "balloon1t") >= 0 or
-                find(model_v, "ca_sivaks_bullseye") >= 0 or
-                find(model_v, "ca_sivaks_bullseye_sign") >= 0 or
-                find(model_v, "ca_sivaks_aim_dot") >= 0))
-                is_ours = 1;
-            if (!is_ours)
+            if (!_is_corr_model(cs_v, model_v))
                 continue;
             var idn = m.getNode("id");
             if (idn != nil)
                 append(ids_to_remove, idn.getValue());
+            if (cs_v != "")
+                append(cs_to_remove, cs_v);
         }
     }
-    foreach (var rid; ids_to_remove)
-        fgcommand("remove-aiobject", props.Node.new({"id": rid}));
+
+    foreach (var rid; ids_to_remove) {
+        # Some FG builds expect numeric id, some accept string. Try both; never throw.
+        call(func { fgcommand("remove-aiobject", props.Node.new({"id": rid})); }, nil, var _rm_err = []);
+        call(func { fgcommand("remove-aiobject", props.Node.new({"id": int(rid)})); }, nil, var _rm_err2 = []);
+    }
+
+    # Fallback: some objects don’t expose an id node; try by callsign too.
+    foreach (var cs_v; cs_to_remove) {
+        call(func { fgcommand("remove-aiobject", props.Node.new({"callsign": cs_v})); }, nil, var _rmcs_err = []);
+    }
+};
+
+# Repeat purge several times (AI objects can linger briefly after removal).
+globals.sivaksPurgeCorrTargetsBurst = func() {
+    for (var i = 0; i < 6; i += 1) {
+        settimer(func { globals.sivaksPurgeCorrTargets(); }, 0.15 * i);
+    }
 };
 
 # Restore airframe visuals after crash (must not throw — called after reposition).
@@ -110,7 +136,7 @@ globals.sivaksRepositionToCorrActions = func() {
         retry_count = 0;
     setprop("/algorithm/game/retry-count", retry_count + 1);
 
-    globals.sivaksPurgeCorrTargets();
+    globals.sivaksPurgeCorrTargetsBurst();
     setprop("/sim/crashed", 0);
     setprop("/sim/freeze/master", 0);
     setprop("/sim/presets/airport-id", "PHTO");
@@ -128,7 +154,7 @@ globals.sivaksRepositionToCorrActions = func() {
     setprop("/sim/messages/copilot", "RETRY");
 
     settimer(func {
-        globals.sivaksPurgeCorrTargets();
+        globals.sivaksPurgeCorrTargetsBurst();
         globals.sivaksRepairAircraft();
         globals.sivaksApplyCruiseAttitude();
         globals.sivaksCrashResetBusy = 0;
@@ -139,7 +165,7 @@ globals.sivaksRequestFullCrashReset = func() {
     var reset_request = getprop("/sim/sivaks/corractions-reset-request");
     if (reset_request == nil)
         reset_request = 0;
-    globals.sivaksPurgeCorrTargets();
+    globals.sivaksPurgeCorrTargetsBurst();
     setprop("/sim/sivaks/corractions-reset-request", reset_request + 1);
 };
 
