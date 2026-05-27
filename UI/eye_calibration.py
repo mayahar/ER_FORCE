@@ -34,12 +34,10 @@ from tobii_research import (
     ScreenBasedCalibration,
 )
 
-# Center + three corners (4 points — enough for Tobii, faster than full 5-corner set).
+# 2 נקודות כיול בלבד - מספיק לחלוטין לבדיקת תקינות חומרה ועבודה מהירה
 DEFAULT_CALIBRATION_POINTS = (
-    (0.5, 0.5),
-    (0.12, 0.12),
-    (0.88, 0.12),
-    (0.5, 0.88),
+    (0.15, 0.15),  # פינה שמאלית עליונה
+    (0.85, 0.85),  # פינה ימנית תתונה
 )
 
 DOT_LOOK_MS = 1200
@@ -72,13 +70,14 @@ HEAD_HOLD_DECAY_PER_SEC = 0.5
 HEAD_DISPLAY_XY_ALPHA = 0.10
 HEAD_DISPLAY_Z_ALPHA = 0.10
 
-# Tobii user-position ideal is near (0.5, 0.5, ~0.55) when head is well placed.
-HEAD_X_INNER = (0.44, 0.56)
-HEAD_Y_INNER = (0.42, 0.58)
-HEAD_Z_INNER = (0.48, 0.64)
-HEAD_X_OUTER = (0.36, 0.64)
-HEAD_Y_OUTER = (0.34, 0.66)
-HEAD_Z_OUTER = (0.42, 0.70)
+# טווחים סלחניים ורחבים במיוחד למיקום הראש
+HEAD_X_INNER = (0.38, 0.62)  # מאפשר חופש תנועה סביר ימינה/שמאלה
+HEAD_Y_INNER = (0.36, 0.64)  # מאפשר חופש תנועה סביר למעלה/למטה
+HEAD_Z_INNER = (0.45, 0.65)  # טווח עומק בטוח ויציב (סביב ה-0.55 האידיאלי)
+
+HEAD_X_OUTER = (0.30, 0.70)
+HEAD_Y_OUTER = (0.28, 0.72)
+HEAD_Z_OUTER = (0.38, 0.72)
 HEAD_Z_TARGET = 0.56
 
 
@@ -122,6 +121,7 @@ def _in_box(
 
 
 def _distance_hint_for_z(z: float) -> str:
+    # הלוגיקה הפיזית שעבדה לך בניסוי בשטח
     if z > HEAD_Z_INNER[0]:
         return "forward"
     if z < HEAD_Z_INNER[1]:
@@ -130,17 +130,21 @@ def _distance_hint_for_z(z: float) -> str:
 
 
 def _movement_hint_for_position(x: float, y: float, z: float) -> str:
+    # 1. קודם כל בודקים אם העומק בתוך טווח התקינות הרחב
     distance_hint = _distance_hint_for_z(z)
     if distance_hint:
-        return distance_hint
-    if x < HEAD_X_INNER[1]:
-        return "left"
-    if x > HEAD_X_INNER[0]:
+        return distance_hint  # אם העומק לא תקין, הנבדק יקבל הנחיית קדימה/אחורה בלבד
+
+    # 2. רק אם העומק תקין לחלוטין, מפעילים את הנחיות הדו-ממד (ימינה/שמאלה, למעלה/למטה)
+    if x < HEAD_X_INNER[0]:
         return "right"
-    if y < HEAD_Y_INNER[1]:
+    if x > HEAD_X_INNER[1]:
+        return "left"
+    if y < HEAD_Y_INNER[0]:
         return "down"
-    if y > HEAD_Y_INNER[0]:
+    if y > HEAD_Y_INNER[1]:
         return "up"
+        
     return "center"
 
 
