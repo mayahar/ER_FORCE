@@ -1,1326 +1,157 @@
-"""Fullscreen Tobii calibration: head position → calibration dots → fixation preview."""
+"""Fullscreen Tobii Pro Glasses 3 single-point display calibration using official Target Image."""
 
 from __future__ import annotations
-
-import math
+import time
 from pathlib import Path
+import requests
 
-import tobii_research as tr
-from PySide6.QtCore import Qt, QTimer, Signal, QRectF
-from PySide6.QtGui import (
-    QFont,
-    QGuiApplication,
-    QPainter,
-    QColor,
-    QPen,
-    QPixmap,
-    QImage,
-)
-from PySide6.QtWidgets import (
-    QDialog,
-    QLabel,
-    QStackedWidget,
-    QVBoxLayout,
-    QWidget,
-    QApplication,
-)
+from PySide6.QtCore import Qt, QTimer, Signal, QRectF, QSize
+from PySide6.QtGui import QFont, QGuiApplication, QPainter, QColor, QPen, QPixmap, QScreen
+from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QWidget, QApplication
 
-from tobii_research import (
-    CALIBRATION_STATUS_FAILURE,
-    CALIBRATION_STATUS_SUCCESS,
-    CALIBRATION_STATUS_SUCCESS_LEFT_EYE,
-    CALIBRATION_STATUS_SUCCESS_RIGHT_EYE,
-    VALIDITY_VALID_AND_USED,
-    ScreenBasedCalibration,
-)
-
-# 2 נקודות כיול בלבד - מספיק לחלוטין לבדיקת תקינות חומרה ועבודה מהירה
-DEFAULT_CALIBRATION_POINTS = (
-    (0.15, 0.15),  # פינה שמאלית עליונה
-    (0.85, 0.85),  # פינה ימנית תתונה
-)
-
-DOT_LOOK_MS = 1200
-DOT_COLLECT_DELAY_MS = 40
-DOT_EXPLODE_MS = 280
-DOT_GAP_MS = 150
-COLLECT_PASSES_PER_POINT = 1
-DOT_COLLECT_RETRIES = 2
-DOT_EXPLODE_PARTICLES = 10
-DOT_EXPLODE_SAFETY_MS = DOT_EXPLODE_MS + 250
-
-LEFT_EYE_COLOR = QColor("#42a5f5")
-RIGHT_EYE_COLOR = QColor("#66bb6a")
-
-SUCCESS_STATUSES = {
-    CALIBRATION_STATUS_SUCCESS,
-    CALIBRATION_STATUS_SUCCESS_LEFT_EYE,
-    CALIBRATION_STATUS_SUCCESS_RIGHT_EYE,
-}
-
-HEAD_HOLD_SECONDS = 1.0
-HEAD_TO_DOTS_DELAY_MS = 120
-HEAD_POSITION_ENABLED = True
-TRACKER_CONNECT_TIMEOUT_MS = 20000
-POSITION_POLL_MS = 50
-HEAD_POSITION_SMOOTH_ALPHA = 0.12
-HEAD_BAD_STREAK_BEFORE_DECAY = 5
-HEAD_MISSING_GRACE_TICKS = 8
-HEAD_HOLD_DECAY_PER_SEC = 0.5
-HEAD_DISPLAY_XY_ALPHA = 0.10
-HEAD_DISPLAY_Z_ALPHA = 0.10
-
-# טווחים סלחניים ורחבים במיוחד למיקום הראש
-HEAD_X_INNER = (0.38, 0.62)  # מאפשר חופש תנועה סביר ימינה/שמאלה
-HEAD_Y_INNER = (0.36, 0.64)  # מאפשר חופש תנועה סביר למעלה/למטה
-HEAD_Z_INNER = (0.45, 0.65)  # טווח עומק בטוח ויציב (סביב ה-0.55 האידיאלי)
-
-HEAD_X_OUTER = (0.30, 0.70)
-HEAD_Y_OUTER = (0.28, 0.72)
-HEAD_Z_OUTER = (0.38, 0.72)
-HEAD_Z_TARGET = 0.56
-
-
-def _parse_position_guide(
-    data,
-) -> tuple[float | None, float | None, float | None, bool, str]:
-    """Average valid left/right user position; return (x, y, z, ok, distance_hint)."""
-    if isinstance(data, dict):
-        left = data.get("left_user_position")
-        right = data.get("right_user_position")
-        left_ok = bool(data.get("left_user_position_validity"))
-        right_ok = bool(data.get("right_user_position_validity"))
-    else:
-        left = data.left_eye.user_position if data.left_eye.validity else None
-        right = data.right_eye.user_position if data.right_eye.validity else None
-        left_ok = data.left_eye.validity
-        right_ok = data.right_eye.validity
-
-    points = []
-    if left_ok and left:
-        points.append(left)
-    if right_ok and right:
-        points.append(right)
-    if not points:
-        return None, None, None, False, ""
-
-    xs = [p[0] for p in points]
-    ys = [p[1] for p in points]
-    zs = [p[2] for p in points if len(p) > 2]
-    x = sum(xs) / len(xs)
-    y = sum(ys) / len(ys)
-    z = sum(zs) / len(zs) if zs else 0.55
-
-    return x, y, z, False, ""
-
-
-def _in_box(
-    x: float, y: float, z: float, xr: tuple[float, float], yr: tuple[float, float], zr: tuple[float, float]
-) -> bool:
-    return xr[0] <= x <= xr[1] and yr[0] <= y <= yr[1] and zr[0] <= z <= zr[1]
-
-
-def _distance_hint_for_z(z: float) -> str:
-    # הלוגיקה הפיזית שעבדה לך בניסוי בשטח
-    if z > HEAD_Z_INNER[0]:
-        return "forward"
-    if z < HEAD_Z_INNER[1]:
-        return "back"
-    return ""
-
-
-def _movement_hint_for_position(x: float, y: float, z: float) -> str:
-    # 1. קודם כל בודקים אם העומק בתוך טווח התקינות הרחב
-    distance_hint = _distance_hint_for_z(z)
-    if distance_hint:
-        return distance_hint  # אם העומק לא תקין, הנבדק יקבל הנחיית קדימה/אחורה בלבד
-
-    # 2. רק אם העומק תקין לחלוטין, מפעילים את הנחיות הדו-ממד (ימינה/שמאלה, למעלה/למטה)
-    if x < HEAD_X_INNER[0]:
-        return "right"
-    if x > HEAD_X_INNER[1]:
-        return "left"
-    if y < HEAD_Y_INNER[0]:
-        return "down"
-    if y > HEAD_Y_INNER[1]:
-        return "up"
-        
-    return "center"
-
-
-class HeadPositionSmoother:
-    """EMA + hysteresis so the guide stays stable and the hold bar does not jump."""
-
-    def __init__(self) -> None:
-        self._x: float | None = None
-        self._y: float | None = None
-        self._z: float | None = None
-        self._hold_seconds = 0.0
-        self._bad_streak = 0
-        self._missing_streak = 0
-        self._ok_latched = False
-
-    @property
-    def hold_seconds(self) -> float:
-        return self._hold_seconds
-
-    def reset(self) -> None:
-        self._x = None
-        self._y = None
-        self._z = None
-        self._hold_seconds = 0.0
-        self._bad_streak = 0
-        self._missing_streak = 0
-        self._ok_latched = False
-
-    def _update_ok_latch(self, x: float, y: float, z: float) -> bool:
-        if self._ok_latched:
-            if _in_box(x, y, z, HEAD_X_OUTER, HEAD_Y_OUTER, HEAD_Z_OUTER):
-                return True
-            self._ok_latched = False
-            return False
-        if _in_box(x, y, z, HEAD_X_INNER, HEAD_Y_INNER, HEAD_Z_INNER):
-            self._ok_latched = True
-            return True
-        return False
-
-    def update(
-        self, raw_x: float | None, raw_y: float | None, raw_z: float | None, dt: float
-    ) -> tuple[float | None, float | None, float | None, bool, str]:
-        if raw_x is None or raw_y is None or raw_z is None:
-            self._missing_streak += 1
-            self._bad_streak += 1
-            if self._missing_streak >= HEAD_MISSING_GRACE_TICKS:
-                self._decay_hold(dt)
-            if self._x is None:
-                return None, None, None, False, ""
-            ok = self._update_ok_latch(self._x, self._y, self._z)
-            hint = "" if ok else _movement_hint_for_position(self._x, self._y, self._z)
-            return self._x, self._y, self._z, ok, hint
-
-        self._missing_streak = 0
-        alpha = HEAD_POSITION_SMOOTH_ALPHA
-        if self._x is None:
-            self._x, self._y, self._z = raw_x, raw_y, raw_z
-        else:
-            self._x = alpha * raw_x + (1.0 - alpha) * self._x
-            self._y = alpha * raw_y + (1.0 - alpha) * self._y
-            self._z = alpha * raw_z + (1.0 - alpha) * self._z
-
-        ok = self._update_ok_latch(self._x, self._y, self._z)
-        if ok:
-            self._bad_streak = 0
-            self._hold_seconds = min(HEAD_HOLD_SECONDS, self._hold_seconds + dt)
-        else:
-            self._bad_streak += 1
-            if self._bad_streak >= HEAD_BAD_STREAK_BEFORE_DECAY:
-                self._decay_hold(dt)
-
-        hint = "" if ok else _movement_hint_for_position(self._x, self._y, self._z)
-        return self._x, self._y, self._z, ok, hint
-
-    def _decay_hold(self, dt: float) -> None:
-        self._hold_seconds = max(0.0, self._hold_seconds - dt * HEAD_HOLD_DECAY_PER_SEC)
-
-
-def _draw_head_figure(
-    painter: QPainter,
-    cx: float,
-    cy: float,
-    rx: float,
-    ry: float,
-    color: QColor,
-    *,
-    glow: bool = True,
-    line_width: int = 3,
-    fill_alpha: int = 0,
-) -> None:
-    """Simple oval guide for head position."""
-    head_rect = QRectF(cx - rx, cy - ry, rx * 2, ry * 2)
-
-    if glow:
-        for extra, alpha in ((12, 20), (8, 40), (4, 65)):
-            glow_color = QColor(color)
-            glow_color.setAlpha(alpha)
-            painter.setPen(
-                QPen(glow_color, line_width + extra, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
-            )
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            painter.drawEllipse(head_rect)
-
-    painter.setPen(QPen(color, line_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-    if fill_alpha > 0:
-        fill = QColor(color)
-        fill.setAlpha(fill_alpha)
-        painter.setBrush(fill)
-    else:
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-    painter.drawEllipse(head_rect)
-
-
-class HeadPositionCanvas(QWidget):
-    """Oval guide: fit your head inside; turns green when ready."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._user_ok = False
-        self._distance_hint = ""
-        self._hold_ratio = 0.0
-        self._display_x: float | None = None
-        self._display_y: float | None = None
-        self._display_z: float | None = None
-
-    def reset_display(self) -> None:
-        self._display_x = None
-        self._display_y = None
-        self._display_z = None
-
-    def _smooth_display(self, attr: str, value: float, alpha: float) -> None:
-        current = getattr(self, attr)
-        if current is None:
-            setattr(self, attr, value)
-        else:
-            setattr(self, attr, alpha * value + (1.0 - alpha) * current)
-
-    def _guide_colors(self) -> tuple[QColor, QColor]:
-        if self._user_ok:
-            return QColor("#66bb6a"), QColor("#a5d6a7")
-        if self._distance_hint:
-            return QColor("#ffb74d"), QColor("#ffe0b2")
-        return QColor("#5eb8ff"), QColor("#90caf9")
-
-    def _instruction_text(self) -> str:
-        if self._user_ok:
-            return "להישאר יציב/ה - כמעט מוכנים."
-        instructions = {
-            "forward": "להתקרב מעט למסך.",
-            "back": "להתרחק מעט מהמסך.",
-            "left": "לזוז מעט שמאלה.",
-            "right": "לזוז מעט ימינה.",
-            "up": "לעלות מעט למעלה.",
-            "down": "לרדת מעט למטה.",
-            "center": "להתמקם במרכז האליפסה.",
-        }
-        return instructions.get(
-            self._distance_hint,
-            "להתאים את הראש לאליפסה עד שהיא הופכת לירוקה.",
-        )
-
-    def update_position(
-        self,
-        x: float | None,
-        y: float | None,
-        z: float | None,
-        ok: bool,
-        distance_hint: str = "",
-        hold_ratio: float = 0.0,
-    ) -> None:
-        self._user_ok = ok
-        self._distance_hint = distance_hint
-        self._hold_ratio = max(0.0, min(1.0, hold_ratio))
-        if x is not None:
-            self._smooth_display("_display_x", x, HEAD_DISPLAY_XY_ALPHA)
-        if y is not None:
-            self._smooth_display("_display_y", y, HEAD_DISPLAY_XY_ALPHA)
-        if z is not None:
-            self._smooth_display("_display_z", z, HEAD_DISPLAY_Z_ALPHA)
-        self.update()
-
-    def paintEvent(self, _event) -> None:
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-        painter.fillRect(self.rect(), QColor("#1c2333"))
-
-        w, h = self.width(), self.height()
-        panel_size = int(min(w, h) * 0.52)
-        panel_x = (w - panel_size) // 2
-        panel_y = int(h * 0.22)
-        panel_rect = QRectF(panel_x, panel_y, panel_size, panel_size)
-
-        title_font = QFont("Segoe UI", 20, QFont.Weight.DemiBold)
-        sub_font = QFont("Segoe UI", 13)
-
-        painter.setFont(title_font)
-        painter.setPen(QColor("#b0bec5"))
-        painter.drawText(0, int(h * 0.07), w, 40, Qt.AlignmentFlag.AlignHCenter, "Position and settings")
-        painter.setFont(sub_font)
-        painter.setPen(QColor("#90a4ae"))
-        hint = self._instruction_text()
-        painter.drawText(0, int(h * 0.11), w, 36, Qt.AlignmentFlag.AlignHCenter, hint)
-
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor("#3a2828"))
-        painter.drawRoundedRect(panel_rect, 4, 4)
-
-        cx = panel_rect.center().x()
-        cy = panel_rect.center().y()
-        target_rx = panel_size * 0.22
-        target_ry = panel_size * 0.30
-
-        main_color, live_color = self._guide_colors()
-
-        _draw_head_figure(
-            painter, cx, cy, target_rx, target_ry, main_color, glow=True, line_width=3
-        )
-
-        if (
-            self._display_x is not None
-            and self._display_y is not None
-            and self._display_z is not None
-        ):
-            z_scale = self._display_z / HEAD_Z_TARGET
-            z_scale = max(0.55, min(1.5, z_scale))
-            live_rx = target_rx * z_scale
-            live_ry = target_ry * z_scale
-            offset_x = (self._display_x - 0.5) * target_rx * 1.9
-            offset_y = (0.5 - self._display_y) * target_ry * 1.6
-            live_cx = cx + offset_x
-            live_cy = cy + offset_y
-
-            live_fill = QColor(live_color)
-            live_fill.setAlpha(55)
-            _draw_head_figure(
-                painter,
-                live_cx,
-                live_cy,
-                live_rx,
-                live_ry,
-                live_color,
-                glow=False,
-                line_width=2,
-                fill_alpha=55,
-            )
-
-        bar_w = panel_size * 0.36
-        bar_h = 5
-        bar_gap = 10
-        bar_y = panel_rect.bottom() - 28
-        bar_x1 = cx - bar_w - bar_gap / 2
-        bar_x2 = cx + bar_gap / 2
-        for bar_x in (bar_x1, bar_x2):
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor("#546e7a"))
-            painter.drawRoundedRect(int(bar_x), int(bar_y), int(bar_w), bar_h, 2, 2)
-            fill_w = bar_w * self._hold_ratio
-            if fill_w > 1:
-                painter.setBrush(main_color if self._user_ok else QColor("#5eb8ff"))
-                painter.drawRoundedRect(int(bar_x), int(bar_y), int(fill_w), bar_h, 2, 2)
-
-
-class CalibrationDotCanvas(QWidget):
-    """Red calibration target with dwell pulse and smooth explosion after collect."""
-
-    look_finished = Signal()
-    explosion_finished = Signal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._norm_x = 0.5
-        self._norm_y = 0.5
-        self._phase = "hidden"  # hidden | looking | collecting | exploding
-        self._pulse_t = 0.0
-        self._explode_t = 0.0
-        self._particles: list[tuple[float, float]] = []
-
-        self._anim_timer = QTimer(self)
-        self._anim_timer.setInterval(16)
-        self._anim_timer.timeout.connect(self._tick_animation)
-
-        self._look_timer = QTimer(self)
-        self._look_timer.setSingleShot(True)
-        self._look_timer.timeout.connect(self._on_look_finished)
-
-        self._explosion_safety = QTimer(self)
-        self._explosion_safety.setSingleShot(True)
-        self._explosion_safety.timeout.connect(self._force_explosion_done)
-
-    def start_point(self, norm_x: float, norm_y: float) -> None:
-        self._look_timer.stop()
-        self._anim_timer.stop()
-        self._norm_x = norm_x
-        self._norm_y = norm_y
-        self._phase = "looking"
-        self._pulse_t = 0.0
-        self._explode_t = 0.0
-        self._look_timer.start(DOT_LOOK_MS)
-        self._anim_timer.start()
-        self.update()
-
-    @property
-    def phase(self) -> str:
-        return self._phase
-
-    def _on_look_finished(self) -> None:
-        if self._phase != "looking":
-            return
-        self._phase = "collecting"
-        self._look_timer.stop()
-        self.look_finished.emit()
-
-    def begin_explosion(self) -> None:
-        if self._phase not in ("looking", "collecting"):
-            return
-        self._look_timer.stop()
-        self._begin_explosion()
-
-    def hide_point(self) -> None:
-        self._look_timer.stop()
-        self._explosion_safety.stop()
-        self._anim_timer.stop()
-        self._phase = "hidden"
-        self.update()
-
-    def _begin_explosion(self) -> None:
-        self._phase = "exploding"
-        self._explode_t = 0.0
-        self._particles = []
-        for i in range(DOT_EXPLODE_PARTICLES):
-            angle = (2.0 * math.pi * i / DOT_EXPLODE_PARTICLES) + (i * 0.17)
-            speed = 0.75 + (i % 5) * 0.08
-            self._particles.append((angle, speed))
-        self._anim_timer.start()
-        self._explosion_safety.start(DOT_EXPLODE_SAFETY_MS)
-        self.update()
-
-    def _force_explosion_done(self) -> None:
-        if self._phase != "exploding":
-            return
-        self._phase = "hidden"
-        self._anim_timer.stop()
-        self._explosion_safety.stop()
-        self.update()
-        self.explosion_finished.emit()
-
-    def _tick_animation(self) -> None:
-        if self._phase == "looking":
-            self._pulse_t += 0.07
-            self.update()
-            return
-        if self._phase == "exploding":
-            self._explode_t += 16.0 / DOT_EXPLODE_MS
-            if self._explode_t >= 1.0:
-                self._phase = "hidden"
-                self._anim_timer.stop()
-                self._explosion_safety.stop()
-                self.update()
-                self.explosion_finished.emit()
-                return
-            self.update()
-
-    @staticmethod
-    def _ease_out_cubic(t: float) -> float:
-        t = max(0.0, min(1.0, t))
-        return 1.0 - (1.0 - t) ** 3
-
-    def paintEvent(self, _event) -> None:
-        painter = QPainter(self)
-        painter.fillRect(self.rect(), QColor("#101010"))
-        if self._phase == "hidden":
-            return
-
-        base_radius = max(18, min(self.width(), self.height()) // 40)
-        cx = int(self._norm_x * self.width())
-        cy = int(self._norm_y * self.height())
-        painter.setRenderHint(QPainter.Antialiasing)
-
-        if self._phase in ("looking", "collecting"):
-            pulse = 1.0 + (0.12 if self._phase == "collecting" else 0.07) * math.sin(
-                self._pulse_t
-            )
-            radius = int(base_radius * pulse)
-            glow = QColor(229, 57, 53, 55)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(glow)
-            painter.drawEllipse(cx - radius - 8, cy - radius - 8, (radius + 8) * 2, (radius + 8) * 2)
-            painter.setPen(QPen(QColor("#ffffff"), 3))
-            painter.setBrush(QColor("#e53935"))
-            painter.drawEllipse(cx - radius, cy - radius, radius * 2, radius * 2)
-            inner = max(4, radius // 4)
-            painter.setBrush(QColor("#ffffff"))
-            painter.drawEllipse(cx - inner, cy - inner, inner * 2, inner * 2)
-            return
-
-        ease = self._ease_out_cubic(self._explode_t)
-        shrink = max(2, int(base_radius * (1.0 - ease * 0.92)))
-        core_alpha = int(255 * (1.0 - ease))
-        if core_alpha > 0:
-            core = QColor(229, 57, 53, core_alpha)
-            painter.setPen(QPen(QColor(255, 255, 255, core_alpha), 2))
-            painter.setBrush(core)
-            painter.drawEllipse(cx - shrink, cy - shrink, shrink * 2, shrink * 2)
-
-        ring_alpha = int(200 * (1.0 - ease))
-        if ring_alpha > 0:
-            ring_r = base_radius + ease * base_radius * 2.8
-            painter.setPen(QPen(QColor(255, 255, 255, ring_alpha), max(1, int(3 * (1.0 - ease)))))
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            painter.drawEllipse(
-                int(cx - ring_r), int(cy - ring_r), int(ring_r * 2), int(ring_r * 2)
-            )
-
-        max_dist = base_radius * (2.2 + ease * 5.5)
-        for angle, speed in self._particles:
-            dist = max_dist * speed * ease
-            px = cx + math.cos(angle) * dist
-            py = cy + math.sin(angle) * dist
-            size = max(2, int(base_radius * 0.22 * (1.0 - ease * 0.65)))
-            alpha = int(230 * (1.0 - ease))
-            if alpha <= 0:
-                continue
-            color = QColor(255, 120, 100, alpha)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(color)
-            painter.drawEllipse(int(px - size), int(py - size), size * 2, size * 2)
-
-
-def _eye_gaze_samples(samples, eye_attr: str) -> list[tuple[float, float]]:
-    points: list[tuple[float, float]] = []
-    for sample in samples:
-        eye = getattr(sample, eye_attr)
-        if eye.validity == VALIDITY_VALID_AND_USED:
-            px, py = eye.position_on_display_area
-            points.append((float(px), float(py)))
-    return points
-
-
-def _mean_gaze(points: list[tuple[float, float]]) -> tuple[float, float] | None:
-    if not points:
-        return None
-    xs = [p[0] for p in points]
-    ys = [p[1] for p in points]
-    return sum(xs) / len(xs), sum(ys) / len(ys)
-
-
-class FixationMapCanvas(QWidget):
-    """Calibration map: red = target; blue/green = all gaze samples per eye + mean."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._targets: list[tuple[float, float]] = []
-        self._left_samples: list[list[tuple[float, float]]] = []
-        self._right_samples: list[list[tuple[float, float]]] = []
-        self._mean_left: list[tuple[float, float] | None] = []
-        self._mean_right: list[tuple[float, float] | None] = []
-        self._mean_error_px = 0.0
-
-    def set_calibration_result(self, result, plot_size: tuple[int, int] = (400, 250)) -> None:
-        self._targets = []
-        self._left_samples = []
-        self._right_samples = []
-        self._mean_left = []
-        self._mean_right = []
-        self._mean_error_px = 0.0
-        if result is None:
-            self.update()
-            return
-
-        errors_norm: list[float] = []
-        for point in getattr(result, "calibration_points", ()) or ():
-            tx, ty = point.position_on_display_area
-            target = (float(tx), float(ty))
-            self._targets.append(target)
-
-            samples = point.calibration_samples
-            left_pts = _eye_gaze_samples(samples, "left_eye")
-            right_pts = _eye_gaze_samples(samples, "right_eye")
-            left_mean = _mean_gaze(left_pts)
-            right_mean = _mean_gaze(right_pts)
-            self._left_samples.append(left_pts)
-            self._right_samples.append(right_pts)
-            self._mean_left.append(left_mean)
-            self._mean_right.append(right_mean)
-
-            for mean in (left_mean, right_mean):
-                if mean is not None:
-                    errors_norm.append(
-                        ((mean[0] - target[0]) ** 2 + (mean[1] - target[1]) ** 2) ** 0.5
-                    )
-
-        if errors_norm:
-            avg_norm = sum(errors_norm) / len(errors_norm)
-            self._mean_error_px = avg_norm * min(plot_size) * 0.85
-
-        self.update()
-
-    def render_pixmap(self, width: int = 320, height: int = 200) -> QPixmap:
-        image = QImage(width, height, QImage.Format.Format_ARGB32)
-        image.fill(QColor("#1a1a1a"))
-        painter = QPainter(image)
-        painter.setRenderHint(QPainter.Antialiasing)
-        self._paint_map(painter, width, height)
-        painter.end()
-        return QPixmap.fromImage(image)
-
-    def paintEvent(self, _event) -> None:
-        painter = QPainter(self)
-        painter.fillRect(self.rect(), QColor("#1a1a1a"))
-        self._paint_map(painter, self.width(), self.height())
-
-    def _paint_map(self, painter: QPainter, width: int, height: int) -> None:
-        margin = 20
-        plot = QRectF(margin, margin, width - 2 * margin, height - 2 * margin)
-
-        painter.setPen(QPen(QColor("#455a64"), 1))
-        painter.drawRect(plot)
-
-        for idx, (tx, ty) in enumerate(self._targets):
-            tx_px = plot.left() + tx * plot.width()
-            ty_px = plot.top() + ty * plot.height()
-            target_px = (tx_px, ty_px)
-
-            left_pts = self._left_samples[idx] if idx < len(self._left_samples) else []
-            right_pts = self._right_samples[idx] if idx < len(self._right_samples) else []
-            left_mean = self._mean_left[idx] if idx < len(self._mean_left) else None
-            right_mean = self._mean_right[idx] if idx < len(self._mean_right) else None
-
-            self._draw_eye_cluster(
-                painter, plot, target_px, left_pts, left_mean, LEFT_EYE_COLOR
-            )
-            self._draw_eye_cluster(
-                painter, plot, target_px, right_pts, right_mean, RIGHT_EYE_COLOR
-            )
-
-        self._draw_legend(painter, width, height)
-
-    def _draw_eye_cluster(
-        self,
-        painter: QPainter,
-        plot: QRectF,
-        target_px: tuple[float, float],
-        samples: list[tuple[float, float]],
-        mean: tuple[float, float] | None,
-        color: QColor,
-    ) -> None:
-        painter.setPen(Qt.PenStyle.NoPen)
-        sample_color = QColor(color)
-        sample_color.setAlpha(150)
-        painter.setBrush(sample_color)
-        for gx, gy in samples:
-            gx_px = plot.left() + gx * plot.width()
-            gy_px = plot.top() + gy * plot.height()
-            painter.drawEllipse(int(gx_px) - 3, int(gy_px) - 3, 6, 6)
-
-        if mean is None:
-            return
-        tx_px, ty_px = target_px
-        gx, gy = mean
-        gx_px = plot.left() + gx * plot.width()
-        gy_px = plot.top() + gy * plot.height()
-
-        line_color = QColor(color)
-        line_color.setAlpha(200)
-        painter.setPen(QPen(line_color, 1, Qt.PenStyle.DashLine))
-        painter.drawLine(int(tx_px), int(ty_px), int(gx_px), int(gy_px))
-
-        mean_color = QColor(color)
-        mean_color.setAlpha(240)
-        painter.setPen(QPen(QColor("#ffffff"), 1))
-        painter.setBrush(mean_color)
-        painter.drawEllipse(int(gx_px) - 8, int(gy_px) - 8, 16, 16)
-
-    def _draw_legend(self, painter: QPainter, width: int, height: int) -> None:
-        x = 28
-        y = height - 22
-        font = painter.font()
-        font.setPointSize(9)
-        painter.setFont(font)
-
-        for label, color in (("L", LEFT_EYE_COLOR), ("R", RIGHT_EYE_COLOR)):
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(color)
-            painter.drawEllipse(x, y - 6, 10, 10)
-            painter.setPen(QPen(QColor("#b0bec5")))
-            painter.drawText(x + 14, y + 4, label)
-            x += 36
-
-
-class ConnectingCanvas(QWidget):
-    """Simple splash while the Tobii SDK connects on the main thread."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._message = "מתחבר לעקיב העיניים..."
-
-    def set_message(self, text: str) -> None:
-        self._message = text
-        self.update()
-
-    def paintEvent(self, _event) -> None:
-        painter = QPainter(self)
-        painter.fillRect(self.rect(), QColor("#101010"))
-        painter.setPen(QColor("#ffffff"))
-        title_font = QFont("Segoe UI", 28, QFont.Weight.DemiBold)
-        sub_font = QFont("Segoe UI", 18)
-        w, h = self.width(), self.height()
-        painter.setFont(title_font)
-        painter.drawText(0, h // 2 - 40, w, 40, Qt.AlignmentFlag.AlignHCenter, "Eye calibration")
-        painter.setFont(sub_font)
-        painter.setPen(QColor("#b0bec5"))
-        painter.drawText(0, h // 2 + 10, w, 36, Qt.AlignmentFlag.AlignHCenter, self._message)
-
+GLASSES_IP = "TG03B-0123456789.local"
 
 class EyeCalibrationDialog(QDialog):
     finished_calibration = Signal(bool, str)
 
-    def __init__(
-        self,
-        runtime,
-        parent=None,
-        screen=None,
-        save_dir: Path | None = None,
-    ):
+    def __init__(self, runtime, parent=None, screen=None, save_dir: Path | None = None):
         super().__init__(parent)
-        self._runtime = runtime
-        self.eyetracker = None
-        self.target_screen = screen or QGuiApplication.primaryScreen()
-        self.save_dir = save_dir
-        self._points = list(DEFAULT_CALIBRATION_POINTS)
-        self._point_index = 0
-        self._calibration = None
-        self._calibration_result = None
-        self._success = False
-        self._message = ""
-        self._position_subscribed = False
-        self._hold_seconds = 0.0
-        self._latest_guide = None
-        self.preview_pixmap: QPixmap | None = None
-        self._pending_collect: tuple[float, float] | None = None
-        self._collect_pass = 0
-        self._head_smoother = HeadPositionSmoother()
-        self._last_status_key = ""
-        self._display_area_applied = False
-        self._dot_busy = False
-        self._dot_token = 0
-        self._awaiting_explosion = False
-        self._begin_started = False
-        self._connect_completed = False
-        self._gaze_wake_subscribed = False
+        self.runtime = runtime
+        self.screen = screen if screen is not None else QGuiApplication.primaryScreen()
+        self.preview_pixmap = None
 
-        self.setWindowFlags(
-            Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint
-        )
-        self.setModal(True)
-        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
+        
+        # רקע אפור כהה ייעודי (מונע סינוור ושומר על אישונים יציבים בזמן הכיול)
+        self.setStyleSheet("background-color: #232323;")
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        self.layout = QVBoxLayout(self)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.stack = QStackedWidget(self)
-        self.connecting_canvas = ConnectingCanvas(self)
-        self.head_canvas = HeadPositionCanvas(self)
-        self.dot_canvas = CalibrationDotCanvas(self)
-        self.preview_canvas = FixationMapCanvas(self)
-        self.stack.addWidget(self.connecting_canvas)
-        self.stack.addWidget(self.head_canvas)
-        self.stack.addWidget(self.dot_canvas)
-        self.stack.addWidget(self.preview_canvas)
-        layout.addWidget(self.stack, stretch=1)
+        # כיתוב הנחיה לנבדק
+        self.instruction_label = QLabel("אנא הבט ישירות ובאופן יציב אל מרכז סמן הכיול...", self)
+        self.instruction_label.setStyleSheet("color: #FFFFFF; font-size: 18pt; font-family: Arial; font-weight: bold;")
+        self.instruction_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.layout.addWidget(self.instruction_label)
 
-        self.status_label = QLabel("", self)
-        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.status_label.setStyleSheet(
-            "color: white; background-color: rgba(0,0,0,160); padding: 12px; font-size: 16px;"
-        )
-        self.status_label.setFont(QFont("Segoe UI", 14))
-        layout.addWidget(self.status_label)
+        # טעינת קובץ תמונת ה-Target שהעלית
+        # ודאי שקובץ התמונה נמצא באותה תיקייה או עדכני את הנתיב בהתאם
+        self.target_image_path = str(Path(__file__).resolve().parent / "image_325509.png")
+        self.target_pixmap = QPixmap(self.target_image_path)
+        
+        if self.target_pixmap.isNull():
+            print(f"אזהרה: לא ניתן היה לטעון את תמונת הסמן מהנתיב: {self.target_image_path}. המערכת תשתמש בסמן חלופי.")
 
-        self._position_timer = QTimer(self)
-        self._position_timer.setInterval(POSITION_POLL_MS)
-        self._position_timer.timeout.connect(self._tick_head_position)
+        # הפעלת תהליך הכיול מול המשקפיים שנייה אחת לאחר עליית המסך
+        QTimer.singleShot(1000, self.perform_glasses_calibration)
 
-        self.dot_canvas.look_finished.connect(self._on_dot_look_finished)
-        self.dot_canvas.explosion_finished.connect(self._on_dot_explosion_finished)
+    def calculate_target_size_px(self) -> int:
+        """
+        מחשב את גודל התמונה בפיקסלים כדי שתתאים בדיוק ל-45 מ"מ (4.5 ס"מ) פיזיים על המסך,
+        בהתאם לצפיפות הפיקסלים (DPI) של המסך הנוכחי. מתאים למרחק ישיבה של 50-70 ס"מ.
+        """
+        if self.screen is None:
+            return 180 # ברירת מחדל למסכי 96 DPI סטנדרטיים
+        
+        # קבלת ה-DPI הלוגי/פיזי של המסך
+        dpi = self.screen.logicalDotsPerInch()
+        if dpi <= 1.0:
+            dpi = 96.0
+            
+        # 45 מ"מ מומרים לאינצ'ים (45 / 25.4) ומכופלים ב-DPI כדי לקבל פיקסלים
+        target_size_px = int((45.0 / 25.4) * dpi)
+        return target_size_px
 
-        self.stack.setCurrentWidget(self.connecting_canvas)
-        self.connecting_canvas.set_message("מתחבר לעקיב העיניים...")
-        self.status_label.setText("מתחבר לעקיב העיניים...")
-        self.status_label.show()
-
-        if self.target_screen is not None:
-            self.setGeometry(self.target_screen.geometry())
-
-    def begin(self) -> None:
-        if self._begin_started:
-            return
-        self._begin_started = True
-
-        self.stack.setCurrentWidget(self.connecting_canvas)
-        self.connecting_canvas.set_message("מתחבר לעקיב העיניים...")
-        self.status_label.setText("מתחבר לעקיב העיניים...")
-        self.status_label.show()
-        app = QApplication.instance()
-        if app is not None:
-            app.processEvents()
-
-        self._connect_completed = False
-        self._connect_timeout = QTimer(self)
-        self._connect_timeout.setSingleShot(True)
-        self._connect_timeout.timeout.connect(self._on_tracker_connect_timeout)
-        self._connect_timeout.start(TRACKER_CONNECT_TIMEOUT_MS)
-
-        # Tobii SDK must run on the main thread — background connect hangs forever
-        # and the IR lights never turn on.
-        QTimer.singleShot(100, self._connect_tracker)
-
-    def _connect_tracker(self) -> None:
-        app = QApplication.instance()
+    def perform_glasses_calibration(self):
+        """פנייה לשרת המשקפיים לביצוע הכיול המיידי"""
         try:
-            recorder = getattr(self._runtime, "recorder", None)
-            if recorder is not None and getattr(recorder, "eyetracker", None) is not None:
-                ok, err = True, ""
-            else:
-                if app is not None:
-                    app.processEvents()
-                ok, err = self._runtime.ensure_tracker()
-
-            if app is not None:
-                app.processEvents()
-
-            self._connect_completed = True
-            if hasattr(self, "_connect_timeout"):
-                self._connect_timeout.stop()
-
-            recorder = getattr(self._runtime, "recorder", None)
-            if (
-                not ok
-                or recorder is None
-                or getattr(recorder, "eyetracker", None) is None
-            ):
-                self._finish(False, err or "לא נמצא עוקב עיניים.")
-                return
-
-            self.eyetracker = recorder.eyetracker
-            self.connecting_canvas.set_message("מפעיל את עקיב העיניים...")
-            self.status_label.setText("מפעיל את עקיב העיניים...")
-            if app is not None:
-                app.processEvents()
-
-            self._wake_tracker_lights()
-            QTimer.singleShot(300, self._begin_calibration_points)
-        except Exception as exc:
-            self._connect_completed = True
-            if hasattr(self, "_connect_timeout"):
-                self._connect_timeout.stop()
-            self._finish(False, f"חיבור לעקיב העיניים נכשל: {exc}")
-
-    def _on_gaze_wake(self, _data) -> None:
-        pass
-
-    def _wake_tracker_lights(self) -> None:
-        """Brief gaze subscription turns on Tobii IR illuminators before calibration."""
-        if self.eyetracker is None or tr is None or self._gaze_wake_subscribed:
-            return
-        try:
-            self.eyetracker.subscribe_to(
-                tr.EYETRACKER_GAZE_DATA,
-                self._on_gaze_wake,
-                as_dictionary=True,
-            )
-            self._gaze_wake_subscribed = True
-            app = QApplication.instance()
-            if app is not None:
-                app.processEvents()
-        except Exception:
-            pass
-
-    def _unsubscribe_gaze_wake(self) -> None:
-        if not self._gaze_wake_subscribed or self.eyetracker is None or tr is None:
-            return
-        try:
-            self.eyetracker.unsubscribe_from(
-                tr.EYETRACKER_GAZE_DATA,
-                self._on_gaze_wake,
-            )
-        except Exception:
-            pass
-        self._gaze_wake_subscribed = False
-
-    def _on_tracker_connect_timeout(self) -> None:
-        if self._connect_completed:
-            return
-        self._finish(
-            False,
-            "חיבור לעקיב העיניים נכשל (timeout). ודא שה-Tobii מחובר, דולק, ו-Tobii Pro Eye Tracker Manager רץ.",
-        )
-
-    def _begin_calibration_points(self) -> None:
-        if HEAD_POSITION_ENABLED:
-            self._start_head_position_phase()
-        else:
-            self._start_dot_calibration()
-
-    def _set_status(self, text: str) -> None:
-        if not self.status_label.isVisible():
-            return
-        self.status_label.setText(text)
-        app = QApplication.instance()
-        if app is not None:
-            app.processEvents()
-
-    def _subscribe_position_guide(self) -> bool:
-        try:
-            self.eyetracker.subscribe_to(
-                tr.EYETRACKER_USER_POSITION_GUIDE,
-                self._on_position_guide,
-                as_dictionary=True,
-            )
-            self._position_subscribed = True
-            return True
-        except Exception as exc:
-            self._finish(False, f"לא ניתן להפעיל מדריך מיקום ראש: {exc}")
-            return False
-
-    def _unsubscribe_position_guide(self) -> None:
-        if not self._position_subscribed:
-            return
-        try:
-            self.eyetracker.unsubscribe_from(
-                tr.EYETRACKER_USER_POSITION_GUIDE,
-                self._on_position_guide,
-            )
-        except Exception:
-            pass
-        self._position_subscribed = False
-
-    def _on_position_guide(self, data) -> None:
-        self._latest_guide = data
-
-    def _apply_display_area(self) -> None:
-        if self._display_area_applied:
-            return
-        from .tobii_display_area import apply_display_area_for_screen
-
-        try:
-            apply_display_area_for_screen(self.eyetracker, self.target_screen)
-            self._display_area_applied = True
-        except Exception:
-            pass
-
-    def _start_head_position_phase(self) -> None:
-        self.stack.setCurrentWidget(self.head_canvas)
-        self.head_canvas.reset_display()
-        self._hold_seconds = 0.0
-        self._head_smoother.reset()
-        self._last_status_key = ""
-        self.status_label.hide()
-        self._apply_display_area()
-        if not self._subscribe_position_guide():
-            QTimer.singleShot(80, self._start_dot_calibration)
-            return
-        self._position_timer.start()
-
-    def _skip_head_position_phase(self) -> None:
-        if self._calibration is not None:
-            return
-        self._position_timer.stop()
-        self._unsubscribe_position_guide()
-        self._start_dot_calibration()
-
-    def _tick_head_position(self) -> None:
-        dt = POSITION_POLL_MS / 1000.0
-        data = self._latest_guide
-        if data is None:
-            x, y, z, ok, distance_hint = self._head_smoother.update(
-                None, None, None, dt
-            )
-        else:
-            raw_x, raw_y, raw_z, _raw_ok, _ = _parse_position_guide(data)
-            x, y, z, ok, distance_hint = self._head_smoother.update(
-                raw_x, raw_y, raw_z, dt
-            )
-
-        self._hold_seconds = self._head_smoother.hold_seconds
-        ratio = self._hold_seconds / HEAD_HOLD_SECONDS
-        self.head_canvas.update_position(
-            x, y, z, ok, distance_hint, hold_ratio=ratio
-        )
-
-        if ok and self._hold_seconds >= HEAD_HOLD_SECONDS:
-            self._position_timer.stop()
-            self._unsubscribe_position_guide()
-            QTimer.singleShot(HEAD_TO_DOTS_DELAY_MS, self._start_dot_calibration)
-
-    def _start_dot_calibration(self) -> None:
-        self.stack.setCurrentWidget(self.dot_canvas)
-        total = len(self._points)
-        self.status_label.setText(f"עקבו אחרי הנקודות האדומות (1/{total})")
-        self.status_label.show()
-        self._apply_display_area()
-        self._unsubscribe_gaze_wake()
-
-        try:
-            self._calibration = ScreenBasedCalibration(self.eyetracker)
-            self._calibration.enter_calibration_mode()
-        except Exception as exc:
-            self._finish(False, f"לא ניתן להתחיל כיול נקודות: {exc}")
-            return
-
-        self._point_index = 0
-        self._collect_pass = 0
-        QTimer.singleShot(250, self._collect_next_point)
-
-    def _collect_next_point(self) -> None:
-        if self._calibration is None:
-            self._finish(False, "כיול בוטל.")
-            return
-
-        if self._point_index >= len(self._points):
-            self._pending_collect = None
-            self._finalize_calibration()
-            return
-
-        self._dot_busy = False
-        self._awaiting_explosion = False
-        self._dot_token += 1
-
-        norm_x, norm_y = self._points[self._point_index]
-        self._pending_collect = (norm_x, norm_y)
-        self._collect_pass = 0
-        step = self._point_index + 1
-        total_pts = len(self._points)
-        self.status_label.setText(
-            f"עקבו אחרי הנקודות האדומות ({step}/{total_pts})"
-        )
-        self.status_label.show()
-        self.dot_canvas.start_point(norm_x, norm_y)
-
-    def _on_dot_look_finished(self) -> None:
-        if self._dot_busy or self._calibration is None or self._pending_collect is None:
-            return
-        if self.dot_canvas.phase != "collecting":
-            return
-        QTimer.singleShot(DOT_COLLECT_DELAY_MS, self._run_dot_collect)
-
-    def _run_dot_collect(self) -> None:
-        if self._dot_busy or self._calibration is None or self._pending_collect is None:
-            return
-        if self.dot_canvas.phase != "collecting":
-            return
-
-        self._dot_busy = True
-        token = self._dot_token
-        norm_x, norm_y = self._pending_collect
-
-        app = QApplication.instance()
-        status = CALIBRATION_STATUS_FAILURE
-        try:
-            for _ in range(DOT_COLLECT_RETRIES):
-                if token != self._dot_token:
+            # 1. פקודת כיול - המשקפיים מחפשים את הדפוס הגיאומטרי שמופיע כעת במסך
+            res = requests.post(f"http://{GLASSES_IP}/rest/calibrator!calibrate", json=[], timeout=5.0)
+            
+            if res.status_code == 200:
+                status = res.json()
+                if status == "calibrated":
+                    # 2. אישור ושמירה של הכיול בהצלחה
+                    requests.post(f"http://{GLASSES_IP}/rest/calibrator!accept", json=[], timeout=3.0)
+                    self.runtime.calibration_passed = True
+                    self.runtime.calibration_message = "הכיול הושלם בהצלחה!"
+                    self.finished_calibration.emit(True, "הכיול הושלם בהצלחה!")
+                    self.accept()
                     return
-                if app is not None:
-                    app.processEvents()
-                status = self._calibration.collect_data(norm_x, norm_y)
-                if status != CALIBRATION_STATUS_FAILURE:
-                    break
-        except Exception as exc:
-            self._dot_busy = False
-            self._abort_calibration()
-            self._finish(False, f"איסוף נתוני כיול נכשל: {exc}")
-            return
-        finally:
-            self._dot_busy = False
-
-        if token != self._dot_token:
-            return
-
-        if status == CALIBRATION_STATUS_FAILURE:
-            self._dot_token += 1
-            self.dot_canvas.start_point(norm_x, norm_y)
-            return
-
-        self._collect_pass += 1
-        self._awaiting_explosion = True
-        self.dot_canvas.begin_explosion()
-
-    def _on_dot_explosion_finished(self, _wait_attempt: int = 0) -> None:
-        if self._calibration is None or not self._awaiting_explosion:
-            return
-        if self._dot_busy:
-            if _wait_attempt < 40:
-                QTimer.singleShot(
-                    50,
-                    lambda: self._on_dot_explosion_finished(_wait_attempt + 1),
-                )
-                return
-            self._dot_busy = False
-
-        self._awaiting_explosion = False
-
-        if self._collect_pass < COLLECT_PASSES_PER_POINT:
-            QTimer.singleShot(DOT_GAP_MS, self._repeat_current_point)
-            return
-
-        self._point_index += 1
-        self._collect_pass = 0
-        QTimer.singleShot(DOT_GAP_MS, self._collect_next_point)
-
-    def _repeat_current_point(self) -> None:
-        if self._pending_collect is None or self._dot_busy:
-            return
-        norm_x, norm_y = self._pending_collect
-        self._dot_token += 1
-        self.dot_canvas.start_point(norm_x, norm_y)
-
-    def _finalize_calibration(self) -> None:
-        self.dot_canvas.hide_point()
-        if self._calibration is None:
-            self._finish(False, "כיול בוטל.")
-            return
-
-        self.status_label.setText("מחשב כיול...")
-        self.status_label.show()
-        app = QApplication.instance()
-        if app is not None:
-            app.processEvents()
-
-        try:
-            self._calibration_result = self._calibration.compute_and_apply()
-        except Exception as exc:
-            self._abort_calibration()
-            self._finish(False, f"חישוב כיול נכשל: {exc}")
-            return
-
-        self._abort_calibration()
-        if self._calibration_result.status not in SUCCESS_STATUSES:
-            self._finish(False, "כיול לא עבר. נסה שוב.")
-            return
-
-        self._show_fixation_preview()
-
-    def _show_fixation_preview(self) -> None:
-        plot_size = (
-            max(640, self.width() - 48),
-            max(400, self.height() - 100),
-        )
-        self.preview_canvas.set_calibration_result(
-            self._calibration_result,
-            plot_size=plot_size,
-        )
-        self.preview_pixmap = self.preview_canvas.render_pixmap(*plot_size)
-        if self.save_dir is not None:
-            self.save_dir.mkdir(parents=True, exist_ok=True)
-            preview_path = self.save_dir / "calibration_fixation_map.png"
-            self.preview_pixmap.save(str(preview_path))
-
-        self.stack.setCurrentWidget(self.preview_canvas)
-        err = self.preview_canvas._mean_error_px
-        message = "כיול העיניים הושלם בהצלחה."
-        if err >= 70:
-            message = (
-                "כיול הושלם, אך הדיוק נמוך — מומלץ לכייל שוב "
-                "(אותו מסך כמו המשחק)."
-            )
-        message = "הקליברציה הסתיימה בהצלחה, המשחק יופעל כעת."
-        self.status_label.show()
-        self.status_label.setText(message)
-        QTimer.singleShot(1800, lambda: self._finish(True, message))
-
-    def _abort_calibration(self) -> None:
-        self._unsubscribe_gaze_wake()
-        if self._calibration is None:
-            return
-        try:
-            self._calibration.leave_calibration_mode()
-        except Exception:
-            pass
-
-    def _finish(self, success: bool, message: str) -> None:
-        self._position_timer.stop()
-        self._unsubscribe_position_guide()
-        self._success = success
-        self._message = message
-        delay = 1200 if success else 2200
-        QTimer.singleShot(delay, self._close_dialog)
-
-    def _close_dialog(self) -> None:
-        self.finished_calibration.emit(self._success, self._message)
-        if self._success:
-            self.accept()
-        else:
+            
+            # טיפול במצב שבו המשקפיים לא זיהו את הסמן (למשל מצמוץ או תזוזה חדה)
+            self.instruction_label.setText("הכיול נכשל. אנא ודא שהמשקפיים מופנים למרכז הסמן ונסה שוב.")
+            self.instruction_label.setStyleSheet("color: #FF5555; font-size: 18pt; font-family: Arial; font-weight: bold;")
+            QTimer.singleShot(2500, lambda: self.finished_calibration.emit(False, "הכיול נכשל"))
+            QTimer.singleShot(2550, self.reject)
+            
+        except Exception as e:
+            self.finished_calibration.emit(False, f"שגיאת תקשורת מול המשקפיים: {str(e)}")
             self.reject()
-        self.close()
 
-    def keyPressEvent(self, event) -> None:
-        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Space):
-            if self._calibration is None and self._position_timer.isActive():
-                self._skip_head_position_phase()
-                return
-        if event.key() == Qt.Key.Key_Escape:
-            self._position_timer.stop()
-            self._unsubscribe_position_guide()
-            self._abort_calibration()
-            self._finish(False, "כיול בוטל.")
-            return
-        super().keyPressEvent(event)
+    def paintEvent(self, event):
+        """רנדור תמונת ה-Target במרכז המסך בגודל הפיזי המותאם"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+
+        width = self.width()
+        height = self.height()
+        center_x = width / 2
+        center_y = height / 2 + 60  # ממורכז אנכית עם מרווח קל מתחת לטקסט
+
+        # חישוב הגודל הנדרש בפיקסלים ל-4.5 ס"מ
+        target_size = self.calculate_target_size_px()
+        half_size = target_size / 2
+
+        if not self.target_pixmap.isNull():
+            # ציור התמונה הרשמית שהעלית שעברה התאמה מדויקת לגודל הפיזי במסך
+            target_rect = QRectF(center_x - half_size, center_y - half_size, target_size, target_size)
+            painter.drawPixmap(target_rect, self.target_pixmap, QRectF(self.target_pixmap.rect()))
+        else:
+            # Fallback גיאומטרי למקרה שהתמונה לא נמצאה בדיסק (כדי למנוע קריסה מוחלטת)
+            painter.setPen(QPen(QColor("#FFFFFF"), 4))
+            painter.setBrush(QColor(0, 0, 0, 0))
+            painter.drawEllipse(center_x - half_size, center_y - half_size, target_size, target_size)
+            painter.setBrush(QColor("#000000"))
+            painter.setPen(QPen(QColor("#00FFFF"), 2))
+            painter.drawEllipse(center_x - 20, center_y - 20, 40, 40)
+            painter.setBrush(QColor("#FF3333"))
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawEllipse(center_x - 4, center_y - 4, 8, 8)
 
 
-def _resolve_calibration_screen(parent, screen):
+def _resolve_calibration_screen(parent, screen) -> QScreen:
     if screen is not None:
         return screen
-    if parent is not None:
-        if hasattr(parent, "screen"):
-            scr = parent.screen()
-            if scr is not None:
-                return scr
-        if hasattr(parent, "window"):
-            win = parent.window()
-            if win is not None and hasattr(win, "screen"):
-                scr = win.screen()
-                if scr is not None:
-                    return scr
+    if parent is not None and hasattr(parent, "screen") and parent.screen() is not None:
+        return parent.screen()
     return QGuiApplication.primaryScreen()
 
 
-def _present_fullscreen_dialog(dialog: EyeCalibrationDialog, screen) -> None:
-    """Force the calibration overlay onto the monitor where the app runs."""
-    if screen is not None:
-        dialog.setGeometry(screen.geometry())
-    dialog.show()
-    app = QApplication.instance()
-    if app is not None:
-        app.processEvents()
-
-    handle = dialog.windowHandle()
-    if handle is None:
-        dialog.show()
-        if app is not None:
-            app.processEvents()
-        handle = dialog.windowHandle()
-    if handle is not None and screen is not None:
-        handle.setScreen(screen)
-        dialog.setGeometry(screen.geometry())
-
+def _present_fullscreen_dialog(dialog: QDialog, screen: QScreen) -> None:
+    dialog.setGeometry(screen.geometry())
     dialog.showFullScreen()
     dialog.raise_()
     dialog.activateWindow()
     dialog.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+    app = QApplication.instance()
     if app is not None:
         app.processEvents()
 
 
-def run_eye_calibration(
-    runtime,
-    parent=None,
-    screen=None,
-    save_dir: Path | None = None,
-) -> tuple[bool, str, QPixmap | None]:
+def run_eye_calibration(runtime, parent=None, screen=None, save_dir: Path | None = None) -> tuple[bool, str, QPixmap | None]:
     screen = _resolve_calibration_screen(parent, screen)
-
-    dialog = EyeCalibrationDialog(
-        runtime,
-        parent=None,
-        screen=screen,
-        save_dir=save_dir,
-    )
+    dialog = EyeCalibrationDialog(runtime, parent=None, screen=screen, save_dir=save_dir)
     outcome = {"success": False, "message": "", "preview": None}
 
     def _on_done(success: bool, message: str) -> None:
         outcome["success"] = success
         outcome["message"] = message
-        outcome["preview"] = dialog.preview_pixmap
 
     dialog.finished_calibration.connect(_on_done)
-
+    
     main_window = None
     if parent is not None and hasattr(parent, "window"):
         main_window = parent.window()
@@ -1332,13 +163,11 @@ def run_eye_calibration(
         if app is not None:
             app.processEvents()
 
-    try:
-        dialog.begin()
-        dialog.exec()
-    finally:
-        if main_window is not None:
-            main_window.show()
-            main_window.raise_()
-            main_window.activateWindow()
-
-    return outcome["success"], outcome["message"], outcome["preview"]
+    dialog.exec()
+    
+    if main_window is not None:
+        main_window.show()
+        main_window.raise_()
+        main_window.activateWindow()
+        
+    return outcome["success"], outcome["message"], None

@@ -1,5 +1,4 @@
-"""Lazy compatibility wrapper for the PySide game screen eye runtime calls."""
-
+"""Lazy compatibility wrapper for the PySide game screen eye runtime calls - Glasses 3 Version."""
 
 def get_camera_index() -> int:
     return 0
@@ -12,13 +11,14 @@ class EyeTrackingRuntime:
         self.export_paths = None
         self.raw_sample_count = 0
         self.tracker_connected = False
-        self.tracker_label = ""
+        self.tracker_label = "Tobii Pro Glasses 3"
         self.calibration_passed = False
         self.calibration_message = ""
         self.calibration_preview_path = None
 
     def _ensure_runtime(self):
         if self._runtime is None:
+            # ייבוא עצלני של ה-Runtime האלחוטי החדש שכתבנו
             from ui.eye_tracking_runtime import EyeTrackingRuntime as TobiiEyeTrackingRuntime
 
             runtime = TobiiEyeTrackingRuntime()
@@ -46,13 +46,8 @@ class EyeTrackingRuntime:
             "calibration_message",
             "calibration_preview_path",
         ):
-            setattr(self, name, getattr(self._runtime, name, getattr(self, name)))
-
-    def __setattr__(self, name, value):
-        object.__setattr__(self, name, value)
-        runtime = self.__dict__.get("_runtime")
-        if runtime is not None and name != "_runtime" and hasattr(runtime, name):
-            setattr(runtime, name, value)
+            if hasattr(self._runtime, name):
+                setattr(self, name, getattr(self._runtime, name))
 
     def start_preview(self, _camera_index=0, _on_frame=None) -> bool:
         return True
@@ -78,7 +73,9 @@ class EyeTrackingRuntime:
         return result
 
     def run_calibration(self, *args, **kwargs):
-        result = self._ensure_runtime().run_calibration(*args, **kwargs)
+        # הפעלת פונקציית הכיול החדשה של נקודה אחת על המסך
+        from eye_calibration import run_eye_calibration
+        result = run_eye_calibration(self._ensure_runtime(), *args, **kwargs)
         self._sync_from_runtime()
         return result
 
@@ -98,4 +95,3 @@ class EyeTrackingRuntime:
         else:
             self.calibration_passed = False
             self.calibration_message = ""
-            self.calibration_preview_path = None
