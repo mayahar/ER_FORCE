@@ -40,16 +40,22 @@ globals.sivaksPurgeCorrTargets = func() {
             var model = m.getNode("model");
             if (model == nil)
                 model = m.getNode("model-path");
+            if (model == nil)
+                model = m.getNode("path");
             var cs_v = (cs != nil) ? cs.getValue() : "";
             var model_v = (model != nil) ? model.getValue() : "";
             var is_ours = 0;
             if (cs_v != "" and (
                 find(cs_v, "sivaks_bsign") >= 0 or
-                find(cs_v, "ca_corr_") >= 0))
+                find(cs_v, "ca_corr_") >= 0 or
+                find(cs_v, "ca_corr") >= 0 or
+                find(cs_v, "ca_corr_dot") >= 0))
                 is_ours = 1;
             if (!is_ours and model_v != "" and (
                 find(model_v, "ca_sivaks_balloon") >= 0 or
+                find(model_v, "balloon1t") >= 0 or
                 find(model_v, "ca_sivaks_bullseye") >= 0 or
+                find(model_v, "ca_sivaks_bullseye_sign") >= 0 or
                 find(model_v, "ca_sivaks_aim_dot") >= 0))
                 is_ours = 1;
             if (!is_ours)
@@ -133,6 +139,7 @@ globals.sivaksRequestFullCrashReset = func() {
     var reset_request = getprop("/sim/sivaks/corractions-reset-request");
     if (reset_request == nil)
         reset_request = 0;
+    globals.sivaksPurgeCorrTargets();
     setprop("/sim/sivaks/corractions-reset-request", reset_request + 1);
 };
 
