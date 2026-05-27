@@ -70,39 +70,6 @@ This Scenario announces if you hit or miss.
 				settimer(apply_intro_level_attitude, 0.5);
 				settimer(apply_intro_cruise_power, 2.0);
 				settimer(apply_intro_level_attitude, 2.0);
-
-				# Early crash guard: reposition before the main tutorial step loads (mayahar working behavior).
-				globals.sivaksEarlyCrashResetBusy = 0;
-				globals.sivaksMainTutorialLoaded = 0;
-				var sivaksEarlyCrashReset = func() {
-					if (globals.sivaksMainTutorialLoaded)
-						return;
-					if (globals.sivaksEarlyCrashResetBusy)
-						return;
-					var crashed = getprop("/sim/crashed");
-					var agl = getprop("/position/altitude-agl-ft");
-					if ((crashed != nil and crashed > 0) or (agl != nil and agl < 20)) {
-						globals.sivaksEarlyCrashResetBusy = 1;
-						setprop("/sim/crashed", 0);
-						setprop("/sim/freeze/master", 0);
-						setprop("/sim/presets/airport-id", "PHTO");
-						setprop("/sim/presets/on-ground", 0);
-						setprop("/sim/presets/latitude-deg", 19.72415017471669);
-						setprop("/sim/presets/longitude-deg", -155.0518970894882);
-						setprop("/sim/presets/altitude-ft", 2000);
-						setprop("/sim/presets/heading-deg", 0);
-						setprop("/sim/presets/airspeed-kt", 350);
-						setprop("/sim/presets/glideslope-deg", 0);
-						setprop("/sim/presets/offset-azimuth-deg", 0);
-						setprop("/sim/presets/offset-distance-nm", 0);
-						fgcommand("reposition");
-						apply_intro_cruise_power();
-						apply_intro_level_attitude();
-						setprop("/sim/messages/copilot", "RETRY");
-						settimer(func { globals.sivaksEarlyCrashResetBusy = 0; }, 2.0);
-					}
-				};
-				maketimer(sivaksEarlyCrashReset, 0.05);
 				]]>
             </script>
         </nasal>			
@@ -141,7 +108,6 @@ This Scenario announces if you hit or miss.
 	# fgcommand("dialog-show", props.Node.new({"dialog-name": "sivaks_pilot_info_dlg"}));
 
 	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-13_single-target-purge-ahead loaded");
-	globals.sivaksMainTutorialLoaded = 1;
 
 	# Edge overlay (optional). Never reference bare SivaksTargetEdge — undefined symbol aborts this script.
 	var sivaksLoadTargetEdgeNasal = func() {
@@ -832,14 +798,14 @@ This Scenario announces if you hit or miss.
 		var agl_ft = getprop("/position/altitude-agl-ft");
 		var alt_ft = getprop("/position/altitude-ft");
 		var low_altitude = 0;
-		if (sim_elapsed > 0.5 and agl_ft != nil and agl_ft < 20)
+		if (sim_elapsed > 5 and agl_ft != nil and agl_ft < 20)
 			low_altitude = 1;
-		if (sim_elapsed > 0.5 and alt_ft != nil and alt_ft < 20)
+		if (sim_elapsed > 5 and alt_ft != nil and alt_ft < 20)
 			low_altitude = 1;
 		if (low_altitude > 0) {
 			if (lowAltitudeSince == nil)
 				lowAltitudeSince = sim_elapsed;
-			if ((sim_elapsed - lowAltitudeSince) >= 0.3) {
+			if ((sim_elapsed - lowAltitudeSince) >= 1.0) {
 				resetCorrActionsAttempt("low-altitude");
 				return;
 			}
