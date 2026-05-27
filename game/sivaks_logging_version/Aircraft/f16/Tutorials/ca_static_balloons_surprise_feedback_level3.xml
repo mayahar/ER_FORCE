@@ -57,9 +57,19 @@ This Scenario announces if you hit or miss.
 					setprop("/controls/engines/throttle-all", 0.85);
 					setprop("/controls/engines/engine[0]/throttle", 0.85);
 				};
-				# Tutorial reposition spawns near 350 kt with idle power; re-apply cruise throttle.
-				settimer(apply_intro_cruise_power, 5.5);
-				settimer(apply_intro_cruise_power, 12.0);
+				var apply_intro_level_attitude = func() {
+					setprop("/controls/flight/elevator", 0);
+					setprop("/controls/flight/elevator-trim", 0.06);
+					setprop("/controls/flight/aileron", 0);
+					setprop("/controls/flight/rudder", 0);
+				};
+				# Reposition spawns fast with idle power — level out and add thrust immediately.
+				apply_intro_cruise_power();
+				apply_intro_level_attitude();
+				settimer(apply_intro_cruise_power, 0.5);
+				settimer(apply_intro_level_attitude, 0.5);
+				settimer(apply_intro_cruise_power, 2.0);
+				settimer(apply_intro_level_attitude, 2.0);
 				]]>
             </script>
         </nasal>			
@@ -158,9 +168,19 @@ This Scenario announces if you hit or miss.
 		setprop("/controls/engines/throttle-all", 0.85);
 		setprop("/controls/engines/engine[0]/throttle", 0.85);
 	};
-	# Tutorial reposition spawns near 350 kt with idle power; re-apply cruise throttle.
+	var apply_level_attitude = func() {
+		setprop("/controls/flight/elevator", 0);
+		setprop("/controls/flight/elevator-trim", 0.06);
+		setprop("/controls/flight/aileron", 0);
+		setprop("/controls/flight/rudder", 0);
+	};
+	# Reposition spawns near 350 kt with idle power; level out and re-apply cruise throttle.
 	apply_cruise_power();
+	apply_level_attitude();
+	settimer(apply_cruise_power, 0.5);
+	settimer(apply_level_attitude, 0.5);
 	settimer(apply_cruise_power, 2.0);
+	settimer(apply_level_attitude, 2.0);
 	settimer(apply_cruise_power, 8.0);
 
 	# STEP 1: GLOBAL VARIABLES AND FUNCTIONS
@@ -718,6 +738,7 @@ This Scenario announces if you hit or miss.
 			setprop("/controls/gear/gear-down", 0);
 			setprop("/controls/gear/brake-parking", 0);
 			apply_cruise_power();
+			apply_level_attitude();
 			destroyActiveTarget();
 			purgeCorrTargetModels();
 		}, 0.4);

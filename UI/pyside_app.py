@@ -772,33 +772,34 @@ class GameScreen(BaseScreen):
 
     def start_session(self):
         self.error_label.clear()
-
-        self.app.eye_runtime.stop_preview()
-        self.camera_preview.clear()
-        self.camera_preview.setText("מקליט...")
-        self.eye_status_label.setText("עקיב עיניים: מוכן לכיול")
-
-    def start_session(self):
-        self.error_label.clear()
         self.start_button.setEnabled(False)
         self.eye_status_label.setText("מעקב עיניים: מתחבר...")
         QGuiApplication.processEvents()
 
+        from .eye_tracking_runtime import SKIP_EYE_CALIBRATION
+
         if not self.app.eye_runtime.calibration_passed:
-            self.eye_status_label.setText("מעקב עיניים: מבצע כיול...")
-            QGuiApplication.processEvents()
-            calibrated, calibration_message = self.app.eye_runtime.run_calibration(
-                parent=self.app,
-                screen=self.app.screen(),
-                controller=self.app.controller,
-            )
-            if not calibrated:
-                self.app.eye_runtime.last_error = calibration_message
-                self.eye_status_label.setText(f"כיול נכשל: {calibration_message}")
-                self.set_error(f"שגיאת כיול מעקב עיניים: {calibration_message}")
-                self._sync_buttons()
-                return
-            self.eye_status_label.setText("מעקב עיניים: כיול הושלם")
+            if SKIP_EYE_CALIBRATION:
+                self.eye_status_label.setText("מעקב עיניים: דילוג על כיול (זמני)")
+                QGuiApplication.processEvents()
+                self.app.eye_runtime.ensure_tracker()
+                self.app.eye_runtime.calibration_passed = True
+                self.app.eye_runtime.calibration_message = "skipped (temporary)"
+            else:
+                self.eye_status_label.setText("מעקב עיניים: מבצע כיול...")
+                QGuiApplication.processEvents()
+                calibrated, calibration_message = self.app.eye_runtime.run_calibration(
+                    parent=self.app,
+                    screen=self.app.screen(),
+                    controller=self.app.controller,
+                )
+                if not calibrated:
+                    self.app.eye_runtime.last_error = calibration_message
+                    self.eye_status_label.setText(f"כיול נכשל: {calibration_message}")
+                    self.set_error(f"שגיאת כיול מעקב עיניים: {calibration_message}")
+                    self._sync_buttons()
+                    return
+                self.eye_status_label.setText("מעקב עיניים: כיול הושלם")
 
         cam_idx = get_camera_index()
         subject_id = self.app.state.get("session_id", "unknown")
