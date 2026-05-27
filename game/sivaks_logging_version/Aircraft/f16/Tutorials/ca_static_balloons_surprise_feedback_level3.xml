@@ -110,6 +110,17 @@ This Scenario announces if you hit or miss.
 
 	print("SIVAKS_BULLSEYE_SCRIPT v2026-05-13_single-target-purge-ahead loaded");
 	globals.sivaksMainTutorialLoaded = 1;
+	if (!contains(globals, "sivaksCorrActionsGeneration"))
+		globals.sivaksCorrActionsGeneration = 0;
+	globals.sivaksCorrActionsGeneration += 1;
+	var myTutorialGeneration = globals.sivaksCorrActionsGeneration;
+	if (!contains(globals, "sivaksCorrTargetCallsigns"))
+		globals.sivaksCorrTargetCallsigns = [];
+
+	var isActiveTutorialRun = func() {
+		return contains(globals, "sivaksCorrActionsGeneration")
+			and globals.sivaksCorrActionsGeneration == myTutorialGeneration;
+	};
 
 	# Edge overlay (optional). Never reference bare SivaksTargetEdge — undefined symbol aborts this script.
 	var sivaksLoadTargetEdgeNasal = func() {
@@ -205,7 +216,9 @@ This Scenario announces if you hit or miss.
 	var bullseyeCallsigns = [];
 	setsize(bullseyeCallsigns, balloon_count);
 	var bullseyeSerial = 0;
+	var aimDotSerial = 0;
 	var bullseyePending = {};
+	var corrTargetPaths = {};
 	var bullseyeListenerInstalled = 0;
 
 	setprop("/algorithm/game/balloons-count", 0);
@@ -306,6 +319,8 @@ This Scenario announces if you hit or miss.
 			if (path == nil) return;
 			var cs = getprop(path ~ "/callsign");
 			if (cs == nil or cs == "") return;
+			if (find(cs, "sivaks_bsign") >= 0 or find(cs, "ca_corr_") >= 0)
+				corrTargetPaths[cs] = path;
 			if (substr(cs, 0, 12) != "sivaks_bsign") return;
 			var hdg = bullseyePending[cs];
 			if (hdg == nil) return;
@@ -392,6 +407,17 @@ This Scenario announces if you hit or miss.
 		if (root == nil)
 			return;
 		var ids_to_remove = [];
+		var cs_to_remove = [];
+		var paths_to_remove = [];
+		var nodes_to_remove = [];
+		if (contains(globals, "sivaksCorrTargetCallsigns")) {
+			foreach (var tracked_cs; globals.sivaksCorrTargetCallsigns) {
+				if (tracked_cs != nil and tracked_cs != "")
+					append(cs_to_remove, tracked_cs);
+			}
+		}
+		foreach (var tracked_cs; keys(corrTargetPaths))
+			append(paths_to_remove, corrTargetPaths[tracked_cs]);
 		var types = ["static", "aircraft", "multiplayer", "wingman"];
 		foreach (var typ; types)
 		{
@@ -421,15 +447,52 @@ This Scenario announces if you hit or miss.
 				var idn = m.getNode("id");
 				if (idn != nil)
 					append(ids_to_remove, idn.getValue());
+				if (cs_v != "")
+					append(cs_to_remove, cs_v);
+				append(nodes_to_remove, m);
 			}
 		}
 		foreach (var rid; ids_to_remove)
 		{
-			fgcommand(
-				"remove-aiobject",
-				props.Node.new({"id": rid})
-			);
+			call(func {
+				fgcommand(
+					"remove-aiobject",
+					props.Node.new({"id": rid})
+				);
+			}, nil, var _rm_err = []);
+			call(func {
+				fgcommand(
+					"remove-aiobject",
+					props.Node.new({"id": int(rid)})
+				);
+			}, nil, var _rm_int_err = []);
 		}
+		foreach (var cs_v; cs_to_remove)
+		{
+			call(func {
+				fgcommand(
+					"remove-aiobject",
+					props.Node.new({"callsign": cs_v})
+				);
+			}, nil, var _rm_cs_err = []);
+		}
+		foreach (var path_v; paths_to_remove)
+		{
+			call(func {
+				var node = props.globals.getNode(path_v);
+				if (node != nil)
+					node.remove();
+			}, nil, var _rm_node_err = []);
+		}
+		foreach (var node_v; nodes_to_remove)
+		{
+			call(func {
+				if (node_v != nil)
+					node_v.remove();
+			}, nil, var _rm_node_ref_err = []);
+		}
+		corrTargetPaths = {};
+		globals.sivaksCorrTargetCallsigns = cs_to_remove;
 	};
 
 	var createBalloon = func(balloon_model, positionLat, positionLon, elevation_ft, heading)
@@ -450,6 +513,7 @@ This Scenario announces if you hit or miss.
 		var marker = scoringMarkerPosition(positionLat, positionLon, elevation_ft);
 		var face_hdg = publishBalloonFacing(positionLat, positionLon);
 		bullseyePending[cs] = face_hdg;
+		append(globals.sivaksCorrTargetCallsigns, cs);
 		var sign = props.Node.new({
 			"type": "static",
 			"model": BSIGN_MODEL,
@@ -465,12 +529,14 @@ This Scenario announces if you hit or miss.
 		return sign;
 	};
 
-	var createAimDot = func(marker_lat, marker_lon, marker_alt)
+	var createAimDot = func(marker_lat, marker_lon, marker_alt, cs)
 	{
+		ensureBullseyeListener();
+		append(globals.sivaksCorrTargetCallsigns, cs);
 		var dot = props.Node.new({
 			"type": "static",
 			"model": ADOT_MODEL,
-			"callsign": "ca_corr_dot_0",
+			"callsign": cs,
 			"latitude": marker_lat,
 			"longitude": marker_lon,
 			"altitude": marker_alt,
@@ -515,10 +581,13 @@ This Scenario announces if you hit or miss.
 			balloon_lon,
 			balloon_alt_ft
 		);
+		var aim_dot_callsign = "ca_corr_dot_" ~ i ~ "_" ~ aimDotSerial;
+		aimDotSerial += 1;
 		aimDotArray[i] = createAimDot(
 			marker.lat,
 			marker.lon,
-			marker.alt
+			marker.alt,
+			aim_dot_callsign
 		);
 		last_balloon_lat = balloon_lat;
 		last_balloon_lon = balloon_lon;
@@ -677,10 +746,14 @@ This Scenario announces if you hit or miss.
 
 	var resetCorrActionsAttempt = func(reason)
 	{
+		if (!isActiveTutorialRun())
+			return;
 		if (crashResetInProgress)
 			return;
 
 		crashResetInProgress = 1;
+		if (contains(globals, "sivaksCrashResetBusy"))
+			globals.sivaksCrashResetBusy = 1;
 		resetGeneration += 1;
 		var thisResetGeneration = resetGeneration;
 		lowAltitudeSince = nil;
@@ -738,6 +811,8 @@ This Scenario announces if you hit or miss.
 			);
 
 		settimer(func {
+			if (!isActiveTutorialRun())
+				return;
 			if (thisResetGeneration != resetGeneration)
 				return;
 			setprop("/sim/crashed", 0);
@@ -752,6 +827,8 @@ This Scenario announces if you hit or miss.
 		}, 0.4);
 
 		settimer(func {
+			if (!isActiveTutorialRun())
+				return;
 			if (thisResetGeneration != resetGeneration)
 				return;
 			destroyActiveTarget();
@@ -759,6 +836,8 @@ This Scenario announces if you hit or miss.
 		}, 1.0);
 
 		settimer(func {
+			if (!isActiveTutorialRun())
+				return;
 			if (thisResetGeneration != resetGeneration)
 				return;
 			setprop("/sim/crashed", 0);
@@ -778,6 +857,8 @@ This Scenario announces if you hit or miss.
 
 			setprop("/sim/messages/copilot", "RETRY");
 			crashResetInProgress = 0;
+			if (contains(globals, "sivaksCrashResetBusy"))
+				globals.sivaksCrashResetBusy = 0;
 			BalloonTimer.start();
 		}, 1.8);
 	};
@@ -788,6 +869,11 @@ This Scenario announces if you hit or miss.
 
 	var updateBalloons = func()
 	{
+		if (!isActiveTutorialRun()) {
+			if (BalloonTimer != nil)
+				BalloonTimer.stop();
+			return;
+		}
 		var position = geo.aircraft_position();
 		var sim_elapsed = getprop("/sim/time/elapsed-sec");
 		if (sim_elapsed == nil)
@@ -1277,11 +1363,15 @@ This Scenario announces if you hit or miss.
 	sivaksStartTargetEdge();
 
 	setlistener("/sim/crashed", func(node) {
+		if (!isActiveTutorialRun())
+			return;
 		if (node != nil and node.getValue())
 			resetCorrActionsAttempt("crashed");
 	}, 0, 0);
 
 	setlistener("/sim/sivaks/corractions-reset-request", func(node) {
+		if (!isActiveTutorialRun())
+			return;
 		if (node == nil)
 			return;
 		var request = node.getValue();

@@ -22,7 +22,7 @@ DEFAULT_RECORDINGS_DIR = REPO_ROOT / "eye_tracking_analysis" / "recordings"
 
 # If True, the game will skip the Tobii calibration UI.
 # Use True only as a temporary workaround.
-SKIP_EYE_CALIBRATION = True
+SKIP_EYE_CALIBRATION = False
 
 
 class EyeTrackingRuntime:

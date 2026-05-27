@@ -58,6 +58,13 @@ globals.sivaksPurgeCorrTargets = func() {
         return;
     var ids_to_remove = [];
     var cs_to_remove = [];
+    var nodes_to_remove = [];
+    if (contains(globals, "sivaksCorrTargetCallsigns")) {
+        foreach (var tracked_cs; globals.sivaksCorrTargetCallsigns) {
+            if (tracked_cs != nil and tracked_cs != "")
+                append(cs_to_remove, tracked_cs);
+        }
+    }
 
     var _is_corr_model = func(cs_v, model_v) {
         if (cs_v != "" and (
@@ -98,6 +105,7 @@ globals.sivaksPurgeCorrTargets = func() {
                 append(ids_to_remove, idn.getValue());
             if (cs_v != "")
                 append(cs_to_remove, cs_v);
+            append(nodes_to_remove, m);
         }
     }
 
@@ -111,6 +119,15 @@ globals.sivaksPurgeCorrTargets = func() {
     foreach (var cs_v; cs_to_remove) {
         call(func { fgcommand("remove-aiobject", props.Node.new({"callsign": cs_v})); }, nil, var _rmcs_err = []);
     }
+
+    foreach (var node_v; nodes_to_remove) {
+        call(func {
+            if (node_v != nil)
+                node_v.remove();
+        }, nil, var _rmnoderef_err = []);
+    }
+
+    globals.sivaksCorrTargetCallsigns = cs_to_remove;
 };
 
 # Repeat purge several times (AI objects can linger briefly after removal).
@@ -189,11 +206,17 @@ globals.sivaksRepositionToCorrActions = func() {
 };
 
 globals.sivaksRequestFullCrashReset = func() {
+    if (globals.sivaksCrashResetBusy)
+        return;
+    globals.sivaksCrashResetBusy = 1;
     var reset_request = getprop("/sim/sivaks/corractions-reset-request");
     if (reset_request == nil)
         reset_request = 0;
     globals.sivaksPurgeCorrTargetsBurst();
     setprop("/sim/sivaks/corractions-reset-request", reset_request + 1);
+    settimer(func {
+        globals.sivaksCrashResetBusy = 0;
+    }, 2.5);
 };
 
 # Returns 1 if the aircraft is down after having been airborne.
