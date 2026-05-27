@@ -1,4 +1,5 @@
 import time
+import threading
 import zipfile
 from concurrent.futures import ThreadPoolExecutor, Future
 from pathlib import Path
@@ -8,15 +9,24 @@ from xml.sax.saxutils import escape
 import numpy as np
 import sounddevice as sd
 import soundfile as sf
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
 
 from .events import VoiceEvent
 from .recorder import VoiceRecorder, VoiceRecordingError
 from .processing import VoiceFeatureExtractor, VoiceFeatureExtractionError
 from .tts import speak_text
+
+pd = None
+
+
+def _get_pandas():
+    global pd
+    if pd is None:
+        try:
+            import pandas as pandas_module
+        except ImportError:
+            return None
+        pd = pandas_module
+    return pd
 
 
 class VoiceSessionError(Exception):
@@ -301,8 +311,8 @@ class VoiceSessionManager:
         self._finalized = True
 
         result = self._build_result(include_feature_arrays=True)
-        self._save_results_to_file(result)
-        return self._build_result(include_feature_arrays=False)
+        self._save_results_to_file_async(result)
+        return self._compact_result(result)
 
     def _load_audio(self, event: VoiceEvent):
         stored = event.metadata.get("audio")
@@ -341,6 +351,14 @@ class VoiceSessionManager:
             "summary": summary,
         }
 
+    def _compact_result(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        compact = dict(result)
+        compact["events"] = [
+            self._compact_event_result(event)
+            for event in result.get("events", [])
+        ]
+        return compact
+
     def _compact_event_result(self, event: Dict[str, Any]) -> Dict[str, Any]:
         compact = {}
         for key, value in event.items():
@@ -350,6 +368,10 @@ class VoiceSessionManager:
         return compact
 
     def _feature_array_dataframe(self, event: Dict[str, Any], feature_name: str):
+        pandas = _get_pandas()
+        if pandas is None:
+            raise VoiceSessionError("Pandas is required for voice feature workbook export")
+
         values = event.get(feature_name, [])
         array = np.asarray(values)
 
@@ -357,10 +379,10 @@ class VoiceSessionManager:
             array = array.reshape(1)
 
         if array.ndim == 1:
-            df = pd.DataFrame({feature_name: array})
+            df = pandas.DataFrame({feature_name: array})
         else:
             flat = array.reshape(array.shape[0], -1)
-            df = pd.DataFrame(
+            df = pandas.DataFrame(
                 flat,
                 columns=[f"{feature_name}_{idx}" for idx in range(flat.shape[1])],
             )
@@ -371,10 +393,14 @@ class VoiceSessionManager:
         return df
 
     def _save_feature_workbook(self, result: Dict[str, Any], subject: str) -> None:
-        workbook_path = self.recording_root / f"voice_features_{subject}_{self.session_id}.xlsx"
-        sheets = [("summary", pd.DataFrame([result["summary"]]))]
+        pandas = _get_pandas()
+        if pandas is None:
+            return
 
-        event_status_df = pd.DataFrame(
+        workbook_path = self.recording_root / f"voice_features_{subject}_{self.session_id}.xlsx"
+        sheets = [("summary", pandas.DataFrame([result["summary"]]))]
+
+        event_status_df = pandas.DataFrame(
             [
                 {
                     "event_id": event.get("event_id"),
@@ -397,9 +423,9 @@ class VoiceSessionManager:
                 if feature_name in event
             ]
             if frames:
-                feature_df = pd.concat(frames, ignore_index=True)
+                feature_df = pandas.concat(frames, ignore_index=True)
             else:
-                feature_df = pd.DataFrame(columns=["event_id", "audio_path", "frame"])
+                feature_df = pandas.DataFrame(columns=["event_id", "audio_path", "frame"])
 
             sheets.append((feature_name[:31], feature_df))
 
@@ -492,8 +518,12 @@ class VoiceSessionManager:
         )
 
     def _worksheet_xml(self, df) -> str:
+        pandas = _get_pandas()
+        if pandas is None:
+            return ""
+
         rows_xml = []
-        rows = [list(df.columns)] + df.astype(object).where(pd.notnull(df), None).values.tolist()
+        rows = [list(df.columns)] + df.astype(object).where(pandas.notnull(df), None).values.tolist()
 
         for row_index, row in enumerate(rows, start=1):
             cells = []
@@ -534,11 +564,24 @@ class VoiceSessionManager:
             name = chr(65 + remainder) + name
         return name
 
+    def _save_results_to_file_async(self, result: Dict[str, Any]) -> None:
+        def save_after_ui_release() -> None:
+            time.sleep(1.0)
+            self._save_results_to_file(result)
+
+        thread = threading.Thread(
+            target=save_after_ui_release,
+            name=f"voice-report-save-{self.session_id}",
+            daemon=True,
+        )
+        thread.start()
+
     def _save_results_to_file(self, result: Dict[str, Any]) -> None:
         """
         Saves the session metrics as CSV files in the voice folder.
         """
-        if pd is None:
+        pandas = _get_pandas()
+        if pandas is None:
             # Pandas is required for multi-sheet export
             return
 
@@ -546,8 +589,6 @@ class VoiceSessionManager:
             # שימוש ב-Session ID המקורי לשם הקובץ בתוך תיקיית הקול
             subject = self.subject_id if self.subject_id else "unknown"
 
-            summary_df = pd.DataFrame([result["summary"]])
-            
             report_events = []
             for event in result["events"]:
                 report_events.append(self._compact_event_result(event))

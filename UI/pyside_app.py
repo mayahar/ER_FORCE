@@ -2,9 +2,6 @@ import copy
 import sys
 import time
 
-import pandas as pd
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QGuiApplication, QPainter, QPixmap
 from PySide6.QtWidgets import (
@@ -1238,7 +1235,9 @@ class ResultsScreen(BaseScreen):
 
         self.content.addWidget(self.tabs)
 
-        csv_text = pd.DataFrame(export_rows).to_csv(index=False)
+        from ui.results_export import rows_to_csv
+
+        csv_text = rows_to_csv(export_rows)
         path = save_report_once(subject_id, csv_text, result=result, controller=self.app.controller)
         if path:
             self.saved_path = path
@@ -1270,6 +1269,9 @@ class ResultsScreen(BaseScreen):
         return ordered_rows
 
     def _build_chart(self, ordered_rows):
+        from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+        from matplotlib.figure import Figure
+
         figure = Figure(figsize=(11, 4.8), facecolor=BACKGROUND)
         axis = figure.add_subplot(111)
         axis.set_facecolor(BACKGROUND)

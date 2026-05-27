@@ -5,9 +5,6 @@ import sys
 import time
 from pathlib import Path
 
-from voice.session import VoiceSessionError, VoiceSessionManager
-
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_FG_DIR = REPO_ROOT / "game" / "sivaks_logging_version"
 DEFAULT_FG_SCRIPT = DEFAULT_FG_DIR / "logging_fg_start_ver5.py"
@@ -122,6 +119,8 @@ def start_flightgear_session(controller=None):
 
 
 def create_voice_session(controller):
+    from voice.session import VoiceSessionManager
+
     subject_id = None
     voice_dir = None
     session_id = None
@@ -143,6 +142,8 @@ def create_voice_session(controller):
 
 
 def finalize_voice_session(controller, manager):
+    from voice.session import VoiceSessionError
+
     if manager is None:
         return None
 

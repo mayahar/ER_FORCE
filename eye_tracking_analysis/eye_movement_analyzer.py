@@ -96,7 +96,7 @@ class EyeMovementAnalyzer:
         instant_distances = np.sqrt(diff_x**2 + diff_y**2)
         
         # המרה למעלות
-        instant_degrees = [self._pixel_to_degrees(d) for d in instant_distances]
+        instant_degrees = self._pixel_to_degrees(instant_distances)
         median_noise = np.median(instant_degrees)  # חציון יציב יותר מממוצע מפני קפיצות אמיתיות
         
         # אם רמת הרעש הבסיסית גבוהה מהנורמה (מעל 0.1 מעלות לדגימה)
@@ -137,11 +137,15 @@ class EyeMovementAnalyzer:
         x_pixels = gaze_x * self.screen_width
         y_pixels = gaze_y * self.screen_height
         
-        velocities = [0]
-        for i in range(1, len(gaze_x)):
-            vel = self._calculate_velocity(x_pixels[i-1], y_pixels[i-1], x_pixels[i], y_pixels[i], timestamps[i] - timestamps[i-1])
-            velocities.append(vel)
-            
+        pixel_distances = np.sqrt(np.diff(x_pixels) ** 2 + np.diff(y_pixels) ** 2)
+        time_diffs = np.diff(timestamps)
+        velocities = np.zeros(len(gaze_x), dtype=float)
+        valid_diffs = time_diffs > 0
+        if np.any(valid_diffs):
+            velocities[1:][valid_diffs] = (
+                self._pixel_to_degrees(pixel_distances[valid_diffs]) / time_diffs[valid_diffs]
+            )
+
         saccade_mask = np.array(velocities) > self.velocity_threshold
         saccades_count = 0
         in_saccade = False
