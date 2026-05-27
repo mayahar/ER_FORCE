@@ -1,10 +1,10 @@
 import hashlib
 import json
 import re
+import csv
+import io
 from datetime import datetime
 from pathlib import Path
-
-import pandas as pd
 
 from core.research_repository import get_research_output_dir
 
@@ -252,7 +252,26 @@ def build_result_export_rows(result):
     return export_rows, graph_rows
 
 
+def rows_to_csv(export_rows):
+    if not export_rows:
+        return ""
+
+    fieldnames = []
+    seen = set()
+    for row in export_rows:
+        for key in row:
+            if key not in seen:
+                fieldnames.append(key)
+                seen.add(key)
+
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
+    writer.writeheader()
+    writer.writerows(export_rows)
+    return output.getvalue()
+
+
 def export_result_csv(result):
     export_rows, _ = build_result_export_rows(result)
-    return pd.DataFrame(export_rows).to_csv(index=False)
+    return rows_to_csv(export_rows)
 

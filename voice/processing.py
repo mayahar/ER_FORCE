@@ -276,6 +276,28 @@ class VoiceFeatureExtractor:
         return features
 
     @classmethod
+    def _compute_lpc_and_parcor_features(cls, audio: np.ndarray, sr: int):
+        frames = cls.frame_signal(audio, sr)
+        order = cls.LPC_ORDER
+        lpc_features = np.zeros((frames.shape[0], order + 1), dtype=np.float32)
+        parcor_features = np.zeros((frames.shape[0], order), dtype=np.float32)
+
+        for index, frame in enumerate(frames):
+            if np.allclose(frame, 0.0):
+                continue
+            r = np.correlate(frame, frame, mode="full")[len(frame) - 1:len(frame) + order]
+            if r.shape[0] < order + 1 or r[0] == 0:
+                continue
+            try:
+                lpc_coeffs, parcor_coeffs = cls._levinson_durbin(r, order)
+                lpc_features[index] = lpc_coeffs.astype(np.float32)
+                parcor_features[index] = parcor_coeffs.astype(np.float32)
+            except Exception:
+                continue
+
+        return lpc_features, parcor_features
+
+    @classmethod
     def extract_lpc(cls, audio: np.ndarray, sr: int):
         return cls._compute_frame_lpc_features(audio, sr, mode="lpc")
 
@@ -310,8 +332,7 @@ class VoiceFeatureExtractor:
 
         mfcc = cls.extract_mfcc(working_audio, working_sr)
         pitch = cls.extract_pitch(working_audio, working_sr)
-        lpc = cls.extract_lpc(working_audio, working_sr)
-        parcor = cls.extract_parcor(working_audio, working_sr)
+        lpc, parcor = cls._compute_lpc_and_parcor_features(working_audio, working_sr)
         delta_lpc = cls.compute_delta_lpc(lpc)
 
         valid_pitches = pitch[~np.isnan(pitch)]
