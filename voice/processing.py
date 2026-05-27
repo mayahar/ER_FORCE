@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.fftpack import dct
-from scipy.signal import lfilter, resample_poly, medfilt
+from scipy.signal import lfilter, resample_poly
 
 
 class VoiceFeatureExtractionError(Exception):
@@ -17,61 +17,6 @@ class VoiceFeatureExtractor:
     """
     מערכת חכמה לסינון, עיבוד וחילוץ מאפיינים אקוסטיים (Features) מקול אנושי.
     המערכת מותאמת למשימות קליניות של הפקת צליל מתמשך ("אההה") ומיועדת להבטיח איכות דאטה מקסימלית.
-
-    ================================================================================
-    1. פירוט קודי השגיאה ומתי הם מתרחשים (לפי סדר קדימויות פיזי בקוד):
-    ================================================================================
-    * MUTE:
-      - מתי: עוצמת הסיגנל הכוללת (Global RMS) נמוכה מ-0.0001 או האמפליטודה המקסימלית נמוכה מ-0.001.
-      - משמעות: המיקרופון מושתק, כבוי, או שלא הופק שום צליל משמעותי (אפילו לא נשימה או רעש רקע).
-      - עדיפות: ראשון. אם אין סיגנל, הריצה נעצרת מיד.
-
-    * HARDWARE_SHORT:
-      - מתי: אורך מערך האודיו קטן פיזית מאורך של פריים בודד (25 מילישניות, פחות מ-400 דגימות ב-16kHz).
-      - משמעות: כשל טכני/מכני חמור (קריסת דרייבר המיקרופון, נעילת הסיגנל ע"י אפליקציה אחרת, או הקלטה שנסגרה מיד).
-      - עדיפות: שני. מפריד כשל חומרתי מכשל התנהגותי של המשתמש.
-
-    * SPEECH:
-      - מתי: מזוהה תנודתיות ספקטרלית דינמית (Spectral Flux גבוה) המאפיינת דיבור מילולי/הברתי ולא צליל מונוטוני,
-             ובמקביל לא הצטברו 5 שניות של "אה" נקי ותקין.
-      - משמעות: הנבדק דיבר, אמר מילים או משפטים במקום להפיק צליל יציב ורציף.
-      - עדיפות: שלישי (נבדק רק אם לא הגענו לרף ה-5 שניות של צליל תקין).
-
-    * SHORT:
-      - מתי: סך כל קטעי ה"אה" הנקיים והתקינים שנמצאו קטן מ-5 שניות (אך גדול מ-0.5 שניות).
-      - משמעות: כשל התנהגותי. הנבדק הפסיק את הפקת הצליל מוקדם מדי. המערכת דורשת הקלטה חוזרת ארוכה יותר.
-      - עדיפות: רביעי. קורה רק אם המשתמש לא דיבר (לא נזרק SPEECH) אך פשוט קיצר בזמן.
-
-    * SILENT:
-      - מתי: אורך ה"אה" התקין קטן מ-0.5 שניות, או שלא נמצאו פריימים תקינים בכלל (אך האודיו לא מוגדר כ-MUTE).
-      - משמעות: הנבדק לחש, נשף קלות, או שהיה רעש רקע חלש ומיתר הקול לא רטט בפועל.
-      - עדיפות: חמישי (סוף שלב קדם-העיבוד).
-
-    * UNSTABLE_PITCH:
-      - מתי: מקדם המשתנות של תדר היסודי (Pitch CV = Pitch Std / Pitch Mean) גבוה מ-0.55 (55%).
-      - משמעות: הקול של הנבדק רעד בצורה קיצונית, או שהשתנתה האינטונציה בצורה חדה (שירה/זמזום מנגינה).
-      - עדיפות: שישי (שלב בקרת האיכות הסופית, לאחר מעבר קדם-העיבוד).
-
-    ================================================================================
-    2. הסבר מתמטי ואקוסטי על המדדים המרכזיים:
-    ================================================================================
-    * Spectral Flux (שטף ספקטרלי):
-      - מודד את קצב השינוי של הגרף הספקטרלי (תדרים) בין פריים לפריים ע"י חישוב המרחק האוקלידי בין וקטורי ה-FFT.
-      - צליל "אההה" יציב מניב Spectral Flux נמוך מאוד וקבוע. דיבור מילולי (עיצורים ותנועות משתנות) מקפיץ את ה-Flux.
-      - אנחנו מחשבים את סטיית התקן של השטף (Flux STD); אם היא עוברת את `0.045`, זהו סימן מובהק לדיבור (SPEECH).
-
-    * Pitch CV (Coefficient of Variation):
-      - מחושב כסטיית התקן של הפיץ' חלקי ממוצע הפיץ' (בקטעים שזוהה בהם קול).
-      - מדד זה מייצג את "רוטציה והרעד" של מיתרי הקול. רף של `0.55` מאפשר גמישות רבה (עבור חולים או קולות עייפים), 
-        אך חוסם תנודות קיצוניות שאינן מאפשרות הפקת מדדים אמינים.
-
-    ================================================================================
-    3. לוגיקת סדר העדיפויות ומניעת דריסות (Anti-Overriding Logic):
-    ================================================================================
-    כדי למנוע מצב שבו מילה קטנה בתחילת ההקלטה תפסול 7 שניות של "אה" מדהים ויציב, הלוגיקה עובדת כך:
-    א. המערכת קודם כל אוספת ומסכמת את משך הזמן של הסגמנטים התקינים (`total_valid_duration`).
-    ב. תנאי עליון: אם הצטברו לפחות 5 שניות של "אה" נקי - ההקלטה מתקבלת מיד! נתוני הדיבור/רעש האחרים נזרקים והקוד ממשיך לחילוץ.
-    ג. רק אם אין 5 שניות של דאטה תקין, המערכת נכנסת לשרשרת אבחון מדורגת (SPEECH -> SHORT -> SILENT) כדי לקבוע את סיבת הכשל המדויקת ביותר עבור ה-UI.
     """
 
     SAMPLE_RATE = 16000
@@ -83,7 +28,8 @@ class VoiceFeatureExtractor:
     FMIN = 40.0
     FMAX = 500.0
     
-    MIN_ENERGY_THRESHOLD = 0.0004      
+    # ספים אופטימליים למניעת רעשי רקע תוך שמירה על רגישות לקול אנושי
+    MIN_ENERGY_THRESHOLD = 0.001      
     MIN_TOTAL_SPEECH_DURATION_S = 5.0  
     MAX_FLUX_STD = 0.045000            
     MAX_PITCH_REL_VARIATION = 0.550000 
@@ -98,7 +44,7 @@ class VoiceFeatureExtractor:
         # 1. בדיקת השתקה / חוסר מיקרופון גלובלי
         global_rms = float(np.sqrt(np.mean(audio**2)))
         max_amplitude = float(np.max(np.abs(audio)))
-        if global_rms < 0.0001 or max_amplitude < 0.001:
+        if global_rms < 0.0015 or max_amplitude < 0.01:
             return None, "MUTE"
 
         if sample_rate != cls.SAMPLE_RATE:
@@ -112,7 +58,7 @@ class VoiceFeatureExtractor:
         frame_length = cls._frame_length(cls.SAMPLE_RATE)
         hop_length = cls._hop_length(cls.SAMPLE_RATE)
         
-        # 2. הפרדה לשגיאה טכנית: הקובץ קצר מכדי להכיל אפילו פריים בודד (בעיית חומרה/דרייבר)
+        # 2. הפרדה לשגיאה טכנית: הקובץ קצר מכדי להכיל פריים בודד
         if len(audio) < frame_length:
             return None, "HARDWARE_SHORT"
 
@@ -123,7 +69,26 @@ class VoiceFeatureExtractor:
 
         frame_rms = np.sqrt(np.mean(frames**2, axis=1))
         speech_frames = (frame_rms > cls.MIN_ENERGY_THRESHOLD).astype(np.int32)
-        smoothed_speech = medfilt(speech_frames, kernel_size=5)
+
+        # --- מנגנון סגירה מורפולוגית (Morphological Closing) חכם מותאם אישית ---
+        # חיבור "חורים" קטנים של שקט (עד 15 פריימים = 150 מילישניות) בתוך רצף הדיבור
+        # שלב א: הרחבה (Dilation) - הפיכת שקט קצר לדיבור
+        kernel_size = 15
+        dilated = np.copy(speech_frames)
+        for i in range(len(speech_frames)):
+            if speech_frames[i] == 1:
+                start = max(0, i - kernel_size // 2)
+                end = min(len(speech_frames), i + kernel_size // 2 + 1)
+                dilated[start:end] = 1
+        
+        # שלב ב: שחיקה (Erosion) - החזרת הגבולות המקוריים של הסגמנט הרציף
+        smoothed_speech = np.copy(dilated)
+        for i in range(len(dilated)):
+            start = max(0, i - kernel_size // 2)
+            end = min(len(dilated), i + kernel_size // 2 + 1)
+            if np.any(dilated[start:end] == 0):
+                smoothed_speech[i] = 0
+        # ----------------------------------------------------------------------
 
         padded = np.pad(smoothed_speech, (1, 1), 'constant', constant_values=0)
         diffs = np.diff(padded)
@@ -140,6 +105,7 @@ class VoiceFeatureExtractor:
             seg_len_frames = e - s
             seg_duration = (seg_len_frames * cls.HOP_LENGTH_MS) / 1000.0
             
+            # סגמנטים קצרים מאוד (פחות מ-300 מילישניות) ששרדו ייפסלו
             if seg_duration < 0.3:
                 continue
 
@@ -147,7 +113,7 @@ class VoiceFeatureExtractor:
             seg_frames = frames[s:e]
             seg_rms = frame_rms[s:e]
             
-            core_seg_frames = seg_frames[seg_rms > (cls.MIN_ENERGY_THRESHOLD * 2.5)]
+            core_seg_frames = seg_frames[seg_rms > (cls.MIN_ENERGY_THRESHOLD * 1.5)]
             if len(core_seg_frames) > 5:
                 fft_data = np.abs(np.fft.rfft(core_seg_frames, n=512, axis=1))
                 fft_norm = fft_data / (np.sum(fft_data, axis=1, keepdims=True) + 1e-3)
@@ -167,17 +133,14 @@ class VoiceFeatureExtractor:
         if total_valid_duration >= cls.MIN_TOTAL_SPEECH_DURATION_S and len(valid_audio_segments) > 0:
             pass 
         
-        # 4. אם אין מספיק דאטה תקין, נפעיל אבחון סיבות לפי סדר עדיפויות מוגדר:
+        # 4. אבחון סיבות לכשל במידה ואין מספיק זמן מצטבר
         else:
-            # א. האם נפסל קול בגלל דיבור/מילים דינמיות?
             if speech_rejected_due_to_flux or (any_speech_detected_at_all and len(valid_audio_segments) == 0):
                 return None, "SPEECH"
             
-            # ב. שגיאה התנהגותית: הפיק צליל "אה" תקין, אך הפסיק מוקדם מדי (פחות מ-5 שניות)
             if total_valid_duration > 0.5:
                 return None, "SHORT"
             
-            # ג. לא נקלט קול משמעותי בכלל (לחישה, נשימה או שקט)
             return None, "SILENT"
 
         if len(valid_audio_segments) == 0:
@@ -254,7 +217,8 @@ class VoiceFeatureExtractor:
 
         valid_indices = ~np.isnan(pitches)
         if np.sum(valid_indices) > 5:
-            smoothed_valid = medfilt(pitches[valid_indices], kernel_size=5)
+            import scipy.signal as signal
+            smoothed_valid = signal.medfilt(pitches[valid_indices], kernel_size=5)
             pitches[valid_indices] = smoothed_valid
 
         return pitches
