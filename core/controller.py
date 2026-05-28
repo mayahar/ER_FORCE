@@ -95,6 +95,7 @@ class Controller:
         required = {
             "voice": ("dLPC", "PARCOR", "LPC", "Pitch", "MFCC"),
             "game": ("score",),
+            "questionnaire": ("fatigue_self", "sleep_last", "sleep_previous"),
         }
         return all(
             coerce_feature_number((baseline.get(modality) or {}).get(feature)) is not None

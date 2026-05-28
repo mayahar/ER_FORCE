@@ -643,7 +643,7 @@ class QuestionnaireScreen(BaseScreen):
         clear_layout(self.form_layout)
         research_context = self.app.state.get("research_context")
 
-        fatigue_row, self.fatigue_slider = slider_row("עד כמה אתה עייף כעת?", 0, 10, 5)
+        fatigue_row, self.fatigue_slider = slider_row("עד כמה אתה עייף כעת?", 1, 10, 5)
         self.form_layout.addWidget(fatigue_row)
 
         if research_context:
@@ -729,7 +729,7 @@ class NewUserSleepGateScreen(BaseScreen):
             )
             return
 
-        questionnaire = {"fatigue_self": 0, "sleep_last": last, "sleep_previous": prev}
+        questionnaire = {"fatigue_self": 1, "sleep_last": last, "sleep_previous": prev}
         self.app.controller.dispatch("QUESTIONNAIRE_DONE", questionnaire)
         self.app.navigate("game")
 
@@ -818,13 +818,16 @@ class GameScreen(BaseScreen):
 
         from .eye_tracking_runtime import SKIP_EYE_CALIBRATION
 
-        if not self.app.eye_runtime.calibration_passed:
+        if (
+            not self.app.eye_runtime.calibration_passed
+            and not getattr(self.app.eye_runtime, "calibration_attempted", False)
+        ):
             if SKIP_EYE_CALIBRATION:
-                self.eye_status_label.setText("מעקב עיניים: דילוג על כיול (זמני)")
+                self.eye_status_label.setText("מעקב עיניים: דילוג על כיול")
                 QGuiApplication.processEvents()
-                self.app.eye_runtime.ensure_tracker()
                 self.app.eye_runtime.calibration_passed = True
-                self.app.eye_runtime.calibration_message = "skipped (temporary)"
+                self.app.eye_runtime.calibration_attempted = True
+                self.app.eye_runtime.calibration_message = "skipped"
             else:
                 self.eye_status_label.setText("מעקב עיניים: מבצע כיול...")
                 QGuiApplication.processEvents()
@@ -835,17 +838,25 @@ class GameScreen(BaseScreen):
                 )
                 if not calibrated:
                     self.app.eye_runtime.last_error = calibration_message
-                    self.eye_status_label.setText(f"כיול נכשל: {calibration_message}")
-                    self.set_error(f"שגיאת כיול מעקב עיניים: {calibration_message}")
-                    self._sync_buttons()
-                    return
-                self.eye_status_label.setText("מעקב עיניים: כיול הושלם")
+                    logger = getattr(self.app.eye_runtime._ensure_runtime(), "_log", None)
+                    if callable(logger):
+                        logger(f"כיול נכשל במשחק; ממשיך להקלטה ללא כיול: {calibration_message}")
+                    self.eye_status_label.setText("מעקב עיניים: כיול נכשל, ממשיך להקלטה ללא כיול")
+                    self.set_error(f"אזהרת כיול מעקב עיניים: {calibration_message}")
+                    QGuiApplication.processEvents()
+                    time.sleep(0.8)
+                else:
+                    self.eye_status_label.setText("מעקב עיניים: כיול הושלם")
+                    QGuiApplication.processEvents()
+                    time.sleep(1.5)
 
         cam_idx = get_camera_index()
         subject_id = self.app.state.get("session_id", "unknown")
         eye_ok = self.app.eye_runtime.start_recording(cam_idx, subject_id)
         if not eye_ok:
+            detail = self.app.eye_runtime.last_error or "לא התקבלה הודעת שגיאה"
             self.eye_status_label.setText("מעקב עיניים: נכשל באתחול (נעשה שימוש בגיבוי)")
+            self.set_error(f"שגיאת התחלת הקלטת עיניים: {detail}")
 
         pid, error = start_flightgear_session(self.app.controller)
         if error:
@@ -877,11 +888,12 @@ class GameScreen(BaseScreen):
             self.app.controller.set_eye_features(eye_features)
             self.eye_status_label.setText("מעקב עיניים: העיבוד הושלם בהצלחה")
         else:
+            detail = self.app.eye_runtime.last_error or "לא התקבלה הודעת שגיאה"
             apply_eye_features_fallback(self.app.controller)
             self.eye_status_label.setText(
-                "מעקב עיניים: נשמרו נתונים גולמיים; המדידה לא תיכלל בציון"
+                f"מעקב עיניים: המדידה לא תיכלל בציון. פרטים: {detail}"
             )
-            self.set_error("")
+            self.set_error(f"שגיאת סיום הקלטת עיניים: {detail}")
 
         if self.app.fg_pid:
             ok, error = terminate_session_process(self.app.fg_pid)
@@ -917,11 +929,12 @@ class GameScreen(BaseScreen):
                 self.app.controller.set_eye_features(eye_features)
                 self.eye_status_label.setText("מעקב עיניים: העיבוד הושלם בהצלחה")
             else:
+                detail = self.app.eye_runtime.last_error or "לא התקבלה הודעת שגיאה"
                 apply_eye_features_fallback(self.app.controller)
                 self.eye_status_label.setText(
-                    "מעקב עיניים: נשמרו נתונים גולמיים; המדידה לא תיכלל בציון"
+                    f"מעקב עיניים: המדידה לא תיכלל בציון. פרטים: {detail}"
                 )
-                self.set_error("")
+                self.set_error(f"שגיאת סיום הקלטת עיניים: {detail}")
 
             elapsed = time.time() - float(self.app.fg_started_at or time.time())
             if elapsed < 8.0:

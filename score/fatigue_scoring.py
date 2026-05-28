@@ -184,7 +184,7 @@ def compute_modality_score(
         current_num = coerce_feature_number(current)
         baseline_num = coerce_feature_number(baseline)
 
-        if cfg.get("scoring") == "absolute":
+        if cfg.get("scoring") == "absolute" and baseline_num is None:
             if current_num is None:
                 continue
             result = compute_absolute_feature_score(

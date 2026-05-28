@@ -1,6 +1,6 @@
 import json
 
-with open("fatigue_features_data.json", "r", encoding="utf-8") as f:
+with open("score/fatigue_features.json", "r", encoding="utf-8") as f:
     _data = json.load(f)
 
 FEATURES = _data["FEATURES"]

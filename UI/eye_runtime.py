@@ -1,10 +1,18 @@
-"""Lazy compatibility wrapper for the PySide game screen eye runtime calls - Glasses 3 Version."""
+"""Compatibility wrapper for the PySide eye runtime calls."""
+
+from __future__ import annotations
+
+from typing import Any, Callable
+
 
 def get_camera_index() -> int:
+    """The Tobii Glasses 3 flow does not use a local camera index."""
     return 0
 
 
 class EyeTrackingRuntime:
+    """Keep the UI-facing API stable while delegating to the glasses runtime."""
+
     def __init__(self):
         self._runtime = None
         self.last_error = ""
@@ -15,28 +23,35 @@ class EyeTrackingRuntime:
         self.calibration_passed = False
         self.calibration_message = ""
         self.calibration_preview_path = None
+        self.calibration_attempted = False
+        self.current_recording_uuid = None
+        self.active_host = None
+        self.active = False
 
     def _ensure_runtime(self):
         if self._runtime is None:
-            # ייבוא עצלני של ה-Runtime האלחוטי החדש שכתבנו
             from ui.eye_tracking_runtime import EyeTrackingRuntime as TobiiEyeTrackingRuntime
 
             runtime = TobiiEyeTrackingRuntime()
-            runtime.last_error = self.last_error
-            runtime.export_paths = self.export_paths
-            runtime.raw_sample_count = self.raw_sample_count
-            runtime.tracker_connected = self.tracker_connected
-            runtime.tracker_label = self.tracker_label
-            runtime.calibration_passed = self.calibration_passed
-            runtime.calibration_message = self.calibration_message
-            runtime.calibration_preview_path = self.calibration_preview_path
+            self._copy_state_to(runtime)
             self._runtime = runtime
         return self._runtime
 
-    def _sync_from_runtime(self):
+    def _copy_state_to(self, runtime) -> None:
+        for name in self._state_names():
+            if hasattr(runtime, name):
+                setattr(runtime, name, getattr(self, name))
+
+    def _sync_from_runtime(self) -> None:
         if self._runtime is None:
             return
-        for name in (
+        for name in self._state_names():
+            if hasattr(self._runtime, name):
+                setattr(self, name, getattr(self._runtime, name))
+
+    @staticmethod
+    def _state_names() -> tuple[str, ...]:
+        return (
             "last_error",
             "export_paths",
             "raw_sample_count",
@@ -45,18 +60,24 @@ class EyeTrackingRuntime:
             "calibration_passed",
             "calibration_message",
             "calibration_preview_path",
-        ):
-            if hasattr(self._runtime, name):
-                setattr(self, name, getattr(self._runtime, name))
+            "calibration_attempted",
+            "current_recording_uuid",
+            "active_host",
+            "active",
+        )
 
-    def start_preview(self, _camera_index=0, _on_frame=None) -> bool:
+    def start_preview(
+        self,
+        _camera_index: int = 0,
+        _on_frame: Callable[[Any], None] | None = None,
+    ) -> bool:
         return True
 
     def stop_preview(self) -> None:
         return None
 
-    def start_recording(self, _camera_index=0, _subject_id=None) -> bool:
-        ok, error = self._ensure_runtime().start()
+    def start_recording(self, camera_index: int = 0, subject_id: str | None = None) -> bool:
+        ok, error = self._ensure_runtime().start(camera_index, subject_id)
         self._sync_from_runtime()
         self.last_error = error
         return ok
@@ -67,31 +88,41 @@ class EyeTrackingRuntime:
         self.last_error = error
         return features
 
-    def ensure_tracker(self):
-        result = self._ensure_runtime().ensure_tracker()
+    def ensure_tracker(self) -> bool:
+        ok = self._ensure_runtime().ensure_tracker()
         self._sync_from_runtime()
-        return result
+        return ok
 
-    def run_calibration(self, *args, **kwargs):
-        # הפעלת פונקציית הכיול החדשה של נקודה אחת על המסך
-        from eye_calibration import run_eye_calibration
-        result = run_eye_calibration(self._ensure_runtime(), *args, **kwargs)
+    def run_calibration(self, *args, **kwargs) -> tuple[bool, str]:
+        from ui.eye_calibration import run_eye_calibration
+
+        success, message, preview = run_eye_calibration(
+            self._ensure_runtime(),
+            *args,
+            **kwargs,
+        )
+        runtime = self._ensure_runtime()
+        runtime.calibration_preview_path = preview
+        runtime.calibration_attempted = True
         self._sync_from_runtime()
-        return result
+        return success, message
 
     def reset(self) -> None:
         if self._runtime is not None:
             self._runtime.reset()
             self._sync_from_runtime()
-        else:
-            self.last_error = ""
-            self.export_paths = None
-            self.raw_sample_count = 0
+            return
+
+        self.last_error = ""
+        self.export_paths = None
+        self.raw_sample_count = 0
 
     def reset_calibration(self) -> None:
         if self._runtime is not None:
             self._runtime.reset_calibration()
             self._sync_from_runtime()
-        else:
-            self.calibration_passed = False
-            self.calibration_message = ""
+            return
+
+        self.calibration_passed = False
+        self.calibration_message = ""
+        self.calibration_attempted = False
