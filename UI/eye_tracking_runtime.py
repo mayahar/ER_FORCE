@@ -6,6 +6,7 @@ import json
 import os
 import time
 import gzip
+import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -26,9 +27,10 @@ EYE_RUNTIME_LOG = DEFAULT_RECORDINGS_DIR / "tobii_runtime.log"
 SKIP_EYE_CALIBRATION = True
 VERBOSE_TOBII_STATUS = os.environ.get("TOBII_VERBOSE_STATUS", "").lower() in ("1", "true", "yes")
 GLASSES_ENV_HOST = os.environ.get("TOBII_GLASSES_HOST")
-GLASSES_IP = GLASSES_ENV_HOST or "192.168.75.51"
+GLASSES_IP = GLASSES_ENV_HOST
 GLASSES_FALLBACK_HOSTS = (
     GLASSES_ENV_HOST,
+    GLASSES_IP,
     "TG03B-080203015551.local",
     "TG03B-080203015551",
 )
@@ -100,14 +102,26 @@ class EyeTrackingRuntime:
         # משתנה לשמירת מזהה ההקלטה הנוכחית מהמשקפיים
         self.current_recording_uuid = None
         self.active_host = None
+        self.session_eye_dir: Path | None = None
+        self.session_log_path: Path | None = None
+        self._pending_raw_gaze: tuple[str, str] | None = None
+
+    def configure_session(self, controller: Any | None = None) -> None:
+        session = getattr(controller, "session", None)
+        eye_dir = getattr(session, "eye_dir", None)
+        if eye_dir:
+            self.session_eye_dir = Path(eye_dir)
+            self.session_eye_dir.mkdir(parents=True, exist_ok=True)
+            self.session_log_path = self.session_eye_dir / "tobii_runtime.log"
 
     def _log(self, message: str) -> None:
         timestamp = datetime.now().isoformat(timespec="seconds")
         line = f"[{timestamp}] {message}"
         print(line)
         try:
-            DEFAULT_RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
-            with EYE_RUNTIME_LOG.open("a", encoding="utf-8") as log_file:
+            log_path = self.session_log_path or EYE_RUNTIME_LOG
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            with log_path.open("a", encoding="utf-8") as log_file:
                 log_file.write(line + "\n")
         except Exception:
             pass
@@ -118,7 +132,8 @@ class EyeTrackingRuntime:
         response = None
         host = ""
         error = None
-        for attempt in range(1, 4):
+        max_attempts = 8
+        for attempt in range(1, max_attempts + 1):
             response, host, error = _request(
                 "GET",
                 "/rest/system.recording-unit-serial",
@@ -128,9 +143,9 @@ class EyeTrackingRuntime:
                 self.tracker_connected = True
                 self.active_host = host
                 self.last_error = ""
-                self._log(f"המשקפיים נמצאו דרך host={host}, ניסיון {attempt}/3")
+                self._log(f"המשקפיים נמצאו דרך host={host}, ניסיון {attempt}/{max_attempts}")
                 return True
-            self._log(f"בדיקת זמינות ניסיון {attempt}/3 נכשלה: {error}")
+            self._log(f"בדיקת זמינות ניסיון {attempt}/{max_attempts} נכשלה: {error}")
             time.sleep(0.8)
 
         self.tracker_connected = False
@@ -155,11 +170,12 @@ class EyeTrackingRuntime:
                 self._stop_or_cancel_existing_recording(self.active_host)
 
             last_detail = ""
-            for attempt in range(1, 5):
+            max_start_attempts = 10
+            for attempt in range(1, max_start_attempts + 1):
                 res, host, error = self._post_recorder_start()
                 if res is None:
                     last_detail = f"communication error: {error}"
-                    self._log(f"recorder!start attempt {attempt}/4 failed: {last_detail}")
+                    self._log(f"recorder!start attempt {attempt}/{max_start_attempts} failed: {last_detail}")
                     time.sleep(0.5)
                     continue
 
@@ -169,7 +185,7 @@ class EyeTrackingRuntime:
                     f"HTTP {res.status_code}, body={start_value!r}, host={host}, "
                     f"X-g3-action-error={action_error!r}"
                 )
-                self._log(f"recorder!start attempt {attempt}/4 returned {last_detail}")
+                self._log(f"recorder!start attempt {attempt}/{max_start_attempts} returned {last_detail}")
 
                 if action_error:
                     friendly_error = self._friendly_action_error(action_error)
@@ -188,7 +204,7 @@ class EyeTrackingRuntime:
                 self.active_host = host
                 time.sleep(0.3)
                 recording_uuid, uuid_host, uuid_detail = self._read_current_recording_uuid()
-                self._log(f"recorder.uuid after attempt {attempt}/4: {uuid_detail}")
+                self._log(f"recorder.uuid after attempt {attempt}/{max_start_attempts}: {uuid_detail}")
 
                 if self._looks_like_uuid(recording_uuid):
                     self.current_recording_uuid = recording_uuid
@@ -232,6 +248,7 @@ class EyeTrackingRuntime:
 
     def stop(self, controller: Any | None = None) -> tuple[dict[str, Any] | None, str]:
         """עוצר את ההקלטה, מושך את ה-RAW Data מיידית דרך הרשת ומנתח עייפות"""
+        self.configure_session(controller)
         if not self.active:
             self.last_error = "אין הקלטה פעילה לעצירה"
             self._log(self.last_error)
@@ -245,13 +262,7 @@ class EyeTrackingRuntime:
             recording_uuid = self.current_recording_uuid
             active_host = self.active_host
 
-            res, stop_host, err = _request(
-                "POST",
-                "/rest/recorder!stop",
-                json_body=[],
-                timeout=8.0,
-                preferred_host=active_host,
-            )
+            res, stop_host, err = self._post_recorder_stop(active_host)
             self.active = False
             if res is None:
                 if self._looks_like_uuid(recording_uuid):
@@ -282,8 +293,6 @@ class EyeTrackingRuntime:
                 self.last_error = fetch_error
                 self._log(self.last_error)
                 return None, fetch_error
-
-            self._save_raw_gaze_text(recording_uuid, gaze_text)
 
             # 3. פארסינג של ה-RAW Data לתוך מערכים
             timestamps = []
@@ -343,6 +352,7 @@ class EyeTrackingRuntime:
                 apply_controller_eye_features(controller, features)
 
             self._save_features(recording_uuid, features)
+            self._defer_raw_gaze_text(recording_uuid, gaze_text)
             self.last_error = ""
             self._log(
                 f"עיבוד Tobii הסתיים בהצלחה: samples={self.raw_sample_count}, uuid={recording_uuid}"
@@ -422,7 +432,7 @@ class EyeTrackingRuntime:
                 response = requests.post(
                     f"http://{host}/rest/recorder!start",
                     json=[],
-                    timeout=5.0,
+                    timeout=(1.0, 5.0),
                 )
             except requests.RequestException as exc:
                 last_error = exc
@@ -435,6 +445,31 @@ class EyeTrackingRuntime:
 
             last_error = requests.HTTPError(
                 f"HTTP 404 for http://{host}/rest/recorder!start",
+                response=response,
+            )
+
+        return None, "", last_error
+
+    def _post_recorder_stop(self, preferred_host: str | None):
+        last_error = None
+        for host in _candidate_hosts(preferred_host):
+            try:
+                response = requests.post(
+                    f"http://{host}/rest/recorder!stop",
+                    json=[],
+                    timeout=(1.0, 1.2),
+                )
+            except requests.RequestException as exc:
+                last_error = exc
+                self._log(f"recorder!stop host {host} did not confirm quickly: {exc}")
+                break
+
+            if response.status_code != 404:
+                self.active_host = host
+                return response, host, None
+
+            last_error = requests.HTTPError(
+                f"HTTP 404 for http://{host}/rest/recorder!stop",
                 response=response,
             )
 
@@ -552,6 +587,24 @@ class EyeTrackingRuntime:
                 break
             last_error = f"HTTP {http_path_res.status_code} מול {candidate_host}"
 
+        retry_until = time.time() + 10.0
+        while (http_path_res is None or http_path_res.status_code != 200) and time.time() < retry_until:
+            time.sleep(0.4)
+            for candidate_host in _candidate_hosts(host):
+                self._log(f"מנסה http-path מול {candidate_host}")
+                try:
+                    http_path_res = session.get(
+                        f"http://{candidate_host}/rest/recordings/{recording_uuid}.http-path",
+                        timeout=(1.0, 1.5),
+                    )
+                except requests.RequestException as exc:
+                    last_error = str(exc)
+                    continue
+                if http_path_res.status_code == 200:
+                    working_host = candidate_host
+                    break
+                last_error = f"HTTP {http_path_res.status_code} מול {candidate_host}"
+
         if http_path_res is None or http_path_res.status_code != 200:
             return "", f"נכשלה קבלת http-path להקלטה {recording_uuid}. {last_error}"
 
@@ -561,6 +614,18 @@ class EyeTrackingRuntime:
             parsed = urlsplit(http_path)
             working_host = parsed.netloc or working_host
             http_path = parsed.path.strip("/")
+
+        for candidate_host in _candidate_hosts(working_host):
+            direct_gaze_url = f"http://{candidate_host}/{http_path}/gazedata.gz?use-content-encoding=true"
+            self._log(f"מנסה להוריד gaze data ישירות: {direct_gaze_url}")
+            try:
+                direct_gaze_res = session.get(direct_gaze_url, timeout=8.0)
+            except requests.RequestException as exc:
+                last_error = str(exc)
+                continue
+            if direct_gaze_res.status_code == 200:
+                return self._decode_gaze_response(direct_gaze_res), ""
+            last_error = f"HTTP {direct_gaze_res.status_code} מול {candidate_host}"
 
         recording_res = None
         recording_paths = self._recording_metadata_paths(http_path)
@@ -622,13 +687,16 @@ class EyeTrackingRuntime:
 
     def _recording_dir(self, recording_uuid: str) -> Path:
         safe_uuid = recording_uuid.replace("/", "_").replace("\\", "_")
-        path = DEFAULT_RECORDINGS_DIR / safe_uuid
+        path = self.session_eye_dir or (DEFAULT_RECORDINGS_DIR / safe_uuid)
         path.mkdir(parents=True, exist_ok=True)
         return path
 
+    def _recording_file(self, recording_uuid: str, filename: str) -> Path:
+        return self._recording_dir(recording_uuid) / filename
+
     def _save_raw_gaze_text(self, recording_uuid: str, gaze_text: str) -> None:
         try:
-            path = self._recording_dir(recording_uuid) / "gazedata.jsonl"
+            path = self._recording_file(recording_uuid, "gazedata.jsonl")
             path.write_text(gaze_text, encoding="utf-8")
             self.export_paths = dict(self.export_paths or {})
             self.export_paths["raw_gaze"] = str(path)
@@ -638,7 +706,7 @@ class EyeTrackingRuntime:
 
     def _save_features(self, recording_uuid: str, features: dict[str, Any]) -> None:
         try:
-            path = self._recording_dir(recording_uuid) / "eye_features.json"
+            path = self._recording_file(recording_uuid, "eye_features.json")
             path.write_text(json.dumps(features, ensure_ascii=False, indent=2), encoding="utf-8")
             self.export_paths = dict(self.export_paths or {})
             self.export_paths["features"] = str(path)
@@ -646,14 +714,35 @@ class EyeTrackingRuntime:
         except Exception as exc:
             self._log(f"שמירת eye features נכשלה: {exc}")
 
+    def _save_raw_gaze_text_async(self, recording_uuid: str, gaze_text: str) -> None:
+        thread = threading.Thread(
+            target=self._save_raw_gaze_text,
+            args=(recording_uuid, gaze_text),
+            name=f"tobii-raw-save-{recording_uuid}",
+            daemon=True,
+        )
+        thread.start()
+
+    def _defer_raw_gaze_text(self, recording_uuid: str, gaze_text: str) -> None:
+        self._pending_raw_gaze = (recording_uuid, gaze_text)
+
+    def save_pending_raw_gaze_async(self) -> None:
+        pending = self._pending_raw_gaze
+        self._pending_raw_gaze = None
+        if pending is None:
+            return
+        recording_uuid, gaze_text = pending
+        self._save_raw_gaze_text_async(recording_uuid, gaze_text)
+
     @staticmethod
     def _decode_gaze_response(response) -> str:
-        if response.text.strip().startswith("{"):
-            return response.text
+        content = response.content
+        if content.lstrip().startswith(b"{"):
+            return content.decode(response.encoding or "utf-8", errors="replace")
         try:
-            return gzip.decompress(response.content).decode("utf-8")
+            return gzip.decompress(content).decode("utf-8")
         except OSError:
-            return response.content.decode("utf-8", errors="replace")
+            return content.decode("utf-8", errors="replace")
 
     @staticmethod
     def _metric_value(metrics, *names, default=0.0) -> float:

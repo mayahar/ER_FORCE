@@ -338,8 +338,7 @@ class InstructionsDialog(QDialog):
             "על מנת להזין עבורך בייסליין - שים לב שעליך להיות בעל כמות שעות שינה מספקת בשני הלילות האחרונים (7 שעות) "
             "על מנת שתוכל לייצר בייסליין.<br><br>"
             "2. לאחר מכן תתבקש להזין את מידת העייפות שלך ושעות השינה ב-2 הלילות האחרונים.<br><br>"
-            "3. במסך המשחק, לאחר שתלחץ על הכפתור \"התחל קליברציה לתנועות עיניים\" תופיע אליפסה שמראה את מיקום "
-            "בסיום הקליברציה משחק ההטסה ייטען באופן אוטומטי.<br><br>"
+            "3. במסך המשחק, לאחר שתלחץ על הכפתור \"התחל משחק\" משחק ההטסה ייטען באופן אוטומטי.<br><br>"
             "במהלך טעינת המשחק תתבקש להפיק את הצליל \"אה\" למשך עשר שניות - הנחיות לתחילת הפקת הצליל וסיומה יושמעו בקול.<br><br>"
             "הקשב להנחיות המשחק, מטרתך היא להתנגש במטרות המוצגות (במידה והמטרה מופיעה מחוץ לתצוגה יהיה חץ ירוק שמכוון למטרה).<br><br>"
             "בסיום המשחק (לאחר 12 מטרות) התוכנה תצא מהמשחק באופן אוטומטי ותציג את ציון העייפות המחושב.<br><br>"
@@ -741,10 +740,10 @@ class GameScreen(BaseScreen):
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self._tick)
 
-        self.start_button = QPushButton("התחל קליברציה לתנועות עיניים")
+        self.start_button = QPushButton("התחל משחק")
         self.status_label = message("המשחק מוכן")
         self.voice_label = message("")
-        self.eye_status_label = message("עקיב עיניים: לא פעיל")
+        self.eye_status_label = message("עוקב עיניים: לא פעיל, יש לשים לב שהמשקפיים מחוברות ומודלקות.")
         self.error_label = message("", "errorText")
 
         self.camera_preview = QLabel()
@@ -754,8 +753,8 @@ class GameScreen(BaseScreen):
         info_layout = QVBoxLayout(info_panel)
         info_layout.addWidget(
             message(
-                "בהתחלה תהיה קליברציה לניתוח תנועות העיניים ולאחר מכן יטען המשחק.\n"
-                "המשחק יופעל במצב מסך מלא. במהלך הטעינה תופעל הנחיה קולית להשמעת קול כחלק ממדידת העייפות."
+                "המשחק יופעל במצב מסך מלא. במהלך הטעינה תופעל הנחיה קולית להשמעת קול כחלק ממדידת העייפות.\n"
+                "מעקב העיניים יתחבר ברקע בזמן טעינת המשחק, יש לוודא שהמשקפיים מורכבות ומחוברות למחשב לפני לחיצה על כפתור ההתחלה."
             )
         )
         info_layout.addWidget(
@@ -816,47 +815,11 @@ class GameScreen(BaseScreen):
         self.camera_preview.clear()
         self.camera_preview.setText("מקליט...")
 
-        from .eye_tracking_runtime import SKIP_EYE_CALIBRATION
-
-        if (
-            not self.app.eye_runtime.calibration_passed
-            and not getattr(self.app.eye_runtime, "calibration_attempted", False)
-        ):
-            if SKIP_EYE_CALIBRATION:
-                self.eye_status_label.setText("מעקב עיניים: דילוג על כיול")
-                QGuiApplication.processEvents()
-                self.app.eye_runtime.calibration_passed = True
-                self.app.eye_runtime.calibration_attempted = True
-                self.app.eye_runtime.calibration_message = "skipped"
-            else:
-                self.eye_status_label.setText("מעקב עיניים: מבצע כיול...")
-                QGuiApplication.processEvents()
-                calibrated, calibration_message = self.app.eye_runtime.run_calibration(
-                    parent=self.app,
-                    screen=self.app.screen(),
-                    controller=self.app.controller,
-                )
-                if not calibrated:
-                    self.app.eye_runtime.last_error = calibration_message
-                    logger = getattr(self.app.eye_runtime._ensure_runtime(), "_log", None)
-                    if callable(logger):
-                        logger(f"כיול נכשל במשחק; ממשיך להקלטה ללא כיול: {calibration_message}")
-                    self.eye_status_label.setText("מעקב עיניים: כיול נכשל, ממשיך להקלטה ללא כיול")
-                    self.set_error(f"אזהרת כיול מעקב עיניים: {calibration_message}")
-                    QGuiApplication.processEvents()
-                    time.sleep(0.8)
-                else:
-                    self.eye_status_label.setText("מעקב עיניים: כיול הושלם")
-                    QGuiApplication.processEvents()
-                    time.sleep(1.5)
-
         cam_idx = get_camera_index()
         subject_id = self.app.state.get("session_id", "unknown")
-        eye_ok = self.app.eye_runtime.start_recording(cam_idx, subject_id)
-        if not eye_ok:
-            detail = self.app.eye_runtime.last_error or "לא התקבלה הודעת שגיאה"
-            self.eye_status_label.setText("מעקב עיניים: נכשל באתחול (נעשה שימוש בגיבוי)")
-            self.set_error(f"שגיאת התחלת הקלטת עיניים: {detail}")
+        self.app.eye_runtime.configure_session(self.app.controller)
+        self.app.eye_start_reported = False
+        self.app.eye_runtime.start_recording_async(cam_idx, subject_id)
 
         pid, error = start_flightgear_session(self.app.controller)
         if error:
@@ -909,6 +872,16 @@ class GameScreen(BaseScreen):
         self._finish_to_results()
 
     def _tick(self):
+        eye_start_ok = self.app.eye_runtime.poll_start_recording()
+        if eye_start_ok is True and not getattr(self.app, "eye_start_reported", False):
+            self.app.eye_start_reported = True
+            self.eye_status_label.setText("מעקב עיניים: מקליט")
+        elif eye_start_ok is False and not getattr(self.app, "eye_start_reported", False):
+            self.app.eye_start_reported = True
+            detail = self.app.eye_runtime.last_error or "לא התקבלה הודעת שגיאה"
+            self.eye_status_label.setText("מעקב עיניים: לא התחיל, המדידה לא תיכלל בציון")
+            self.set_error(f"שגיאת התחלת הקלטת עיניים: {detail}")
+
         if self.app.voice_session is not None:
             elapsed = time.time() - float(self.app.fg_started_at or time.time())
             try:
@@ -1095,6 +1068,7 @@ class GameScreen(BaseScreen):
     def _navigate_to_results(self):
         try:
             self.app.navigate("result")
+            self.app.eye_runtime.save_pending_raw_gaze_async()
         except Exception as exc:
             self.set_error(f"פתיחת מסך התוצאות נכשלה: {exc}")
             print(f"[ER Force error] פתיחת מסך התוצאות נכשלה: {exc}")
@@ -1471,6 +1445,7 @@ class FatigueApp(QMainWindow):
         self.voice_only_running = False
         self.voice_session = None
         self.eye_runtime = EyeTrackingRuntime()
+        self.eye_start_reported = False
 
         # יצירת קומפוננטת קונטיינר מרכזית שתחזיק את ה-Stack הראשי + סרגל עליון קבוע
         central_widget = QWidget()

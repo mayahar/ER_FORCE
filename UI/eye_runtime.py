@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError
 from typing import Any, Callable
 
 
@@ -27,6 +28,8 @@ class EyeTrackingRuntime:
         self.current_recording_uuid = None
         self.active_host = None
         self.active = False
+        self._executor = ThreadPoolExecutor(max_workers=1)
+        self._start_future: Future | None = None
 
     def _ensure_runtime(self):
         if self._runtime is None:
@@ -66,6 +69,12 @@ class EyeTrackingRuntime:
             "active",
         )
 
+    def configure_session(self, controller=None) -> None:
+        runtime = self._ensure_runtime()
+        if hasattr(runtime, "configure_session"):
+            runtime.configure_session(controller)
+        self._sync_from_runtime()
+
     def start_preview(
         self,
         _camera_index: int = 0,
@@ -82,11 +91,44 @@ class EyeTrackingRuntime:
         self.last_error = error
         return ok
 
+    def start_recording_async(self, camera_index: int = 0, subject_id: str | None = None) -> Future:
+        if self._start_future is not None and not self._start_future.done():
+            return self._start_future
+        self._start_future = self._executor.submit(self.start_recording, camera_index, subject_id)
+        return self._start_future
+
+    def poll_start_recording(self) -> bool | None:
+        if self._start_future is None or not self._start_future.done():
+            return None
+        try:
+            return bool(self._start_future.result())
+        finally:
+            self._sync_from_runtime()
+
+    def wait_for_start_recording(self, timeout: float | None = None) -> bool:
+        if self._start_future is None:
+            return bool(self.active)
+        try:
+            return bool(self._start_future.result(timeout=timeout))
+        except TimeoutError:
+            self.last_error = "Tobii connection is still in progress"
+            return False
+        finally:
+            self._sync_from_runtime()
+
     def stop_recording(self, controller=None):
+        if not self.wait_for_start_recording(timeout=20.0):
+            return None
         features, error = self._ensure_runtime().stop(controller)
         self._sync_from_runtime()
         self.last_error = error
         return features
+
+    def save_pending_raw_gaze_async(self) -> None:
+        runtime = self._ensure_runtime()
+        if hasattr(runtime, "save_pending_raw_gaze_async"):
+            runtime.save_pending_raw_gaze_async()
+        self._sync_from_runtime()
 
     def ensure_tracker(self) -> bool:
         ok = self._ensure_runtime().ensure_tracker()
