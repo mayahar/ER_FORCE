@@ -37,16 +37,80 @@ class VoiceFeatureExtractor:
     MAX_PITCH_REL_VARIATION = 0.550000
 
     CALIB_FILE = ".voice_calib.json"
-    if os.path.exists(CALIB_FILE):
+
+    @classmethod
+    def _device_key(cls, input_device=None) -> str:
+        if isinstance(input_device, dict):
+            name = input_device.get("name") or input_device.get("device") or input_device.get("source")
+        else:
+            name = input_device
+        key = str(name or "default").strip().lower()
+        return " ".join(key.split())
+
+    @classmethod
+    def _load_calibration_config(cls) -> dict:
+        if not os.path.exists(cls.CALIB_FILE):
+            return {}
         try:
-            with open(CALIB_FILE, "r") as f:
-                _config = json.load(f)
-                MIN_ENERGY_THRESHOLD = _config.get("MIN_ENERGY_THRESHOLD", MIN_ENERGY_THRESHOLD)
-                MAX_FLUX_STD = _config.get("MAX_FLUX_STD", MAX_FLUX_STD)
+            with open(cls.CALIB_FILE, "r") as f:
+                return json.load(f)
         except Exception as e:
             print(f"[Warning] Failed to load calibration file, using defaults: {e}")
+            return {}
+
     @classmethod
-    def preprocess_audio(cls, audio: np.ndarray, sample_rate: int):
+    def calibration_for_device(cls, input_device=None) -> dict:
+        config = cls._load_calibration_config()
+        defaults = {
+            "MIN_ENERGY_THRESHOLD": cls.MIN_ENERGY_THRESHOLD,
+            "MAX_FLUX_STD": cls.MAX_FLUX_STD,
+        }
+
+        profiles = config.get("profiles")
+        if isinstance(profiles, dict):
+            key = cls._device_key(input_device)
+            profile = profiles.get(key)
+            if profile is None and isinstance(input_device, dict):
+                profile = profiles.get(cls._device_key(input_device.get("source")))
+            if profile is None and input_device is None:
+                active_key = config.get("active_profile")
+                profile = profiles.get(active_key) if active_key else None
+            if isinstance(profile, dict):
+                return {
+                    "MIN_ENERGY_THRESHOLD": profile.get("MIN_ENERGY_THRESHOLD", defaults["MIN_ENERGY_THRESHOLD"]),
+                    "MAX_FLUX_STD": profile.get("MAX_FLUX_STD", defaults["MAX_FLUX_STD"]),
+                    "quiet_rms": profile.get("quiet_rms"),
+                    "weak_rms": profile.get("weak_rms"),
+                    "normal_rms": profile.get("normal_rms"),
+                    "profile_key": profile.get("profile_key") or cls._device_key(input_device),
+                }
+            if input_device is not None:
+                return {**defaults, "profile_key": "default"}
+
+        return {
+            "MIN_ENERGY_THRESHOLD": config.get("MIN_ENERGY_THRESHOLD", defaults["MIN_ENERGY_THRESHOLD"]),
+            "MAX_FLUX_STD": config.get("MAX_FLUX_STD", defaults["MAX_FLUX_STD"]),
+            "quiet_rms": config.get("quiet_rms"),
+            "weak_rms": config.get("weak_rms"),
+            "normal_rms": config.get("normal_rms"),
+            "profile_key": "legacy",
+        }
+
+    @classmethod
+    def preprocess_audio(cls, audio: np.ndarray, sample_rate: int, calibration: dict | None = None):
+        calibration = calibration or {}
+        min_energy_threshold = float(calibration.get("MIN_ENERGY_THRESHOLD", cls.MIN_ENERGY_THRESHOLD))
+        max_flux_std = float(calibration.get("MAX_FLUX_STD", cls.MAX_FLUX_STD))
+        quiet_rms = calibration.get("quiet_rms")
+        weak_rms = calibration.get("weak_rms")
+        if quiet_rms is not None or weak_rms is not None:
+            threshold_candidates = [min_energy_threshold]
+            if quiet_rms is not None:
+                threshold_candidates.append(float(quiet_rms) * 1.35)
+            if weak_rms is not None:
+                threshold_candidates.append(float(weak_rms) * 0.12)
+            min_energy_threshold = float(np.clip(min(threshold_candidates), 0.0005, 0.003))
+
         if audio.ndim > 1:
             audio = np.mean(audio, axis=-1)
 
@@ -55,7 +119,8 @@ class VoiceFeatureExtractor:
         # 1. בדיקת השתקה / חוסר מיקרופון גלובלי
         global_rms = float(np.sqrt(np.mean(audio**2)))
         max_amplitude = float(np.max(np.abs(audio)))
-        if global_rms < 0.0015 or max_amplitude < 0.01:
+        mute_rms_threshold = min(0.0015, max(0.00035, min_energy_threshold * 0.45))
+        if global_rms < mute_rms_threshold and max_amplitude < 0.01:
             return None, "MUTE"
 
         if sample_rate != cls.SAMPLE_RATE:
@@ -79,7 +144,7 @@ class VoiceFeatureExtractor:
         frames = np.lib.stride_tricks.as_strided(audio, shape=shape, strides=strides)
 
         frame_rms = np.sqrt(np.mean(frames**2, axis=1))
-        speech_frames = (frame_rms > cls.MIN_ENERGY_THRESHOLD).astype(np.int32)
+        speech_frames = (frame_rms > min_energy_threshold).astype(np.int32)
 
         # --- מנגנון סגירה מורפולוגית (Morphological Closing) חכם מותאם אישית ---
         # חיבור "חורים" קטנים של שקט (עד 15 פריימים = 150 מילישניות) בתוך רצף הדיבור
@@ -124,14 +189,14 @@ class VoiceFeatureExtractor:
             seg_frames = frames[s:e]
             seg_rms = frame_rms[s:e]
             
-            core_seg_frames = seg_frames[seg_rms > (cls.MIN_ENERGY_THRESHOLD * 1.5)]
+            core_seg_frames = seg_frames[seg_rms > (min_energy_threshold * 1.5)]
             if len(core_seg_frames) > 5:
                 fft_data = np.abs(np.fft.rfft(core_seg_frames, n=512, axis=1))
                 fft_norm = fft_data / (np.sum(fft_data, axis=1, keepdims=True) + 1e-3)
                 flux_per_frame = np.sqrt(np.sum(np.diff(fft_norm, axis=0)**2, axis=1))
                 flux_std = float(np.std(flux_per_frame))
                 
-                if flux_std > cls.MAX_FLUX_STD:
+                if flux_std > max_flux_std:
                     speech_rejected_due_to_flux = True
                     continue
 
@@ -325,8 +390,9 @@ class VoiceFeatureExtractor:
         return np.vstack([padding, delta]).astype(np.float32)
 
     @classmethod
-    def extract_features(cls, raw_audio: np.ndarray, sample_rate: int):
-        preprocessed_res = cls.preprocess_audio(raw_audio, sample_rate)
+    def extract_features(cls, raw_audio: np.ndarray, sample_rate: int, input_device=None):
+        calibration = cls.calibration_for_device(input_device)
+        preprocessed_res = cls.preprocess_audio(raw_audio, sample_rate, calibration=calibration)
         
         empty_features = {
             "mfcc": None, "pitch": None, "lpc": None, "parcor": None, "delta_lpc": None

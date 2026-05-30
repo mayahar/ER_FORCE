@@ -828,7 +828,7 @@ class GameScreen(BaseScreen):
             return
 
         try:
-            self.app.voice_session = create_voice_session(self.app.controller)
+            self.app.voice_session = create_voice_session(self.app.controller, self.app.eye_runtime)
         except Exception as exc:
             terminate_session_process(pid)
             self.app.eye_runtime.stop_recording(self.app.controller)
@@ -1051,9 +1051,18 @@ class GameScreen(BaseScreen):
             return False
 
         self.set_error("")
-        self.app.voice_session = create_voice_session(self.app.controller)
+        cam_idx = get_camera_index()
+        subject_id = self.app.state.get("session_id", "unknown")
+        self.app.eye_runtime.configure_session(self.app.controller)
+        self.app.eye_start_reported = False
+        self.app.eye_runtime.start_recording_async(cam_idx, subject_id)
+
+        self.app.voice_session = create_voice_session(self.app.controller, self.app.eye_runtime)
+
+        # קיבוע זמני הפעלה מאופסים על מנת שהעדכון יתפוס מיידית
         for event in self.app.voice_session.events:
             event.trigger_time = 0.0
+            
         self.app.voice_session.start_session()
         self.app.fg_pid = 0
         self.app.fg_finished_handled = False
@@ -1061,8 +1070,8 @@ class GameScreen(BaseScreen):
         self.app.fg_started_at = time.time()
         self.timer.start()
         self._sync_buttons()
-        self.status_label.setText("מבצע הקלטת קול חוזרת...")
-        self.voice_label.setText(f"קול: {specific_tip}\nההקלטה החוזרת תתחיל מיד.")
+        self.status_label.setText("מתחבר למשקפיים ומבצע הקלטת קול חוזרת...")
+        self.voice_label.setText("מערכת הנתונים ממתינה לייצוב סינכרוני מול המשקפיים; ההקלטה תחל מיד עם השלמת החיבור.")
         return True
 
     def _navigate_to_results(self):

@@ -118,7 +118,7 @@ def start_flightgear_session(controller=None):
         return 0, f"Failed to start FlightGear session: {exc}"
 
 
-def create_voice_session(controller):
+def create_voice_session(controller, eye_runtime=None):
     from voice.session import VoiceSessionManager
 
     subject_id = None
@@ -136,6 +136,7 @@ def create_voice_session(controller):
         subject_id=subject_id,
         session_id=session_id,
         recording_root=voice_dir,
+        tobii_runtime=eye_runtime,
     )
     manager.start_session()
     return manager

@@ -28,6 +28,7 @@ class EyeTrackingRuntime:
         self.current_recording_uuid = None
         self.active_host = None
         self.active = False
+        self.recording_started_at = None
         self._executor = ThreadPoolExecutor(max_workers=1)
         self._start_future: Future | None = None
 
@@ -67,6 +68,7 @@ class EyeTrackingRuntime:
             "current_recording_uuid",
             "active_host",
             "active",
+            "recording_started_at",
         )
 
     def configure_session(self, controller=None) -> None:

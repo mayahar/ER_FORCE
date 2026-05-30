@@ -26,6 +26,11 @@ EYE_RUNTIME_LOG = DEFAULT_RECORDINGS_DIR / "tobii_runtime.log"
 
 SKIP_EYE_CALIBRATION = True
 VERBOSE_TOBII_STATUS = os.environ.get("TOBII_VERBOSE_STATUS", "").lower() in ("1", "true", "yes")
+# הגדרה קשיחה של ה-IP הסטטי האלחוטי של Tobii Glasses 3
+# החליפי את ההגדרות בראש הקובץ eye_tracking_runtime.py (סביב שורות 20-50):
+
+# החליפי חזרה את ההגדרות בראש הקובץ eye_tracking_runtime.py למצבן הבטוח:
+
 GLASSES_ENV_HOST = os.environ.get("TOBII_GLASSES_HOST")
 GLASSES_IP = GLASSES_ENV_HOST
 GLASSES_FALLBACK_HOSTS = (
@@ -36,14 +41,12 @@ GLASSES_FALLBACK_HOSTS = (
 )
 _LAST_WORKING_HOST = None
 
-
 def _unique_hosts() -> list[str]:
     hosts = []
     for host in (_LAST_WORKING_HOST, *GLASSES_FALLBACK_HOSTS):
         if host and host not in hosts:
             hosts.append(host)
     return hosts
-
 
 def _candidate_hosts(preferred_host: str | None = None) -> list[str]:
     hosts = []
@@ -55,6 +58,37 @@ def _candidate_hosts(preferred_host: str | None = None) -> list[str]:
             if local_host not in hosts:
                 hosts.append(local_host)
     return hosts
+
+    def ensure_tracker(self) -> bool:
+        """בודק האם המשקפיים זמינים ברשת ומאפשר המתנה סבלנית לייצוב החיבור הקווי"""
+        self._log("בודק זמינות Tobii Glasses ברשת")
+        response = None
+        host = ""
+        error = None
+        max_attempts = 8
+        for attempt in range(1, max_attempts + 1):
+            response, host, error = _request(
+                "GET",
+                "/rest/system.recording-unit-serial",
+                timeout=2.0,
+            )
+            if response is not None and response.status_code == 200:
+                self.tracker_connected = True
+                self.active_host = host
+                self.last_error = ""
+                self._log(f"המשקפיים נמצאו דרך host={host}, ניסיון {attempt}/{max_attempts}")
+                return True
+            self._log(f"בדיקת זמינות ניסיון {attempt}/{max_attempts} נכשלה: {error}")
+            time.sleep(0.8)
+
+        self.tracker_connected = False
+        detail = f" ({error})" if error else ""
+        self.last_error = (
+            "לא נמצאו משקפי Tobii ברשת. ודא חיבור ל-Wi-Fi של המשקפיים "
+            f"{detail}"
+        )
+        self._log(self.last_error)
+        return False
 
 
 def _request(
@@ -105,6 +139,7 @@ class EyeTrackingRuntime:
         self.session_eye_dir: Path | None = None
         self.session_log_path: Path | None = None
         self._pending_raw_gaze: tuple[str, str] | None = None
+        self.recording_started_at: float | None = None
 
     def configure_session(self, controller: Any | None = None) -> None:
         session = getattr(controller, "session", None)
@@ -210,6 +245,7 @@ class EyeTrackingRuntime:
                     self.current_recording_uuid = recording_uuid
                     self.active_host = uuid_host or self.active_host
                     self.active = True
+                    self.recording_started_at = time.time()
                     self.last_error = ""
                     self._log(
                         f"Tobii recording started: uuid={self.current_recording_uuid}, host={self.active_host}"
@@ -220,6 +256,7 @@ class EyeTrackingRuntime:
                 if self._looks_like_uuid(fallback_uuid):
                     self.current_recording_uuid = fallback_uuid
                     self.active = True
+                    self.recording_started_at = time.time()
                     self.last_error = ""
                     self._log(
                         f"Tobii recording started from start response: uuid={self.current_recording_uuid}, host={self.active_host}"
@@ -233,6 +270,7 @@ class EyeTrackingRuntime:
                 time.sleep(0.5)
 
             self.active = False
+            self.recording_started_at = None
             self.current_recording_uuid = None
             self.last_error = (
                 "Tobii recording did not start. recorder!start kept returning no active UUID. "
@@ -457,12 +495,12 @@ class EyeTrackingRuntime:
                 response = requests.post(
                     f"http://{host}/rest/recorder!stop",
                     json=[],
-                    timeout=(1.0, 1.2),
+                    timeout=(2.0, 4.0),
                 )
             except requests.RequestException as exc:
                 last_error = exc
                 self._log(f"recorder!stop host {host} did not confirm quickly: {exc}")
-                break
+                continue
 
             if response.status_code != 404:
                 self.active_host = host
@@ -758,6 +796,7 @@ class EyeTrackingRuntime:
 
     def reset(self) -> None:
         self.active = False
+        self.recording_started_at = None
         self.current_recording_uuid = None
         self.active_host = None
         self.raw_sample_count = 0
@@ -767,3 +806,4 @@ class EyeTrackingRuntime:
         self.calibration_passed = False
         self.calibration_message = ""
         self.calibration_attempted = False
+

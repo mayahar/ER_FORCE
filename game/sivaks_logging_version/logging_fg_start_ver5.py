@@ -435,7 +435,7 @@ def run_flightgear(fg_bin_path, fg_aircraft, aircraft_dir, aircraft, airport, xm
                '--aircraft-dir=' + aircraft_dir,
                '--aircraft=' + aircraft,
                '--config=' + xml_filename,
-               '--log-level=info',
+               '--log-level=' + os.environ.get("SIVAKS_FG_LOG_LEVEL", "info"),
                '--log-dir=' + session_folder]
 
     # Add additional command-line arguments if provided
@@ -461,14 +461,17 @@ def run_flightgear(fg_bin_path, fg_aircraft, aircraft_dir, aircraft, airport, xm
     # Run FlightGear (blocking until it exits)
     subprocess.run(command)
 
-    # Wait for the CSV to appear (FlightGear may flush on exit with a delay)
-    time.sleep(2)
-
     def _is_nonempty_file(path):
         try:
             return os.path.exists(path) and os.path.getsize(path) > 0
         except OSError:
             return False
+
+    # FlightGear usually flushes the CSV immediately after exit. Poll briefly
+    # instead of paying a fixed delay on every successful run.
+    flush_deadline = time.time() + 2.0
+    while not _is_nonempty_file(csv_filename_export) and time.time() < flush_deadline:
+        time.sleep(0.1)
 
     # Retry longer and with a fallback to the newest non-empty sivaks_logging_*.csv written after launch.
     attempts = 0
