@@ -5,14 +5,16 @@ from __future__ import annotations
 from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError
 from typing import Any, Callable
 
+from core.hardware_config import using_glasses
+
 
 def get_camera_index() -> int:
-    """The Tobii Glasses 3 flow does not use a local camera index."""
+    """The selected runtime keeps the public camera-index API stable."""
     return 0
 
 
 class EyeTrackingRuntime:
-    """Keep the UI-facing API stable while delegating to the glasses runtime."""
+    """Keep the UI-facing API stable while delegating to the configured runtime."""
 
     def __init__(self):
         self._runtime = None
@@ -20,7 +22,7 @@ class EyeTrackingRuntime:
         self.export_paths = None
         self.raw_sample_count = 0
         self.tracker_connected = False
-        self.tracker_label = "Tobii Pro Glasses 3"
+        self.tracker_label = "Tobii Pro Glasses 3" if using_glasses() else ""
         self.calibration_passed = False
         self.calibration_message = ""
         self.calibration_preview_path = None
@@ -34,9 +36,12 @@ class EyeTrackingRuntime:
 
     def _ensure_runtime(self):
         if self._runtime is None:
-            from ui.eye_tracking_runtime import EyeTrackingRuntime as TobiiEyeTrackingRuntime
+            if using_glasses():
+                from ui.eye_tracking_runtime_glasses import EyeTrackingRuntime as Runtime
+            else:
+                from ui.eye_tracking_runtime_bar import EyeTrackingRuntime as Runtime
 
-            runtime = TobiiEyeTrackingRuntime()
+            runtime = Runtime()
             self._copy_state_to(runtime)
             self._runtime = runtime
         return self._runtime
@@ -88,7 +93,12 @@ class EyeTrackingRuntime:
         return None
 
     def start_recording(self, camera_index: int = 0, subject_id: str | None = None) -> bool:
-        ok, error = self._ensure_runtime().start(camera_index, subject_id)
+        runtime = self._ensure_runtime()
+        try:
+            result = runtime.start(camera_index, subject_id)
+        except TypeError:
+            result = runtime.start()
+        ok, error = self._split_ok_error(result)
         self._sync_from_runtime()
         self.last_error = error
         return ok
@@ -113,7 +123,11 @@ class EyeTrackingRuntime:
         try:
             return bool(self._start_future.result(timeout=timeout))
         except TimeoutError:
-            self.last_error = "Tobii connection is still in progress"
+            self.last_error = (
+                "Tobii glasses connection is still in progress"
+                if using_glasses()
+                else "Tobii bar connection is still in progress"
+            )
             return False
         finally:
             self._sync_from_runtime()
@@ -133,23 +147,40 @@ class EyeTrackingRuntime:
         self._sync_from_runtime()
 
     def ensure_tracker(self) -> bool:
-        ok = self._ensure_runtime().ensure_tracker()
+        result = self._ensure_runtime().ensure_tracker()
+        ok, error = self._split_ok_error(result)
         self._sync_from_runtime()
+        if error:
+            self.last_error = error
         return ok
 
     def run_calibration(self, *args, **kwargs) -> tuple[bool, str]:
-        from ui.eye_calibration import run_eye_calibration
-
-        success, message, preview = run_eye_calibration(
-            self._ensure_runtime(),
-            *args,
-            **kwargs,
-        )
         runtime = self._ensure_runtime()
-        runtime.calibration_preview_path = preview
-        runtime.calibration_attempted = True
+        if hasattr(runtime, "run_calibration") and not using_glasses():
+            result = runtime.run_calibration(*args, **kwargs)
+            success, message = self._split_ok_error(result)
+        else:
+            from ui.eye_calibration import run_eye_calibration
+
+            success, message, preview = run_eye_calibration(
+                runtime,
+                *args,
+                **kwargs,
+            )
+            if hasattr(runtime, "calibration_preview_path"):
+                runtime.calibration_preview_path = preview
+            if hasattr(runtime, "calibration_attempted"):
+                runtime.calibration_attempted = True
         self._sync_from_runtime()
         return success, message
+
+    @staticmethod
+    def _split_ok_error(result) -> tuple[bool, str]:
+        if isinstance(result, tuple):
+            ok = bool(result[0]) if result else False
+            error = str(result[1]) if len(result) > 1 and result[1] else ""
+            return ok, error
+        return bool(result), ""
 
     def reset(self) -> None:
         if self._runtime is not None:

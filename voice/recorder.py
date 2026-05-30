@@ -12,6 +12,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from scipy.signal import resample_poly
 
+from core.hardware_config import using_glasses
+
 
 class VoiceRecordingError(Exception):
     pass
@@ -47,12 +49,15 @@ class VoiceRecorder:
         self.last_tobii_error = ""
         self.active_source = "local"
 
-        from ui.eye_tracking_runtime import EyeTrackingRuntime
+        runtime = tobii_runtime
+        if runtime is None and using_glasses():
+            from ui.eye_tracking_runtime_glasses import EyeTrackingRuntime
 
-        runtime = tobii_runtime or EyeTrackingRuntime()
-        detected_host = getattr(runtime, "active_host", None)
-        recording_uuid = getattr(runtime, "current_recording_uuid", None)
-        recording_started_at = getattr(runtime, "recording_started_at", None)
+            runtime = EyeTrackingRuntime()
+
+        detected_host = getattr(runtime, "active_host", None) if runtime is not None else None
+        recording_uuid = getattr(runtime, "current_recording_uuid", None) if runtime is not None else None
+        recording_started_at = getattr(runtime, "recording_started_at", None) if runtime is not None else None
         has_active_tobii_recording = bool(
             getattr(runtime, "active", False)
             and detected_host
@@ -65,7 +70,7 @@ class VoiceRecorder:
 
         if has_active_tobii_recording:
             tobii_started = True
-        elif tobii_runtime is None:
+        elif runtime is not None and tobii_runtime is None and using_glasses():
             try:
                 ok, start_error = runtime.start(subject_id="voice_standalone")
                 if ok:

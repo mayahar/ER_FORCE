@@ -217,6 +217,7 @@ This Scenario announces if you hit or miss.
 	setsize(bullseyeCallsigns, balloon_count);
 	var bullseyeSerial = 0;
 	var aimDotSerial = 0;
+	var activeAimDotCallsign = "";
 	var bullseyePending = {};
 	var corrTargetPaths = {};
 	var bullseyeListenerInstalled = 0;
@@ -402,22 +403,34 @@ This Scenario announces if you hit or miss.
 		return 0;
 	};
 
-	var purgeCorrTargetModels = func() {
+	var purgeCorrTargetModels = func(keep_callsigns) {
 		var root = props.globals.getNode("/ai/models");
 		if (root == nil)
 			return;
+		var keep = {};
+		if (keep_callsigns != nil) {
+			foreach (var keep_cs; keep_callsigns) {
+				if (keep_cs != nil and keep_cs != "")
+					keep[keep_cs] = 1;
+			}
+		}
 		var ids_to_remove = [];
 		var cs_to_remove = [];
 		var paths_to_remove = [];
 		var nodes_to_remove = [];
 		if (contains(globals, "sivaksCorrTargetCallsigns")) {
 			foreach (var tracked_cs; globals.sivaksCorrTargetCallsigns) {
-				if (tracked_cs != nil and tracked_cs != "")
+				if (tracked_cs != nil and tracked_cs != "" and !contains(keep, tracked_cs))
 					append(cs_to_remove, tracked_cs);
 			}
 		}
-		foreach (var tracked_cs; keys(corrTargetPaths))
-			append(paths_to_remove, corrTargetPaths[tracked_cs]);
+		var kept_paths = {};
+		foreach (var tracked_cs; keys(corrTargetPaths)) {
+			if (contains(keep, tracked_cs))
+				kept_paths[tracked_cs] = corrTargetPaths[tracked_cs];
+			else
+				append(paths_to_remove, corrTargetPaths[tracked_cs]);
+		}
 		var types = ["static", "aircraft", "multiplayer", "wingman"];
 		foreach (var typ; types)
 		{
@@ -443,6 +456,8 @@ This Scenario announces if you hit or miss.
 					find(model_v, "ca_sivaks_aim_dot") >= 0))
 					is_ours = 1;
 				if (!is_ours)
+					continue;
+				if (cs_v != "" and contains(keep, cs_v))
 					continue;
 				var idn = m.getNode("id");
 				if (idn != nil)
@@ -491,8 +506,25 @@ This Scenario announces if you hit or miss.
 					node_v.remove();
 			}, nil, var _rm_node_ref_err = []);
 		}
-		corrTargetPaths = {};
-		globals.sivaksCorrTargetCallsigns = cs_to_remove;
+		corrTargetPaths = kept_paths;
+		if (keep_callsigns != nil)
+			globals.sivaksCorrTargetCallsigns = keep_callsigns;
+		else
+			globals.sivaksCorrTargetCallsigns = cs_to_remove;
+	};
+
+	var purgeOldTargetDebris = func() {
+		var keep = [];
+		if (bullseyeCallsigns[0] != nil and bullseyeCallsigns[0] != "")
+			append(keep, bullseyeCallsigns[0]);
+		if (activeAimDotCallsign != nil and activeAimDotCallsign != "")
+			append(keep, activeAimDotCallsign);
+		purgeCorrTargetModels(keep);
+	};
+
+	var purgeOldTargetDebrisBurst = func() {
+		for (var n = 0; n < 5; n += 1)
+			settimer(purgeOldTargetDebris, 0.2 * n);
 	};
 
 	var createBalloon = func(balloon_model, positionLat, positionLon, elevation_ft, heading)
@@ -554,6 +586,8 @@ This Scenario announces if you hit or miss.
 		balloonsArray[0] = nil;
 		bullseyeArray[0] = nil;
 		aimDotArray[0] = nil;
+		bullseyeCallsigns[0] = "";
+		activeAimDotCallsign = "";
 	};
 
 	var spawnActiveTarget = func(balloon_lat, balloon_lon, balloon_alt_ft, level) {
@@ -583,6 +617,7 @@ This Scenario announces if you hit or miss.
 		);
 		var aim_dot_callsign = "ca_corr_dot_" ~ i ~ "_" ~ aimDotSerial;
 		aimDotSerial += 1;
+		activeAimDotCallsign = aim_dot_callsign;
 		aimDotArray[i] = createAimDot(
 			marker.lat,
 			marker.lon,
@@ -595,6 +630,7 @@ This Scenario announces if you hit or miss.
 		publishMarkerScales(level);
 		active_target_id += 1;
 		last_pass_scored_id = -1;
+		purgeOldTargetDebrisBurst();
 		print(
 			"SPAWN target id=",
 			active_target_id,

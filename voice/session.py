@@ -15,6 +15,7 @@ from .events import VoiceEvent
 from .recorder import VoiceRecorder, VoiceRecordingError
 from .processing import VoiceFeatureExtractor, VoiceFeatureExtractionError
 from .tts import speak_text
+from core.hardware_config import using_glasses
 
 pd = None
 
@@ -281,7 +282,7 @@ class VoiceSessionManager:
 
     def _record_event(self, event: VoiceEvent) -> None:
         try:
-            is_tobii_mode = self.tobii_runtime is not None
+            is_tobii_mode = using_glasses() and self.tobii_runtime is not None
             tobii_audio = None
 
             if is_tobii_mode:

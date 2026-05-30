@@ -5,9 +5,11 @@ import time
 import numpy as np
 
 from voice.recorder import VoiceRecorder
+from core.hardware_config import using_glasses
 
 # Direct IP avoids slow DNS discovery in standalone runs.
-os.environ["TOBII_GLASSES_HOST"] = "192.168.75.51"
+if using_glasses():
+    os.environ.setdefault("TOBII_GLASSES_HOST", "192.168.75.51")
 
 CALIBRATION_FILE = ".voice_calib.json"
 

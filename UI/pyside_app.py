@@ -36,6 +36,7 @@ from PySide6.QtWidgets import (
 )
 
 from core.controller import Controller
+from core.hardware_config import using_glasses
 from core.research_repository import (
     get_current_research_day,
     get_research_participant,
@@ -743,7 +744,11 @@ class GameScreen(BaseScreen):
         self.start_button = QPushButton("התחל משחק")
         self.status_label = message("המשחק מוכן")
         self.voice_label = message("")
-        self.eye_status_label = message("עוקב עיניים: לא פעיל, יש לשים לב שהמשקפיים מחוברות ומודלקות.")
+        self.eye_status_label = message(
+            "עוקב עיניים: לא פעיל, יש לוודא שהמשקפיים מחוברות ומודלקות."
+            if using_glasses()
+            else "עוקב עיניים: לא פעיל, יש לוודא שהפס מחובר ומזוהה במחשב."
+        )
         self.error_label = message("", "errorText")
 
         self.camera_preview = QLabel()
@@ -754,7 +759,12 @@ class GameScreen(BaseScreen):
         info_layout.addWidget(
             message(
                 "המשחק יופעל במצב מסך מלא. במהלך הטעינה תופעל הנחיה קולית להשמעת קול כחלק ממדידת העייפות.\n"
-                "מעקב העיניים יתחבר ברקע בזמן טעינת המשחק, יש לוודא שהמשקפיים מורכבות ומחוברות למחשב לפני לחיצה על כפתור ההתחלה."
+                +
+                (
+                    "מעקב העיניים יתחבר ברקע בזמן טעינת המשחק, יש לוודא שהמשקפיים מורכבות ומחוברות למחשב לפני לחיצה על כפתור ההתחלה."
+                    if using_glasses()
+                    else "מעקב העיניים יתחבר ברקע בזמן טעינת המשחק, יש לוודא שהפס מחובר ומכוון למסך לפני לחיצה על כפתור ההתחלה."
+                )
             )
         )
         info_layout.addWidget(
@@ -796,7 +806,7 @@ class GameScreen(BaseScreen):
             self.timer.stop()
             self.status_label.setText("מוכן")
             self.voice_label.clear()
-            self.eye_status_label.setText("מצלמה: מוכנה להקלטה")
+            self.eye_status_label.setText("עוקב עיניים: מוכן להקלטה")
 
     def _on_preview_frame(self, qimg):
         pix = QPixmap.fromImage(qimg)
@@ -1051,11 +1061,12 @@ class GameScreen(BaseScreen):
             return False
 
         self.set_error("")
-        cam_idx = get_camera_index()
-        subject_id = self.app.state.get("session_id", "unknown")
-        self.app.eye_runtime.configure_session(self.app.controller)
-        self.app.eye_start_reported = False
-        self.app.eye_runtime.start_recording_async(cam_idx, subject_id)
+        if using_glasses():
+            cam_idx = get_camera_index()
+            subject_id = self.app.state.get("session_id", "unknown")
+            self.app.eye_runtime.configure_session(self.app.controller)
+            self.app.eye_start_reported = False
+            self.app.eye_runtime.start_recording_async(cam_idx, subject_id)
 
         self.app.voice_session = create_voice_session(self.app.controller, self.app.eye_runtime)
 
@@ -1070,8 +1081,12 @@ class GameScreen(BaseScreen):
         self.app.fg_started_at = time.time()
         self.timer.start()
         self._sync_buttons()
-        self.status_label.setText("מתחבר למשקפיים ומבצע הקלטת קול חוזרת...")
-        self.voice_label.setText("מערכת הנתונים ממתינה לייצוב סינכרוני מול המשקפיים; ההקלטה תחל מיד עם השלמת החיבור.")
+        if using_glasses():
+            self.status_label.setText("מתחבר למשקפיים ומבצע הקלטת קול חוזרת...")
+            self.voice_label.setText("מערכת הנתונים ממתינה לייצוב סינכרוני מול המשקפיים; ההקלטה תחל מיד עם השלמת החיבור.")
+        else:
+            self.status_label.setText("מבצע הקלטת קול חוזרת...")
+            self.voice_label.setText("הקלטת הקול החוזרת תשתמש במיקרופון המקומי.")
         return True
 
     def _navigate_to_results(self):

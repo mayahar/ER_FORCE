@@ -119,6 +119,7 @@ def start_flightgear_session(controller=None):
 
 
 def create_voice_session(controller, eye_runtime=None):
+    from core.hardware_config import using_glasses
     from voice.session import VoiceSessionManager
 
     subject_id = None
@@ -136,7 +137,7 @@ def create_voice_session(controller, eye_runtime=None):
         subject_id=subject_id,
         session_id=session_id,
         recording_root=voice_dir,
-        tobii_runtime=eye_runtime,
+        tobii_runtime=eye_runtime if using_glasses() else None,
     )
     manager.start_session()
     return manager
