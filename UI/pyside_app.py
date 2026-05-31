@@ -36,7 +36,7 @@ from PySide6.QtWidgets import (
 )
 
 from core.controller import Controller
-from core.hardware_config import using_glasses
+from core.hardware_config import using_bar, using_glasses
 from core.research_repository import (
     get_current_research_day,
     get_research_participant,
@@ -65,6 +65,7 @@ from ui.theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TE
 
 MODALITY_ORDER = ["game", "eye", "voice", "subjective"]
 MODALITY_LABELS = {"game": "משחק", "eye": "עיניים", "voice": "קול", "subjective": "שאלון"}
+DISPLAY_SCORE_SCALE = 100
 
 
 def get_score_color(score):
@@ -817,6 +818,12 @@ class GameScreen(BaseScreen):
     def start_session(self):
         self.error_label.clear()
         self.start_button.setEnabled(False)
+
+        if not self._ensure_bar_calibration():
+            self.start_button.setEnabled(True)
+            self._sync_buttons()
+            return
+
         self.eye_status_label.setText("מעקב עיניים: מתחבר...")
         QGuiApplication.processEvents()
 
@@ -850,6 +857,31 @@ class GameScreen(BaseScreen):
         self.app.fg_finished_handled = False
         self.timer.start()
         self._sync_buttons()
+
+    def _ensure_bar_calibration(self) -> bool:
+        if not using_bar():
+            return True
+
+        from ui.eye_tracking_runtime_bar import SKIP_EYE_CALIBRATION
+
+        if SKIP_EYE_CALIBRATION or self.app.eye_runtime.calibration_passed:
+            return True
+
+        self.eye_status_label.setText("מעקב עיניים: מבצע כיול...")
+        QGuiApplication.processEvents()
+        success, message = self.app.eye_runtime.run_calibration(
+            parent=self,
+            screen=self.screen(),
+            controller=self.app.controller,
+        )
+        if success:
+            self.eye_status_label.setText("מעקב עיניים: הכיול הושלם בהצלחה")
+            return True
+
+        detail = message or self.app.eye_runtime.last_error or "הכיול לא הושלם"
+        self.eye_status_label.setText("מעקב עיניים: הכיול נכשל")
+        self.set_error(f"שגיאת כיול עיניים: {detail}")
+        return False
 
     def stop_session(self):
         self.timer.stop()
@@ -1295,7 +1327,7 @@ class ResultsScreen(BaseScreen):
             for row in rows:
                 x_positions.append(current_x)
                 labels.append(feature_display_name(row["feature"]))
-                values.append(row["value"])
+                values.append(row["value"] * DISPLAY_SCORE_SCALE)
                 current_x += 1
             group_boundaries.append(current_x)
 
@@ -1400,6 +1432,8 @@ class ResultsScreen(BaseScreen):
             table.setItem(row_idx, 0, label_item)
             for col_idx, row in enumerate(feature_rows, start=1):
                 value = row.get(key)
+                if key == "feature_final_contribution" and isinstance(value, (int, float)):
+                    value *= DISPLAY_SCORE_SCALE
                 if isinstance(value, float):
                     value = f"{value:.3f}"
                 elif value is None:

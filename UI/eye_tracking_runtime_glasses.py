@@ -24,7 +24,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_RECORDINGS_DIR = REPO_ROOT / "eye_tracking_analysis" / "recordings"
 EYE_RUNTIME_LOG = DEFAULT_RECORDINGS_DIR / "tobii_runtime.log"
 
-SKIP_EYE_CALIBRATION = True
+SKIP_EYE_CALIBRATION = False
 VERBOSE_TOBII_STATUS = os.environ.get("TOBII_VERBOSE_STATUS", "").lower() in ("1", "true", "yes")
 # הגדרה קשיחה של ה-IP הסטטי האלחוטי של Tobii Glasses 3
 # החליפי את ההגדרות בראש הקובץ eye_tracking_runtime.py (סביב שורות 20-50):
