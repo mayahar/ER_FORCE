@@ -1,4 +1,4 @@
-"""Convert install/assets/err_force_icon.png to .ico with standard Windows sizes."""
+"""Convert install/assets/Air_medical_unit.png to .ico with standard Windows sizes."""
 
 from __future__ import annotations
 
@@ -10,10 +10,8 @@ except ImportError as exc:
     raise SystemExit("Pillow is required: pip install pillow") from exc
 
 HERE = Path(__file__).resolve().parent
-PNG = HERE / "assets" / "err_force_icon.png"
-if not PNG.is_file():
-    PNG = HERE / "assets" / "er_force_icon.png"
-ICO = HERE / "assets" / "err_force_icon.ico"
+PNG = HERE / "assets" / "Air_medical_unit.png"
+ICO = HERE / "assets" / "Air_medical_unit.ico"
 
 img = Image.open(PNG).convert("RGBA")
 sizes = [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]

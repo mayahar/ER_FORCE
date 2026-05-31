@@ -739,7 +739,7 @@ class ConnectingCanvas(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._message = "מתחבר לעקיב העיניים..."
+        self._message = "מתחבר לעוקב העיניים..."
 
     def set_message(self, text: str) -> None:
         self._message = text
@@ -832,8 +832,8 @@ class EyeCalibrationDialog(QDialog):
         self.dot_canvas.explosion_finished.connect(self._on_dot_explosion_finished)
 
         self.stack.setCurrentWidget(self.connecting_canvas)
-        self.connecting_canvas.set_message("מתחבר לעקיב העיניים...")
-        self.status_label.setText("מתחבר לעקיב העיניים...")
+        self.connecting_canvas.set_message("מתחבר לעוקב העיניים...")
+        self.status_label.setText("מתחבר לעוקב העיניים...")
         self.status_label.show()
 
         if self.target_screen is not None:
@@ -845,8 +845,8 @@ class EyeCalibrationDialog(QDialog):
         self._begin_started = True
 
         self.stack.setCurrentWidget(self.connecting_canvas)
-        self.connecting_canvas.set_message("מתחבר לעקיב העיניים...")
-        self.status_label.setText("מתחבר לעקיב העיניים...")
+        self.connecting_canvas.set_message("מתחבר לעוקב העיניים...")
+        self.status_label.setText("מתחבר לעוקב העיניים...")
         self.status_label.show()
         app = QApplication.instance()
         if app is not None:
@@ -890,8 +890,8 @@ class EyeCalibrationDialog(QDialog):
                 return
 
             self.eyetracker = recorder.eyetracker
-            self.connecting_canvas.set_message("מפעיל את עקיב העיניים...")
-            self.status_label.setText("מפעיל את עקיב העיניים...")
+            self.connecting_canvas.set_message("מפעיל את עוקב העיניים...")
+            self.status_label.setText("מפעיל את עוקב העיניים...")
             if app is not None:
                 app.processEvents()
 
@@ -901,7 +901,7 @@ class EyeCalibrationDialog(QDialog):
             self._connect_completed = True
             if hasattr(self, "_connect_timeout"):
                 self._connect_timeout.stop()
-            self._finish(False, f"חיבור לעקיב העיניים נכשל: {exc}")
+            self._finish(False, f"חיבור לעוקב העיניים נכשל: {exc}")
 
     def _on_gaze_wake(self, _data) -> None:
         pass
@@ -940,7 +940,7 @@ class EyeCalibrationDialog(QDialog):
             return
         self._finish(
             False,
-            "חיבור לעקיב העיניים נכשל (timeout). ודא שה-Tobii מחובר, דולק, ו-Tobii Pro Eye Tracker Manager רץ.",
+            "חיבור לעוקב העיניים נכשל (timeout). ודא שה-Tobii מחובר, דולק, ו-Tobii Pro Eye Tracker Manager רץ.",
         )
 
     def _begin_calibration_points(self) -> None:

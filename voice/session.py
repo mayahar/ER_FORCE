@@ -306,7 +306,7 @@ class VoiceSessionManager:
             def run_voice_prompt(mark_start, mark_end):
                 if self.speak_prompts:
                     try:
-                        speak_text("Please imitate the following sound for 10 seconds. Prepare your voice.")
+                        speak_text("Please imitate the following sound for 10 seconds.")
                         self._play_prompt_audio()
                     except Exception as exc:
                         event.metadata["tts_error"] = str(exc)

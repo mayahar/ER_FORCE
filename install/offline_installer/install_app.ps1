@@ -75,12 +75,12 @@ if ($LASTEXITCODE -ne 0) {
 Write-Step "5/5 Creating desktop shortcut"
 & $VenvPython (Join-Path $InstallDir "install\create_desktop_shortcut.py")
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Shortcut creation failed, but installation completed. You can run ER_FORCE.exe manually." -ForegroundColor Yellow
+    Write-Host "Shortcut creation failed, but installation completed. You can run ERR_FORCE_fast.cmd manually." -ForegroundColor Yellow
 }
 
 Write-Host ""
 Write-Host "Installation completed." -ForegroundColor Green
 Write-Host "Run:"
-Write-Host "  $InstallDir\ER_FORCE.exe"
+Write-Host "  $InstallDir\ERR_FORCE_fast.cmd"
 Write-Host ""
 Write-Host "Note: Tobii device drivers / Eye Tracker Manager may still need to be installed from Tobii for the hardware to be detected."

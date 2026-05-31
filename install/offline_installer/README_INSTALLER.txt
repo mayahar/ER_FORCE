@@ -4,11 +4,12 @@ ER_FORCE Offline Installer
 Run install_app.cmd on the target Windows PC.
 
 What this installer includes:
-- ER_FORCE application files
+- ERR_FORCE application files
 - the full game folder
 - a bundled Python 3.10 installer
 - offline pip wheels for the Python packages, including tobii-research
-- ER_FORCE.exe launcher
+- ERR_FORCE_fast.cmd fast launcher
+- ERR_FORCE.exe fallback launcher
 
 Default install location:
 %LOCALAPPDATA%\ER_FORCE

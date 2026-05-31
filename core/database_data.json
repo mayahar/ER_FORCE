@@ -8,7 +8,7 @@
       "baseline": {
         "voice": {
           "dLPC": 0.15,
-          "PARCOR": 0.50,
+          "PARCOR": 0.5,
           "LPC": 1100.0,
           "Pitch": 125.0,
           "MFCC": 45.0
@@ -79,6 +79,153 @@
         },
         "questionnaire": {
           "fatigue_self": 2,
+          "sleep_last": 7,
+          "sleep_previous": 7
+        }
+      }
+    },
+    "10": {
+      "id": 10,
+      "name": "נועה",
+      "sex": "female",
+      "age": 20,
+      "baseline": {
+        "voice": {
+          "dLPC": 0.1474778801202774,
+          "PARCOR": 0.4274468421936035,
+          "Pitch": 220.6426239013672,
+          "MFCC": 19.276914596557617,
+          "LPC": 1300.2105712890625,
+          "events": [
+            {
+              "event_id": "voice_phrase_1",
+              "prompt_text": "Sustained vowel 'Ah'",
+              "prompt_type": "phrase",
+              "event_type": "phrase",
+              "status": "completed",
+              "timestamp": 1780208386.1261632,
+              "duration": 10.0,
+              "attempt_id": "attempt_001",
+              "attempt_dir": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\10_2026-05-31_09-19-01\\voice\\attempts\\attempt_001",
+              "audio_path": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\10_2026-05-31_09-19-01\\voice\\attempts\\attempt_001\\voice_phrase_1_recorded.wav",
+              "input_device": {
+                "index": 1,
+                "name": "Microphone Array (Realtek(R) Au",
+                "native_sample_rate": 16000
+              },
+              "final_audio_source": "local",
+              "error": null
+            }
+          ]
+        },
+        "eye": {
+          "fixation_duration": 46.66074872892852,
+          "saccade_count": 48.64479967326867,
+          "fixation_count": 102.61567230346458
+        },
+        "game": {
+          "score": 3.0
+        },
+        "questionnaire": {
+          "fatigue_self": 1,
+          "sleep_last": 7,
+          "sleep_previous": 7
+        }
+      }
+    },
+    "11": {
+      "id": 11,
+      "name": "עדי",
+      "sex": "female",
+      "age": 20,
+      "baseline": {
+        "voice": {
+          "dLPC": 0.11810896545648575,
+          "PARCOR": 0.4141840934753418,
+          "Pitch": 277.2085266113281,
+          "MFCC": 13.2169828414917,
+          "LPC": 1389.2652587890625,
+          "events": [
+            {
+              "event_id": "voice_phrase_1",
+              "prompt_text": "Sustained vowel 'Ah'",
+              "prompt_type": "phrase",
+              "event_type": "phrase",
+              "status": "completed",
+              "timestamp": 1780209412.6139078,
+              "duration": 10.0,
+              "attempt_id": "attempt_001",
+              "attempt_dir": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\11_2026-05-31_09-33-52\\voice\\attempts\\attempt_001",
+              "audio_path": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\11_2026-05-31_09-33-52\\voice\\attempts\\attempt_001\\voice_phrase_1_recorded.wav",
+              "input_device": {
+                "index": 1,
+                "name": "Microphone Array (Realtek(R) Au",
+                "native_sample_rate": 16000
+              },
+              "final_audio_source": "local",
+              "error": null
+            }
+          ]
+        },
+        "eye": {
+          "fixation_duration": 56.27004269571184,
+          "saccade_count": 32.22006265436203,
+          "fixation_count": 88.60517229949559
+        },
+        "game": {
+          "score": 14.0
+        },
+        "questionnaire": {
+          "fatigue_self": 1,
+          "sleep_last": 7,
+          "sleep_previous": 7
+        }
+      }
+    },
+    "12": {
+      "id": 12,
+      "name": "עופרי",
+      "sex": "female",
+      "age": 20,
+      "baseline": {
+        "voice": {
+          "dLPC": 0.12197138369083405,
+          "PARCOR": 0.4318755269050598,
+          "Pitch": 213.01181030273438,
+          "MFCC": 20.11721420288086,
+          "LPC": 1335.52294921875,
+          "events": [
+            {
+              "event_id": "voice_phrase_1",
+              "prompt_text": "Sustained vowel 'Ah'",
+              "prompt_type": "phrase",
+              "event_type": "phrase",
+              "status": "completed",
+              "timestamp": 1780211326.2366655,
+              "duration": 10.0,
+              "attempt_id": "attempt_001",
+              "attempt_dir": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\12_2026-05-31_10-08-20\\voice\\attempts\\attempt_001",
+              "audio_path": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\12_2026-05-31_10-08-20\\voice\\attempts\\attempt_001\\voice_phrase_1_recorded.wav",
+              "input_device": {
+                "index": 1,
+                "name": "Microphone Array (Realtek(R) Au",
+                "native_sample_rate": 16000
+              },
+              "final_audio_source": "local",
+              "error": null
+            }
+          ]
+        },
+        "eye": {
+          "fixation_duration": 49.69645895057286,
+          "saccade_count": 47.15034127055933,
+          "fixation_count": 95.79751877193006
+        },
+        "game": {
+          "score": 2.0
+        },
+        "questionnaire": {
+          "fatigue_self": 1,
           "sleep_last": 7,
           "sleep_previous": 7
         }

@@ -22,4 +22,5 @@ def speak_text(text: str, timeout: float = 15.0) -> None:
         text=True,
         timeout=timeout,
         check=False,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )

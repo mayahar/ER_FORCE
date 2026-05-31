@@ -24,14 +24,8 @@ if (-not (Test-Path $LauncherPy)) {
 }
 $MakeIconPy   = Join-Path $InstallDir "make_icon.py"
 $AssetsDir    = Join-Path $InstallDir "assets"
-$IconPng      = Join-Path $AssetsDir "err_force_icon.png"
-if (-not (Test-Path $IconPng)) {
-    $IconPng = Join-Path $AssetsDir "er_force_icon.png"
-}
-$IconIco      = Join-Path $AssetsDir "err_force_icon.ico"
-if (-not (Test-Path $IconIco)) {
-    $IconIco = Join-Path $AssetsDir "er_force_icon.ico"
-}
+$IconPng      = Join-Path $AssetsDir "Air_medical_unit.png"
+$IconIco      = Join-Path $AssetsDir "Air_medical_unit.ico"
 $BuildOut     = Join-Path $RepoRoot "build\pyinstaller-err-force"
 $DistOut      = Join-Path $RepoRoot "dist"
 $FinalExe     = Join-Path $RepoRoot "ERR_FORCE.exe"
@@ -58,7 +52,7 @@ Write-Host "Ensuring PyInstaller + Pillow are installed..."
 if ($LASTEXITCODE -ne 0) { throw "pip install failed (exit $LASTEXITCODE)" }
 
 if (-not (Test-Path $IconIco) -or ((Get-Item $IconPng).LastWriteTime -gt (Get-Item $IconIco).LastWriteTime)) {
-    Write-Host "Generating err_force_icon.ico from PNG..."
+    Write-Host "Generating Air_medical_unit.ico from PNG..."
     & $Python $MakeIconPy
     if ($LASTEXITCODE -ne 0) { throw "make_icon.py failed (exit $LASTEXITCODE)" }
 }

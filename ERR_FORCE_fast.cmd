@@ -18,6 +18,14 @@ if exist "%ROOT%\TobiiPro_SDK\" (
 
 set "PYW=%ROOT%\.venv-eye-tracking\Scripts\pythonw.exe"
 set "PY=%ROOT%\.venv-eye-tracking\Scripts\python.exe"
+if not exist "%PYW%" if not exist "%PY%" (
+  set "PYW=%ROOT%\.venv\Scripts\pythonw.exe"
+  set "PY=%ROOT%\.venv\Scripts\python.exe"
+)
+if not exist "%PYW%" if not exist "%PY%" (
+  set "PYW=%ROOT%\venv\Scripts\pythonw.exe"
+  set "PY=%ROOT%\venv\Scripts\python.exe"
+)
 
 if not exist "%PYW%" if not exist "%PY%" (
   if exist "%ROOT%\ERR_FORCE.exe" (

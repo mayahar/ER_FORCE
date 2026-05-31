@@ -10,6 +10,15 @@ DEFAULT_FG_DIR = REPO_ROOT / "game" / "sivaks_logging_version"
 DEFAULT_FG_SCRIPT = DEFAULT_FG_DIR / "logging_fg_start_ver5.py"
 
 
+def _windows_creationflags(*names):
+    if sys.platform != "win32":
+        return 0
+    flags = 0
+    for name in names:
+        flags |= getattr(subprocess, name, 0)
+    return flags
+
+
 def resolve_fg_script_path():
     env = (
         os.environ.get("ERR_FORCE_FG_SCRIPT")
@@ -40,6 +49,7 @@ def terminate_session_process(pid):
             ["taskkill", "/PID", str(pid), "/T", "/F"],
             capture_output=True,
             text=True,
+            creationflags=_windows_creationflags("CREATE_NO_WINDOW"),
         )
         if result.returncode == 0:
             return True, ""
@@ -102,7 +112,10 @@ def start_flightgear_session(controller=None):
             [sys.executable, str(script_path.resolve())],
             cwd=script_dir,
             env=env,
-            creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
+            creationflags=_windows_creationflags(
+                "CREATE_NEW_PROCESS_GROUP",
+                "CREATE_NO_WINDOW",
+            ),
         )
         pid = int(process.pid)
         time.sleep(0.4)

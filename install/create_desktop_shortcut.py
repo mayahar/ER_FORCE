@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import ctypes
 import os
+import subprocess
 import sys
 import winreg
 from ctypes import wintypes
@@ -177,6 +178,45 @@ def create_shortcut(
         ole32.CoUninitialize()
 
 
+def create_shortcut_with_powershell(
+    link_path: Path,
+    target: Path,
+    workdir: Path,
+    icon: Path | None,
+    description: str,
+    arguments: str = "",
+) -> None:
+    """Create the shortcut through Windows Script Host with Unicode-safe paths."""
+    script = (
+        "$shell = New-Object -ComObject WScript.Shell; "
+        "$shortcut = $shell.CreateShortcut($env:ERR_FORCE_LINK); "
+        "$shortcut.TargetPath = $env:ERR_FORCE_TARGET; "
+        "$shortcut.WorkingDirectory = $env:ERR_FORCE_WORKDIR; "
+        "$shortcut.Description = $env:ERR_FORCE_DESCRIPTION; "
+        "$shortcut.Arguments = $env:ERR_FORCE_ARGUMENTS; "
+        "if ($env:ERR_FORCE_ICON) { $shortcut.IconLocation = $env:ERR_FORCE_ICON + ',0' }; "
+        "$shortcut.Save()"
+    )
+    env = os.environ.copy()
+    env.update(
+        {
+            "ERR_FORCE_LINK": str(link_path),
+            "ERR_FORCE_TARGET": str(target),
+            "ERR_FORCE_WORKDIR": str(workdir),
+            "ERR_FORCE_DESCRIPTION": description,
+            "ERR_FORCE_ARGUMENTS": arguments,
+            "ERR_FORCE_ICON": str(icon) if icon is not None and icon.is_file() else "",
+        }
+    )
+    completed = subprocess.run(
+        ["powershell.exe", "-NoProfile", "-Command", script],
+        check=False,
+        env=env,
+    )
+    if completed.returncode != 0:
+        raise OSError(f"PowerShell shortcut creation failed (exit {completed.returncode})")
+
+
 def _pick_existing(root: Path, *names: str) -> Path | None:
     for name in names:
         path = root / name
@@ -193,7 +233,12 @@ def main() -> int:
     exe = _pick_existing(root, "ERR_FORCE.exe", "ER_FORCE.exe")
     fallback_cmd = root / "eye_tracking_setup" / "run_app.cmd"
     assets = root / "install" / "assets"
-    icon = _pick_existing(assets, "err_force_icon.ico", "er_force_icon.ico")
+    icon = _pick_existing(
+        assets,
+        "Air_medical_unit.ico",
+        "err_force_icon.ico",
+        "er_force_icon.ico",
+    )
 
     if fast_cmd is not None:
         # cmd.exe /c is more reliable than pointing the shortcut directly at a .cmd
@@ -218,9 +263,8 @@ def main() -> int:
         )
         return 1
 
-    link = desktop_dir() / "ERR Force.lnk"
-    legacy_link = desktop_dir() / "ER Force.lnk"
-    create_shortcut(
+    link = desktop_dir() / "Err Force.lnk"
+    create_shortcut_with_powershell(
         link_path=link,
         target=target.resolve(),
         workdir=root.resolve(),
@@ -229,7 +273,9 @@ def main() -> int:
         arguments=arguments,
     )
 
-    if legacy_link.is_file() and legacy_link != link:
+    for legacy_link in (desktop_dir() / "ERR Force.lnk", desktop_dir() / "ER Force.lnk"):
+        if os.path.normcase(legacy_link) == os.path.normcase(link):
+            continue
         try:
             legacy_link.unlink()
         except OSError:

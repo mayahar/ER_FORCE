@@ -71,6 +71,7 @@ New-Item -ItemType Directory -Force -Path $AppDir, $Wheelhouse | Out-Null
 Write-Step "Copying application payload, including game"
 $dirs = @(
     "core",
+    "Editors",
     "eye_tracking_analysis",
     "eye_tracking_setup",
     "game",
@@ -84,8 +85,11 @@ foreach ($dir in $dirs) {
 }
 
 $files = @(
-    "ER_FORCE.exe",
+    "ERR_FORCE.exe",
+    "ERR_FORCE_fast.cmd",
+    "fatigue_features_editor.exe",
     "fatigue_protoype.bat",
+    "research_config_editor.exe",
     "requirements.txt",
     "README.md",
     "__init__.py"
@@ -122,12 +126,12 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Step "Writing manifest"
 $manifest = [ordered]@{
-    name = "ER_FORCE"
+    name = "ERR_FORCE"
     built_at = (Get-Date).ToString("s")
     python_version = $PythonVersion
     includes_game = $true
     install_entrypoint = "install_app.cmd"
-    launcher = "ER_FORCE.exe"
+    launcher = "ERR_FORCE_fast.cmd"
 }
 $manifest | ConvertTo-Json -Depth 4 | Set-Content -Encoding UTF8 (Join-Path $OutDir "manifest.json")
 
