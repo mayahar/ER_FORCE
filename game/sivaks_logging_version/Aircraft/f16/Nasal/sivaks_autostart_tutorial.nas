@@ -172,6 +172,10 @@ globals.sivaksRepositionToCorrActions = func() {
     if (globals.sivaksCrashResetBusy)
         return;
     globals.sivaksCrashResetBusy = 1;
+    var crash_position = geo.aircraft_position();
+    # Restart well north of the crash so any lingering pre-crash target stays behind.
+    var crash_lat = crash_position.lat() + 0.05;
+    var crash_lon = crash_position.lon();
 
     var retry_count = getprop("/algorithm/game/retry-count");
     if (retry_count == nil)
@@ -183,8 +187,8 @@ globals.sivaksRepositionToCorrActions = func() {
     setprop("/sim/freeze/master", 0);
     setprop("/sim/presets/airport-id", "PHTO");
     setprop("/sim/presets/on-ground", 0);
-    setprop("/sim/presets/latitude-deg", 19.72415017471669);
-    setprop("/sim/presets/longitude-deg", -155.0518970894882);
+    setprop("/sim/presets/latitude-deg", crash_lat);
+    setprop("/sim/presets/longitude-deg", crash_lon);
     setprop("/sim/presets/altitude-ft", 2000);
     setprop("/sim/presets/heading-deg", 0);
     setprop("/sim/presets/airspeed-kt", 350);
