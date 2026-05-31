@@ -156,6 +156,9 @@ class EyeTrackingRuntime:
 
     def run_calibration(self, *args, **kwargs) -> tuple[bool, str]:
         runtime = self._ensure_runtime()
+        controller = kwargs.get("controller")
+        if controller is not None and hasattr(runtime, "configure_session"):
+            runtime.configure_session(controller)
         if hasattr(runtime, "run_calibration") and not using_glasses():
             result = runtime.run_calibration(*args, **kwargs)
             success, message = self._split_ok_error(result)

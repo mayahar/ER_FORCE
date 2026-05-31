@@ -28,7 +28,7 @@ if "%RC%"=="0" (
     echo   or eye_tracking_setup\run_app.cmd
     echo.
     echo In-game: blue "eye recording active" after start.
-    echo Raw gaze files: eye_tracking_analysis\recordings\
+    echo Raw gaze files: sessions\SESSION_ID\eye\
 ) else if "%RC%"=="2" (
     echo Software OK - connect/calibrate Tobii, then run setup_colleague.cmd again.
 ) else (

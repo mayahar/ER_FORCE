@@ -36,7 +36,7 @@ from PySide6.QtWidgets import (
 )
 
 from core.controller import Controller
-from core.hardware_config import using_bar, using_glasses
+from core.hardware_config import using_glasses
 from core.research_repository import (
     get_current_research_day,
     get_research_participant,
@@ -819,7 +819,7 @@ class GameScreen(BaseScreen):
         self.error_label.clear()
         self.start_button.setEnabled(False)
 
-        if not self._ensure_bar_calibration():
+        if not self._ensure_eye_calibration():
             self.start_button.setEnabled(True)
             self._sync_buttons()
             return
@@ -858,11 +858,8 @@ class GameScreen(BaseScreen):
         self.timer.start()
         self._sync_buttons()
 
-    def _ensure_bar_calibration(self) -> bool:
-        if not using_bar():
-            return True
-
-        from ui.eye_tracking_runtime_bar import SKIP_EYE_CALIBRATION
+    def _ensure_eye_calibration(self) -> bool:
+        from ui.eye_tracking_runtime import SKIP_EYE_CALIBRATION
 
         if SKIP_EYE_CALIBRATION or self.app.eye_runtime.calibration_passed:
             return True

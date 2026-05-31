@@ -9,6 +9,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from core.hardware_config import eye_tracker_mode, using_glasses
+from core.session_manager import create_session
 from ui.eye_runtime import EyeTrackingRuntime
 from ui.eye_tracking_runtime import _candidate_hosts
 
@@ -52,6 +53,9 @@ def run_test() -> None:
     print_host_diagnostics(runtime)
 
     print("\n[2/4] Starting recording...")
+    session = create_session("eye_test")
+    runtime.configure_session(type("TestController", (), {"session": session})())
+    print(f"[+] Session directory: {session.root}")
     if not runtime.start_recording():
         print(f"[-] Recording failed to start: {runtime.last_error}")
         return

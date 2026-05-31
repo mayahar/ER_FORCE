@@ -18,7 +18,6 @@ from eye_tracking_analysis.gaze_raw_export import (
 from score.eye_features import apply_controller_eye_features
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_RECORDINGS_DIR = REPO_ROOT / "eye_tracking_analysis" / "recordings"
 
 # If True, the game will skip the Tobii calibration UI.
 # Use True only as a temporary workaround.
@@ -38,6 +37,14 @@ class EyeTrackingRuntime:
         self.calibration_passed = False
         self.calibration_message = ""
         self.calibration_preview_path: str | None = None
+        self.session_eye_dir: Path | None = None
+
+    def configure_session(self, controller: Any | None = None) -> None:
+        session = getattr(controller, "session", None)
+        eye_dir = getattr(session, "eye_dir", None)
+        self.session_eye_dir = Path(eye_dir) if eye_dir else None
+        if self.session_eye_dir is not None:
+            self.session_eye_dir.mkdir(parents=True, exist_ok=True)
 
     def _ensure(self) -> None:
         from eye_tracking_analysis.stdout_safe import install_safe_stdio
@@ -149,6 +156,9 @@ class EyeTrackingRuntime:
     def start(self) -> tuple[bool, str]:
         if self.active:
             return True, ""
+        if self.session_eye_dir is None:
+            self.last_error = "Cannot start eye recording before configuring a session eye directory."
+            return False, self.last_error
 
         self.last_error = ""
         self.export_paths = None
@@ -197,7 +207,7 @@ class EyeTrackingRuntime:
                 return None, self.last_error
             return None, ""
 
-        output_dir = DEFAULT_RECORDINGS_DIR
+        output_dir = self.session_eye_dir
         subject_id = None
         session_id = None
         if controller is not None:
@@ -208,6 +218,10 @@ class EyeTrackingRuntime:
                 session_id = getattr(session, "session_id", None)
                 if getattr(session, "eye_dir", None):
                     output_dir = Path(session.eye_dir)
+        if output_dir is None:
+            self.last_error = "Cannot save eye recording without a configured session eye directory."
+            apply_controller_eye_features(controller, None)
+            return None, self.last_error
 
         features, fixations, saccades, metrics, analyze_error = self._analyze_gaze(
             gaze_data

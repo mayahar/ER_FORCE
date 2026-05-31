@@ -1,13 +1,13 @@
 import os
 import sys
 import numpy as np
-import json
 
 # הגדרת נתיב השורש
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from voice.recorder import VoiceRecorder
 from voice.calibrate import CALIBRATION_FILE
+from voice.processing import VoiceFeatureExtractor
 
 def run_standalone_test():
     sample_rate = 16000
@@ -47,11 +47,15 @@ def run_standalone_test():
     flux_std_thresh = 0.045
     if os.path.exists(CALIBRATION_FILE):
         try:
-            with open(CALIBRATION_FILE, "r") as f:
-                calib = json.load(f)
-                energy_thresh = calib.get("MIN_ENERGY_THRESHOLD", energy_thresh)
-                flux_std_thresh = calib.get("MAX_FLUX_STD", flux_std_thresh)
-                print(f"[מערכת] נטענו ספים מכוילים בהצלחה עבור מכשיר: {calib.get('device')}")
+            calib = VoiceFeatureExtractor.calibration_for_device(
+                {
+                    "name": recorder.last_device_name,
+                    "source": recorder.active_source,
+                }
+            )
+            energy_thresh = calib.get("MIN_ENERGY_THRESHOLD", energy_thresh)
+            flux_std_thresh = calib.get("MAX_FLUX_STD", flux_std_thresh)
+            print(f"[מערכת] נטענו ספים מכוילים בהצלחה עבור סוג מיקרופון: {calib.get('profile_key')}")
         except Exception:
             pass
 

@@ -22,7 +22,9 @@ CALIBRATION_ENDPOINTS = (
     ("/rest/calibrate!run", []),
 )
 CALIBRATION_ATTEMPTS = 4
-MARKER_SETTLE_SECONDS = 0.7
+CALIBRATION_START_DELAY_MS = 350
+MARKER_SETTLE_SECONDS = 0.35
+SUCCESS_FEEDBACK_MS = 900
 
 
 class EyeCalibrationDialog(QDialog):
@@ -33,6 +35,7 @@ class EyeCalibrationDialog(QDialog):
         self.runtime = runtime
         self.screen = screen if screen is not None else QGuiApplication.primaryScreen()
         self.preview_pixmap = None
+        self._calibration_succeeded = False
 
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint
@@ -61,7 +64,7 @@ class EyeCalibrationDialog(QDialog):
         if self.target_pixmap.isNull():
             print(f"Warning: calibration target image was not found: {self.target_image_path}")
 
-        QTimer.singleShot(1000, self.perform_glasses_calibration)
+        QTimer.singleShot(CALIBRATION_START_DELAY_MS, self.perform_glasses_calibration)
 
     def _log(self, message: str) -> None:
         logger = getattr(self.runtime, "_log", None)
@@ -87,8 +90,19 @@ class EyeCalibrationDialog(QDialog):
             self._log(f"הכיול הצליח: {message}")
             self.runtime.calibration_passed = True
             self.runtime.calibration_message = message
-            self.finished_calibration.emit(True, message)
-            self.accept()
+            self._calibration_succeeded = True
+            self.instruction_label.setText("הכיול הצליח. עוברים למשחק...")
+            self.instruction_label.setStyleSheet(
+                "color: #16833B; font-size: 24pt; font-family: Arial; font-weight: bold;"
+            )
+            self.update()
+            app = QApplication.instance()
+            if app is not None:
+                app.processEvents()
+            QTimer.singleShot(
+                SUCCESS_FEEDBACK_MS,
+                lambda: self._finish_success(message),
+            )
             return
 
         self._log(f"הכיול נכשל: {message}")
@@ -100,6 +114,10 @@ class EyeCalibrationDialog(QDialog):
         )
         QTimer.singleShot(2500, lambda: self.finished_calibration.emit(False, message))
         QTimer.singleShot(2550, self.reject)
+
+    def _finish_success(self, message: str) -> None:
+        self.finished_calibration.emit(True, message)
+        self.accept()
 
     def _calibrate_glasses(self) -> tuple[bool, str]:
         if _request is None:
@@ -215,6 +233,41 @@ class EyeCalibrationDialog(QDialog):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+
+        if self._calibration_succeeded:
+            painter.fillRect(self.rect(), QColor("#FFFFFF"))
+            center_x = self.width() // 2
+            center_y = self.height() // 2
+            radius = max(72, min(self.width(), self.height()) // 9)
+            painter.setBrush(QColor("#E8F5E9"))
+            painter.setPen(QPen(QColor("#16833B"), 10))
+            painter.drawEllipse(
+                center_x - radius,
+                center_y - radius,
+                radius * 2,
+                radius * 2,
+            )
+            painter.setPen(
+                QPen(
+                    QColor("#16833B"),
+                    16,
+                    Qt.PenStyle.SolidLine,
+                    Qt.PenCapStyle.RoundCap,
+                )
+            )
+            painter.drawLine(
+                center_x - radius // 2,
+                center_y,
+                center_x - radius // 8,
+                center_y + radius // 3,
+            )
+            painter.drawLine(
+                center_x - radius // 8,
+                center_y + radius // 3,
+                center_x + radius // 2,
+                center_y - radius // 3,
+            )
+            return
 
         # שינוי: מירכוז מושלם של הסמן (בלי ה-+60) כדי שיהיה רחוק מהטקסט העליון
         center_x = self.width() / 2

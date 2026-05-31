@@ -48,6 +48,21 @@ class VoiceFeatureExtractor:
         return " ".join(key.split())
 
     @classmethod
+    def _microphone_type(cls, input_device=None) -> str:
+        if isinstance(input_device, dict):
+            source = (
+                input_device.get("source")
+                or input_device.get("active_source")
+                or input_device.get("final_audio_source")
+            )
+            if source in {"local", "tobii"}:
+                return source
+            name = input_device.get("name") or input_device.get("device")
+        else:
+            name = input_device
+        return "tobii" if "tobii" in str(name or "").lower() else "local"
+
+    @classmethod
     def _load_calibration_config(cls) -> dict:
         if not os.path.exists(cls.CALIB_FILE):
             return {}
@@ -66,6 +81,20 @@ class VoiceFeatureExtractor:
             "MAX_FLUX_STD": cls.MAX_FLUX_STD,
         }
 
+        microphone_type = cls._microphone_type(input_device)
+        profile = config.get(microphone_type)
+        if isinstance(profile, dict):
+            return {
+                "MIN_ENERGY_THRESHOLD": profile.get("MIN_ENERGY_THRESHOLD", defaults["MIN_ENERGY_THRESHOLD"]),
+                "MAX_FLUX_STD": profile.get("MAX_FLUX_STD", defaults["MAX_FLUX_STD"]),
+                "quiet_rms": profile.get("quiet_rms"),
+                "weak_rms": profile.get("weak_rms"),
+                "normal_rms": profile.get("normal_rms"),
+                "profile_key": microphone_type,
+            }
+
+        # Backward compatibility for calibration files created before the
+        # per-microphone-type format.
         profiles = config.get("profiles")
         if isinstance(profiles, dict):
             key = cls._device_key(input_device)

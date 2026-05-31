@@ -20,10 +20,6 @@ import numpy as np
 from eye_tracking_analysis.eye_movement_analyzer import EyeMovementAnalyzer
 from score.eye_features import apply_controller_eye_features
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_RECORDINGS_DIR = REPO_ROOT / "eye_tracking_analysis" / "recordings"
-EYE_RUNTIME_LOG = DEFAULT_RECORDINGS_DIR / "tobii_runtime.log"
-
 SKIP_EYE_CALIBRATION = False
 VERBOSE_TOBII_STATUS = os.environ.get("TOBII_VERBOSE_STATUS", "").lower() in ("1", "true", "yes")
 # הגדרה קשיחה של ה-IP הסטטי האלחוטי של Tobii Glasses 3
@@ -138,12 +134,14 @@ class EyeTrackingRuntime:
         self.active_host = None
         self.session_eye_dir: Path | None = None
         self.session_log_path: Path | None = None
-        self._pending_raw_gaze: tuple[str, str] | None = None
+        self._pending_raw_gaze: tuple[Path, str] | None = None
         self.recording_started_at: float | None = None
 
     def configure_session(self, controller: Any | None = None) -> None:
         session = getattr(controller, "session", None)
         eye_dir = getattr(session, "eye_dir", None)
+        self.session_eye_dir = None
+        self.session_log_path = None
         if eye_dir:
             self.session_eye_dir = Path(eye_dir)
             self.session_eye_dir.mkdir(parents=True, exist_ok=True)
@@ -153,8 +151,10 @@ class EyeTrackingRuntime:
         timestamp = datetime.now().isoformat(timespec="seconds")
         line = f"[{timestamp}] {message}"
         print(line)
+        if self.session_log_path is None:
+            return
         try:
-            log_path = self.session_log_path or EYE_RUNTIME_LOG
+            log_path = self.session_log_path
             log_path.parent.mkdir(parents=True, exist_ok=True)
             with log_path.open("a", encoding="utf-8") as log_file:
                 log_file.write(line + "\n")
@@ -195,6 +195,10 @@ class EyeTrackingRuntime:
 
     def start(self, camera_index: int = 0, subject_id: str | None = None) -> tuple[bool, str]:
         """מפעיל את ההקלטה במשקפיים באופן אלחוטי בתחילת המשחק"""
+        if self.session_eye_dir is None:
+            self.last_error = "Cannot start eye recording before configuring a session eye directory."
+            self._log(self.last_error)
+            return False, self.last_error
         if not self.ensure_tracker():
             return False, self.last_error
 
@@ -286,7 +290,8 @@ class EyeTrackingRuntime:
 
     def stop(self, controller: Any | None = None) -> tuple[dict[str, Any] | None, str]:
         """עוצר את ההקלטה, מושך את ה-RAW Data מיידית דרך הרשת ומנתח עייפות"""
-        self.configure_session(controller)
+        if controller is not None:
+            self.configure_session(controller)
         if not self.active:
             self.last_error = "אין הקלטה פעילה לעצירה"
             self._log(self.last_error)
@@ -724,17 +729,18 @@ class EyeTrackingRuntime:
         return [f"{normalized}/recording.g3", normalized]
 
     def _recording_dir(self, recording_uuid: str) -> Path:
-        safe_uuid = recording_uuid.replace("/", "_").replace("\\", "_")
-        path = self.session_eye_dir or (DEFAULT_RECORDINGS_DIR / safe_uuid)
+        if self.session_eye_dir is None:
+            raise RuntimeError("Cannot save eye recording without a configured session eye directory.")
+        path = self.session_eye_dir
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     def _recording_file(self, recording_uuid: str, filename: str) -> Path:
         return self._recording_dir(recording_uuid) / filename
 
-    def _save_raw_gaze_text(self, recording_uuid: str, gaze_text: str) -> None:
+    def _save_raw_gaze_text(self, path: Path, gaze_text: str) -> None:
         try:
-            path = self._recording_file(recording_uuid, "gazedata.jsonl")
+            path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(gaze_text, encoding="utf-8")
             self.export_paths = dict(self.export_paths or {})
             self.export_paths["raw_gaze"] = str(path)
@@ -752,25 +758,28 @@ class EyeTrackingRuntime:
         except Exception as exc:
             self._log(f"שמירת eye features נכשלה: {exc}")
 
-    def _save_raw_gaze_text_async(self, recording_uuid: str, gaze_text: str) -> None:
+    def _save_raw_gaze_text_async(self, path: Path, gaze_text: str) -> None:
         thread = threading.Thread(
             target=self._save_raw_gaze_text,
-            args=(recording_uuid, gaze_text),
-            name=f"tobii-raw-save-{recording_uuid}",
+            args=(path, gaze_text),
+            name=f"tobii-raw-save-{path.parent.name}",
             daemon=True,
         )
         thread.start()
 
     def _defer_raw_gaze_text(self, recording_uuid: str, gaze_text: str) -> None:
-        self._pending_raw_gaze = (recording_uuid, gaze_text)
+        self._pending_raw_gaze = (
+            self._recording_file(recording_uuid, "gazedata.jsonl"),
+            gaze_text,
+        )
 
     def save_pending_raw_gaze_async(self) -> None:
         pending = self._pending_raw_gaze
         self._pending_raw_gaze = None
         if pending is None:
             return
-        recording_uuid, gaze_text = pending
-        self._save_raw_gaze_text_async(recording_uuid, gaze_text)
+        path, gaze_text = pending
+        self._save_raw_gaze_text_async(path, gaze_text)
 
     @staticmethod
     def _decode_gaze_response(response) -> str:

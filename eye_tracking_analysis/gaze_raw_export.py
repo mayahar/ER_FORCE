@@ -11,18 +11,6 @@ import numpy as np
 
 from eye_tracking_analysis.eye_tracker_recorder import EyeTrackerRecorder, GazeData
 
-RECORDINGS_DIR_NAME = "recordings"
-
-
-def gaze_recordings_dir(repo_root: Path | None = None) -> Path:
-    if repo_root is not None:
-        path = Path(repo_root) / "eye_tracking_analysis" / RECORDINGS_DIR_NAME
-    else:
-        path = Path(__file__).resolve().parent / RECORDINGS_DIR_NAME
-    path.mkdir(parents=True, exist_ok=True)
-    return path
-
-
 def _safe_part(value) -> str | None:
     if value is None:
         return None
@@ -296,7 +284,9 @@ def export_raw_gaze_recording(
     if not samples:
         raise ValueError("No gaze samples in buffer to export.")
 
-    export_dir = Path(output_dir) if output_dir else gaze_recordings_dir()
+    if output_dir is None:
+        raise ValueError("A session eye output directory is required for gaze export.")
+    export_dir = Path(output_dir)
     export_dir.mkdir(parents=True, exist_ok=True)
 
     basename = build_gaze_raw_basename(subject_id, recorded_at, session_id)

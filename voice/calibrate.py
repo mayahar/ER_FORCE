@@ -14,9 +14,15 @@ if using_glasses():
 CALIBRATION_FILE = ".voice_calib.json"
 
 
-def _device_key(device_name):
-    key = str(device_name or "default").strip().lower()
-    return " ".join(key.split())
+def _microphone_type(source=None, device_name=None):
+    source_key = str(source or "").strip().lower()
+    if source_key in {"local", "tobii"}:
+        return source_key
+
+    device_key = str(device_name or "").strip().lower()
+    if "tobii" in device_key:
+        return "tobii"
+    return "local"
 
 
 def _load_existing_calibration():
@@ -27,6 +33,48 @@ def _load_existing_calibration():
             return json.load(f)
     except Exception:
         return {}
+
+
+def _latest_calibrations_by_type(config):
+    if not isinstance(config, dict):
+        return {}
+
+    def without_legacy_fields(profile):
+        return {
+            key: value
+            for key, value in profile.items()
+            if key not in {"profile_key", "runs", "tobii_error"}
+        }
+
+    latest = {
+        mic_type: without_legacy_fields(profile)
+        for mic_type, profile in config.items()
+        if mic_type in {"local", "tobii"} and isinstance(profile, dict)
+    }
+    if latest:
+        return latest
+
+    profiles = config.get("profiles")
+    if isinstance(profiles, dict):
+        for profile in profiles.values():
+            if not isinstance(profile, dict):
+                continue
+            mic_type = _microphone_type(profile.get("source"), profile.get("device"))
+            previous = latest.get(mic_type)
+            if previous is None or profile.get("calibrated_at", "") > previous.get("calibrated_at", ""):
+                latest[mic_type] = without_legacy_fields(profile)
+
+    if "MIN_ENERGY_THRESHOLD" in config:
+        mic_type = _microphone_type(config.get("source"), config.get("device"))
+        previous = latest.get(mic_type)
+        if previous is None or config.get("calibrated_at", "") > previous.get("calibrated_at", ""):
+            latest[mic_type] = {
+                key: value
+                for key, value in config.items()
+                if key not in {"active_profile", "profile_key", "profiles", "runs", "tobii_error"}
+            }
+
+    return latest
 
 
 def run_calibration():
@@ -149,7 +197,7 @@ def run_calibration():
         dynamic_flux = 0.045
 
     device_name = str(recorder.last_device_name or recorder.last_device or "default")
-    profile_key = _device_key(device_name)
+    microphone_type = _microphone_type(recorder.active_source, device_name)
     run_data = {
         "MIN_ENERGY_THRESHOLD": dynamic_energy,
         "MAX_FLUX_STD": dynamic_flux,
@@ -159,28 +207,9 @@ def run_calibration():
         "calibrated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "device": device_name,
         "source": recorder.active_source,
-        "profile_key": profile_key,
     }
-    if recorder.last_tobii_error:
-        run_data["tobii_error"] = recorder.last_tobii_error
-
-    calib_data = _load_existing_calibration()
-    profiles = calib_data.get("profiles")
-    if not isinstance(profiles, dict):
-        profiles = {}
-
-    previous_profile = profiles.get(profile_key, {})
-    previous_runs = previous_profile.get("runs", []) if isinstance(previous_profile, dict) else []
-    if not isinstance(previous_runs, list):
-        previous_runs = []
-
-    profile_data = dict(run_data)
-    profile_data["runs"] = [*previous_runs, run_data]
-    profiles[profile_key] = profile_data
-
-    calib_data.update(run_data)
-    calib_data["active_profile"] = profile_key
-    calib_data["profiles"] = profiles
+    calib_data = _latest_calibrations_by_type(_load_existing_calibration())
+    calib_data[microphone_type] = run_data
 
     with open(CALIBRATION_FILE, "w") as f:
         json.dump(calib_data, f, indent=4)
