@@ -3,14 +3,23 @@ import json
 import re
 import csv
 import io
+import math
 from datetime import datetime
 from pathlib import Path
 
 from core.research_repository import get_research_output_dir
+from score.fatigue_features import FEATURES
+from score.feature_values import coerce_feature_number
 
 
 REPORTS_DIR = Path("scores_reports")
 _SAVED_REPORTS = set()
+VALIDATION_FIELDNAMES = [
+    "valid_measurement",
+    "measurement_status",
+    "invalid_reason",
+    "valid_range",
+]
 
 
 def safe_filename_part(value):
@@ -39,6 +48,38 @@ def get_report_filename(subject_id, result):
         return f"day_{day_number}_{condition}_{timestamp}.csv"
 
     return f"{safe_filename_part(subject_id)}_{timestamp}.csv"
+
+
+def _format_valid_range(valid_range):
+    if not valid_range:
+        return None
+    if isinstance(valid_range, (list, tuple)) and len(valid_range) == 2:
+        return f"{valid_range[0]}-{valid_range[1]}"
+    return str(valid_range)
+
+
+def _get_feature_valid_range(feature_name):
+    cfg = FEATURES.get(feature_name) or {}
+    return _format_valid_range(cfg.get("MEASUREMENT_VALID_RANGES"))
+
+
+def _validate_export_feature(feature_name, value):
+    cfg = FEATURES.get(feature_name) or {}
+    valid_range = cfg.get("MEASUREMENT_VALID_RANGES")
+    if valid_range is None:
+        return None, None
+
+    number = coerce_feature_number(value)
+    if number is None:
+        return False, "missing_or_not_numeric"
+    if not math.isfinite(number):
+        return False, "not_finite"
+
+    minimum, maximum = valid_range
+    if number < minimum or number > maximum:
+        return False, "out_of_range"
+
+    return True, None
 
 
 def save_report_once(subject_id, csv_text, result=None, controller=None):
@@ -86,28 +127,32 @@ def build_result_export_rows(result):
                 contribution_value,
             )
             effective_weight = data.get("effective_weight", data.get("weight"))
+            valid_measurement, invalid_reason = _validate_export_feature(
+                fname,
+                data.get("current"),
+            )
             export_row = {
                 "subject_id": subject_id,
                 "modality": modality,
                 "feature": fname,
-                "baseline": data.get("baseline"),
-                "current": data.get("current"),
-                "fatigue_score": data.get("fatigue_score"),
-                "relative_change": data.get("relative_change"),
-                "normalized_effect": data.get("normalized_effect"),
-                "raw_sigmoid": data.get("raw_sigmoid"),
-                "weight": effective_weight,
-                "effective_weight": effective_weight,
-                "feature_weight": data.get("feature_weight", data.get("weight")),
-                "feature_weight_sum": data.get("feature_weight_sum"),
-                "modality_feature_weight": data.get("modality_feature_weight"),
-                "modality_weight": data.get("modality_weight"),
-                "active_modality_weight_sum": data.get(
-                    "active_modality_weight_sum"
-                ),
-                "final_modality_weight": data.get("final_modality_weight"),
                 "direction": data.get("direction"),
                 "expected_change": data.get("expected_change"),
+
+                "baseline": data.get("baseline"),
+                "current": data.get("current"),
+                "relative_change": data.get("relative_change"),
+                
+                
+                "normalized_effect": data.get("normalized_effect"),
+                "raw_sigmoid": data.get("raw_sigmoid"),
+                "fatigue_score": data.get("fatigue_score"),
+                
+                "feature_weight": data.get("feature_weight"),
+                "modality_feature_weight": data.get("modality_feature_weight"),
+                "modality_weight": data.get("modality_weight"),
+                "final_modality_weight": data.get("final_modality_weight"),
+                "effective_weight": effective_weight,
+                              
                 "contribution": contribution_value,
                 "weighted_contribution": contribution_value,
                 "feature_modality_contribution": feature_modality_contribution,
@@ -116,11 +161,12 @@ def build_result_export_rows(result):
                     "modality_final_contribution"
                 ),
                 "feature_final_contribution": feature_final_contribution,
+                
                 "better_than_baseline": data.get("better_than_baseline"),
-                "valid_measurement": True,
+                "valid_measurement": valid_measurement,
                 "measurement_status": "included",
-                "valid_range": None,
-                "invalid_reason": None,
+                "invalid_reason": invalid_reason,
+                "valid_range": _get_feature_valid_range(fname),
             }
 
             if research_context:
@@ -181,8 +227,8 @@ def build_result_export_rows(result):
             "better_than_baseline": None,
             "valid_measurement": False,
             "measurement_status": "excluded_invalid_measurement",
-            "valid_range": invalid.get("valid_range"),
             "invalid_reason": invalid.get("reason"),
+            "valid_range": _format_valid_range(invalid.get("valid_range")),
         }
 
         if research_context:
@@ -202,6 +248,10 @@ def build_result_export_rows(result):
     for fname, current_value in current_questionnaire.items():
         if ("subjective", fname) in exported_features:
             continue
+        valid_measurement, invalid_reason = _validate_export_feature(
+            fname,
+            current_value,
+        )
 
         export_row = {
             "subject_id": subject_id,
@@ -230,10 +280,14 @@ def build_result_export_rows(result):
             "modality_final_contribution": None,
             "feature_final_contribution": None,
             "better_than_baseline": None,
-            "valid_measurement": None,
-            "measurement_status": "questionnaire",
-            "valid_range": None,
-            "invalid_reason": None,
+            "valid_measurement": valid_measurement,
+            "measurement_status": (
+                "questionnaire"
+                if valid_measurement is not False
+                else "excluded_invalid_measurement"
+            ),
+            "invalid_reason": invalid_reason,
+            "valid_range": _get_feature_valid_range(fname),
         }
 
         if research_context:
@@ -263,6 +317,11 @@ def rows_to_csv(export_rows):
             if key not in seen:
                 fieldnames.append(key)
                 seen.add(key)
+
+    for key in VALIDATION_FIELDNAMES:
+        if key in seen:
+            fieldnames.remove(key)
+            fieldnames.append(key)
 
     output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")

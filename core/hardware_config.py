@@ -8,7 +8,7 @@ import os
 # Supported values:
 #   "glasses" - Tobii Pro Glasses 3 eye + glasses audio flow
 #   "bar"     - screen-mounted Tobii bar eye flow + local microphone audio
-EYE_TRACKER_MODE = "glasses"
+EYE_TRACKER_MODE = "bar"
 
 
 def eye_tracker_mode() -> str:

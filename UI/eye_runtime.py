@@ -27,6 +27,7 @@ class EyeTrackingRuntime:
         self.calibration_message = ""
         self.calibration_preview_path = None
         self.calibration_attempted = False
+        self.calibration_summary = None
         self.current_recording_uuid = None
         self.active_host = None
         self.active = False
@@ -70,6 +71,7 @@ class EyeTrackingRuntime:
             "calibration_message",
             "calibration_preview_path",
             "calibration_attempted",
+            "calibration_summary",
             "current_recording_uuid",
             "active_host",
             "active",
@@ -203,4 +205,6 @@ class EyeTrackingRuntime:
 
         self.calibration_passed = False
         self.calibration_message = ""
+        self.calibration_preview_path = None
         self.calibration_attempted = False
+        self.calibration_summary = None

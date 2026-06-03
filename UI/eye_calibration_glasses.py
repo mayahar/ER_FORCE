@@ -22,7 +22,7 @@ CALIBRATION_ENDPOINTS = (
     ("/rest/calibrate!run", []),
 )
 CALIBRATION_ATTEMPTS = 4
-CALIBRATION_START_DELAY_MS = 350
+CALIBRATION_START_DELAY_MS = 4200
 MARKER_SETTLE_SECONDS = 0.35
 SUCCESS_FEEDBACK_MS = 900
 
@@ -49,14 +49,17 @@ class EyeCalibrationDialog(QDialog):
         layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
 
         self.instruction_label = QLabel(
-            "אנא הבט ישירות ובאופן יציב אל מרכז סמן הכיול...",
+            "הנחיית כיול חשובה\n\nלהסתכל עכשיו על מרכז הנקודה השחורה.\nלהחזיק מבט יציב ולא להזיז את הראש.",
             self,
         )
         # שינוי צבע הטקסט לשחור/אפור כהה כי הרקע הוא לבן (#FFFFFF)! טקסט לבן על רקע לבן לא ייקרא טוב.
         self.instruction_label.setStyleSheet(
-            "color: #222222; font-size: 20pt; font-family: Arial; font-weight: bold;"
+            "color: #111111; background-color: #FFF3B0; border: 5px solid #111111; "
+            "border-radius: 8px; padding: 28px 44px; font-size: 30pt; "
+            "font-family: Arial; font-weight: bold;"
         )
         self.instruction_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.instruction_label.setWordWrap(True)
         layout.addWidget(self.instruction_label)
 
         self.target_image_path = str(Path(__file__).resolve().parent / "image_325509.png")
@@ -131,7 +134,7 @@ class EyeCalibrationDialog(QDialog):
         errors: list[str] = []
         for attempt in range(1, CALIBRATION_ATTEMPTS + 1):
             self.instruction_label.setText(
-                f"אנא הבט אל מרכז סמן הכיול בלי לזוז... ניסיון {attempt}/{CALIBRATION_ATTEMPTS}"
+                f"להמשיך להסתכל על מרכז הנקודה השחורה\nבלי לזוז\nניסיון {attempt}/{CALIBRATION_ATTEMPTS}"
             )
             app = QApplication.instance()
             if app is not None:

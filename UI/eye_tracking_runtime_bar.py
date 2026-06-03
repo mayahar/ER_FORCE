@@ -20,7 +20,6 @@ from score.eye_features import apply_controller_eye_features
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # If True, the game will skip the Tobii calibration UI.
-# Use True only as a temporary workaround.
 SKIP_EYE_CALIBRATION = False
 
 
@@ -37,6 +36,8 @@ class EyeTrackingRuntime:
         self.calibration_passed = False
         self.calibration_message = ""
         self.calibration_preview_path: str | None = None
+        self.calibration_attempted = False
+        self.calibration_summary: dict[str, Any] | None = None
         self.session_eye_dir: Path | None = None
 
     def configure_session(self, controller: Any | None = None) -> None:
@@ -65,6 +66,8 @@ class EyeTrackingRuntime:
         self.calibration_passed = False
         self.calibration_message = ""
         self.calibration_preview_path = None
+        self.calibration_attempted = False
+        self.calibration_summary = None
 
     def ensure_tracker(self) -> tuple[bool, str]:
         import sys
@@ -112,6 +115,8 @@ class EyeTrackingRuntime:
         if session is not None and getattr(session, "eye_dir", None):
             save_dir = Path(session.eye_dir)
 
+        self.calibration_attempted = True
+        self.calibration_summary = None
         # Show the calibration UI first; connect to Tobii inside the dialog so
         # the user sees a fullscreen window instead of a frozen "מבצע כיול" label.
         success, message, _preview = run_eye_calibration(
@@ -146,12 +151,39 @@ class EyeTrackingRuntime:
             "message": message,
             "tracker": self.tracker_label,
             "completed_at": datetime.now().isoformat(timespec="seconds"),
-            "points": len(DEFAULT_CALIBRATION_POINTS),
+            "target_points": [
+                {"x": float(x), "y": float(y)}
+                for x, y in DEFAULT_CALIBRATION_POINTS
+            ],
+            "point_count": len(DEFAULT_CALIBRATION_POINTS),
         }
+        if self.calibration_preview_path:
+            payload["preview_path"] = self.calibration_preview_path
+        if self.calibration_summary:
+            payload["result"] = self.calibration_summary
         (eye_dir / "calibration.json").write_text(
             json.dumps(payload, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
+
+    def _calibration_metadata(self, output_dir: Path | None = None) -> dict[str, Any]:
+        record_path = None
+        if output_dir is not None:
+            candidate = Path(output_dir) / "calibration.json"
+            if candidate.is_file():
+                record_path = str(candidate.resolve())
+
+        metadata: dict[str, Any] = {
+            "attempted": bool(self.calibration_attempted),
+            "passed": bool(self.calibration_passed),
+            "message": self.calibration_message,
+            "tracker": self.tracker_label,
+            "preview_path": self.calibration_preview_path,
+            "record_path": record_path,
+        }
+        if self.calibration_summary:
+            metadata["result"] = self.calibration_summary
+        return metadata
 
     def start(self) -> tuple[bool, str]:
         if self.active:
@@ -226,6 +258,9 @@ class EyeTrackingRuntime:
         features, fixations, saccades, metrics, analyze_error = self._analyze_gaze(
             gaze_data
         )
+        if features is not None:
+            features = dict(features)
+            features["calibration"] = self._calibration_metadata(output_dir)
 
         try:
             export_result = export_eye_session_recording(

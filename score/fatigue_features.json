@@ -27,8 +27,8 @@
       "weight": 0.76,
       "direction": -1,
       "std": {
-        "male": 18.5,
-        "female": 26.5
+        "male": null,
+        "female": null
       },
       "expected_change": 0.075,
       "MEASUREMENT_VALID_RANGES": [
@@ -40,7 +40,7 @@
       "modality": "voice",
       "weight": 0.7,
       "direction": -1,
-      "std": 11.5,
+      "std": null,
       "expected_change": 0.275,
       "MEASUREMENT_VALID_RANGES": [
         5.0,
@@ -62,7 +62,7 @@
       "modality": "eye",
       "weight": 1.0,
       "direction": 1,
-      "std": 0.08,
+      "std": null,
       "expected_change": 0.63,
       "MEASUREMENT_VALID_RANGES": [
         0.1,
@@ -73,7 +73,7 @@
       "modality": "eye",
       "weight": 0.94,
       "direction": 1,
-      "std": 0.08,
+      "std": null ,
       "expected_change": 0.39,
       "MEASUREMENT_VALID_RANGES": [
         1.0,
@@ -84,7 +84,7 @@
       "modality": "eye",
       "weight": 0.83,
       "direction": 1,
-      "std": 0.07,
+      "std": null,
       "expected_change": 0.28,
       "MEASUREMENT_VALID_RANGES": [
         1.0,
@@ -95,7 +95,7 @@
       "modality": "game",
       "weight": 0.82,
       "direction": -1,
-      "std": 35.0,
+      "std": null,
       "expected_change": 0.25,
       "MEASUREMENT_VALID_RANGES": [
         0.0,
@@ -106,7 +106,7 @@
       "modality": "subjective",
       "weight": 0.78,
       "direction": 1,
-      "std": 1.5,
+      "std": null,
       "expected_change": 0.4,
       "scoring": "absolute",
       "MEASUREMENT_VALID_RANGES": [
@@ -118,7 +118,7 @@
       "modality": "subjective",
       "weight": 0.85,
       "direction": -1,
-      "std": 1.2,
+      "std": null,
       "expected_change": 0.5,
       "scoring": "absolute",
       "MEASUREMENT_VALID_RANGES": [
@@ -130,7 +130,7 @@
       "modality": "subjective",
       "weight": 0.55,
       "direction": -1,
-      "std": 1.2,
+      "std": null,
       "expected_change": 0.25,
       "scoring": "absolute",
       "MEASUREMENT_VALID_RANGES": [

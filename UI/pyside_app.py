@@ -1,4 +1,5 @@
 import copy
+import math
 import sys
 import time
 
@@ -19,6 +20,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QMainWindow,
     QMessageBox,
+    QProgressBar,
     QPushButton,
     QRadioButton,
     QScrollArea,
@@ -120,6 +122,170 @@ def panel(object_name="panel"):
     frame.setObjectName(object_name)
     frame.setFrameShape(QFrame.StyledPanel)
     return frame
+
+
+class VoiceCountdownOverlay(QWidget):
+    def __init__(self, screen_provider=None):
+        super().__init__(None)
+        self._screen_provider = screen_provider
+        self._voice_session = None
+        self._last_remaining = None
+        self._force_topmost_done = False
+
+        self.setWindowFlags(
+            Qt.Tool
+            | Qt.FramelessWindowHint
+            | Qt.WindowStaysOnTopHint
+            | Qt.WindowDoesNotAcceptFocus
+        )
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setAttribute(Qt.WA_ShowWithoutActivating, True)
+        self.setFixedSize(520, 220)
+
+        panel_frame = QFrame(self)
+        panel_frame.setObjectName("voiceCountdownPanel")
+        panel_frame.setGeometry(0, 0, self.width(), self.height())
+        panel_frame.setStyleSheet(
+            """
+            QFrame#voiceCountdownPanel {
+                background: rgba(8, 16, 28, 236);
+                border: 4px solid #ffcc00;
+                border-radius: 8px;
+            }
+            QLabel {
+                color: white;
+                background: transparent;
+            }
+            QProgressBar {
+                height: 18px;
+                border: 2px solid rgba(255, 255, 255, 145);
+                border-radius: 7px;
+                background: rgba(255, 255, 255, 34);
+                text-align: center;
+            }
+            QProgressBar::chunk {
+                background: #ffcc00;
+                border-radius: 5px;
+            }
+            """
+        )
+
+        layout = QVBoxLayout(panel_frame)
+        layout.setContentsMargins(26, 18, 26, 22)
+        layout.setSpacing(8)
+
+        self.title_label = QLabel("להפיק צליל עכשיו")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.title_label.setFont(QFont("Arial", 25, QFont.Bold))
+
+        self.count_label = QLabel("10")
+        self.count_label.setAlignment(Qt.AlignCenter)
+        self.count_label.setFont(QFont("Arial", 68, QFont.Bold))
+
+        self.detail_label = QLabel("להחזיק 'אההה' רציף עד סוף הספירה")
+        self.detail_label.setAlignment(Qt.AlignCenter)
+        self.detail_label.setFont(QFont("Arial", 18, QFont.Bold))
+
+        self.progress = QProgressBar()
+        self.progress.setRange(0, 1000)
+        self.progress.setTextVisible(False)
+
+        layout.addWidget(self.title_label)
+        layout.addWidget(self.count_label)
+        layout.addWidget(self.detail_label)
+        layout.addWidget(self.progress)
+
+        self._timer = QTimer(self)
+        self._timer.setInterval(100)
+        self._timer.timeout.connect(self._poll)
+
+    def watch(self, voice_session) -> None:
+        self._voice_session = voice_session
+        self._last_remaining = None
+        if not self._timer.isActive():
+            self._timer.start()
+
+    def stop_watch(self) -> None:
+        self._voice_session = None
+        self._last_remaining = None
+        self.hide()
+        self._timer.stop()
+
+    def _poll(self) -> None:
+        event = self._active_countdown_event()
+        if event is None:
+            self._last_remaining = None
+            self.hide()
+            return
+
+        metadata = getattr(event, "metadata", {}) or {}
+        start_ts = float(metadata.get("voice_countdown_started_at") or 0.0)
+        duration = float(metadata.get("voice_countdown_duration") or getattr(event, "duration", 10.0) or 10.0)
+        elapsed = time.time() - start_ts
+        remaining = max(0.0, duration - elapsed)
+
+        if remaining <= 0.05 or metadata.get("voice_countdown_finished_at"):
+            self._last_remaining = None
+            self.hide()
+            return
+
+        remaining_seconds = int(math.ceil(remaining))
+        self.count_label.setText(str(remaining_seconds))
+        self.progress.setValue(int(max(0.0, min(1.0, remaining / duration)) * 1000))
+
+        if not self.isVisible():
+            self._place_on_screen()
+            self.show()
+            self._force_topmost()
+        elif self._last_remaining != remaining_seconds:
+            self.raise_()
+
+        self._last_remaining = remaining_seconds
+
+    def _active_countdown_event(self):
+        session = self._voice_session
+        if session is None:
+            return None
+        event = getattr(session, "active_event", None)
+        if event is None:
+            return None
+        metadata = getattr(event, "metadata", {}) or {}
+        if not metadata.get("voice_countdown_started_at"):
+            return None
+        return event
+
+    def _place_on_screen(self) -> None:
+        screen = None
+        if callable(self._screen_provider):
+            screen = self._screen_provider()
+        screen = screen or QGuiApplication.primaryScreen()
+        geometry = screen.availableGeometry() if screen is not None else QGuiApplication.primaryScreen().availableGeometry()
+        x = geometry.x() + (geometry.width() - self.width()) // 2
+        y = geometry.y() + max(28, geometry.height() // 11)
+        self.move(x, y)
+
+    def _force_topmost(self) -> None:
+        if self._force_topmost_done or sys.platform != "win32":
+            return
+        try:
+            import ctypes
+
+            hwnd_topmost = -1
+            swp_nosize = 0x0001
+            swp_nomove = 0x0002
+            swp_noactivate = 0x0010
+            ctypes.windll.user32.SetWindowPos(
+                int(self.winId()),
+                hwnd_topmost,
+                0,
+                0,
+                0,
+                0,
+                swp_nosize | swp_nomove | swp_noactivate,
+            )
+            self._force_topmost_done = True
+        except Exception:
+            pass
 
 
 def add_labeled(parent_layout, label_text, widget):
@@ -293,6 +459,7 @@ class InstructionsDialog(QDialog):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setFixedSize(680, 520)
+        self.setLayoutDirection(Qt.RightToLeft)
         
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -313,54 +480,72 @@ class InstructionsDialog(QDialog):
         container_layout.setSpacing(12)
         
         # שורת כותרת עליונה
-        header_layout = QHBoxLayout()
-        header_layout.addStretch()
-        
         title_label = QLabel("הנחיות לשימוש ב-ER FORCE:")
-        title_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        title_label.setTextFormat(Qt.RichText)
+        title_label.setText("<div dir='rtl' align='right'>הנחיות לשימוש ב-ER FORCE:</div>")
+        title_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        title_label.setLayoutDirection(Qt.RightToLeft)
+        title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        title_label.setMinimumWidth(self.width() - 48)
         title_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #66aaff;")
-        header_layout.addWidget(title_label)
-        
-        container_layout.addLayout(header_layout)
+        container_layout.addWidget(title_label, alignment=Qt.AlignRight)
         
         # רכיב גלילה פנימי למניעת חיתוך טקסט
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setAlignment(Qt.AlignRight)
-        
-        scroll_content = QWidget()
-        scroll_content.setStyleSheet("background: transparent;")
-        scroll_layout = QVBoxLayout(scroll_content)
-        scroll_layout.setContentsMargins(0, 5, 10, 5)
-        
-        instructions_text = (
-            "<div style='direction: rtl; text-align: right;'>"
-            "1. <b>הזנת מספר אישי</b> - במידה והמספר האישי שלכם קיים במערכת תוכלו להזין ולהתחיל בדיקת מצב עייפות "
+        instructions_plain_text = (
+            "1. הזנת מספר אישי - במידה והמספר האישי שלכם קיים במערכת תוכלו להזין ולהתחיל בדיקת מצב עייפות "
             "(המספרים האישיים הקיימים באבטיפוס זה הם 1,2,3). במידה ואתה משתמש חדש תוכל להריץ את המשחק "
             "על מנת להזין עבורך בייסליין - שים לב שעליך להיות בעל כמות שעות שינה מספקת בשני הלילות האחרונים (7 שעות) "
-            "על מנת שתוכל לייצר בייסליין.<br><br>"
-            "2. לאחר מכן תתבקש להזין את מידת העייפות שלך ושעות השינה ב-2 הלילות האחרונים.<br><br>"
-            "3. במסך המשחק, לאחר שתלחץ על הכפתור \"התחל משחק\" משחק ההטסה ייטען באופן אוטומטי.<br><br>"
-            "במהלך טעינת המשחק תתבקש להפיק את הצליל \"אה\" למשך עשר שניות - הנחיות לתחילת הפקת הצליל וסיומה יושמעו בקול.<br><br>"
-            "הקשב להנחיות המשחק, מטרתך היא להתנגש במטרות המוצגות (במידה והמטרה מופיעה מחוץ לתצוגה יהיה חץ ירוק שמכוון למטרה).<br><br>"
-            "בסיום המשחק (לאחר 12 מטרות) התוכנה תצא מהמשחק באופן אוטומטי ותציג את ציון העייפות המחושב.<br><br>"
-            "על מנת ללמוד עוד על אופן חישוב הציון התייחס למסמך <b>\"לוגיקת חישוב ציונים\"</b>."
-            "</div>"
+            "על מנת שתוכל לייצר בייסליין.\n\n"
+            "2. לאחר מכן תתבקש להזין את מידת העייפות שלך ושעות השינה ב-2 הלילות האחרונים.\n\n"
+            "3. במסך המשחק, לאחר שתלחץ על הכפתור \"התחל משחק\" משחק ההטסה ייטען באופן אוטומטי.\n\n"
+            "4. במהלך טעינת המשחק תתבקש להפיק את הצליל \"אה\" למשך עשר שניות - הנחיות לתחילת הפקת הצליל וסיומה יושמעו בקול.\n\n"
+            "5. הקשב להנחיות המשחק, מטרתך היא להתנגש במטרות המוצגות (במידה והמטרה מופיעה מחוץ לתצוגה יהיה חץ ירוק שמכוון למטרה).\n\n"
+            "בסיום המשחק (לאחר 12 מטרות) התוכנה תצא מהמשחק באופן אוטומטי ותציג את ציון העייפות המחושב.\n\n"
+            "על מנת ללמוד עוד על אופן חישוב הציון התייחס למסמך לוגיקת חישוב ציונים."
         )
         
-        body_label = QLabel(instructions_text)
-        body_label.setTextFormat(Qt.RichText)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setLayoutDirection(Qt.LeftToRight)
+        scroll.viewport().setLayoutDirection(Qt.LeftToRight)
+        scroll.setStyleSheet(
+            """
+            QScrollArea {
+                background: transparent;
+                border: none;
+            }
+            QScrollArea > QWidget > QWidget {
+                background: transparent;
+            }
+            QScrollBar:vertical {
+                width: 14px;
+            }
+            """
+        )
+
+        scroll_content = QWidget()
+        scroll_content.setLayoutDirection(Qt.RightToLeft)
+        scroll_layout = QVBoxLayout(scroll_content)
+        scroll_layout.setContentsMargins(0, 0, 8, 0)
+        scroll_layout.setSpacing(0)
+        scroll_layout.setAlignment(Qt.AlignRight | Qt.AlignTop)
+
+        body_label = QLabel(instructions_plain_text)
+        body_label.setTextFormat(Qt.PlainText)
         body_label.setWordWrap(True)
-        body_label.setAlignment(Qt.AlignRight)
+        body_label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         body_label.setLayoutDirection(Qt.RightToLeft)
-        body_label.setStyleSheet("font-size: 15px; color: #dddddd; line-height: 1.45; text-align: right;")
-        
-        scroll_layout.addWidget(body_label)
+        body_label.setFixedWidth(self.width() - 86)
+        body_label.setStyleSheet("font-size: 15px; color: #dddddd; background: transparent;")
+        scroll_layout.addWidget(body_label, alignment=Qt.AlignRight | Qt.AlignTop)
+        scroll_layout.addStretch()
+
         scroll.setWidget(scroll_content)
         container_layout.addWidget(scroll)
         
         # כפתור סגירה תחתון בולט וברור למניעת בעיות רינדור
-        self.close_btn = QPushButton("× סגור והמשך")
+        self.close_btn = QPushButton("סגור והמשך")
         self.close_btn.setMinimumHeight(38)
         self.close_btn.setCursor(Qt.PointingHandCursor)
         self.close_btn.setStyleSheet(
@@ -711,7 +896,9 @@ class NewUserSleepGateScreen(BaseScreen):
     def activate(self):
         clear_layout(self.form_layout)
         self.error_label.clear()
-
+        
+        fatigue_row, self.fatigue_slider = slider_row("עד כמה אתה עייף כעת?", 1, 10, 5)
+        self.form_layout.addWidget(fatigue_row)
         sleep_last_row, self.sleep_last_slider = slider_row("כמה שעות ישנת אתמול?", 0, 8, 7)
         sleep_previous_row, self.sleep_previous_slider = slider_row("כמה שעות ישנת שלשום?", 0, 8, 7)
         self.form_layout.addWidget(sleep_last_row)
@@ -730,7 +917,7 @@ class NewUserSleepGateScreen(BaseScreen):
             )
             return
 
-        questionnaire = {"fatigue_self": 1, "sleep_last": last, "sleep_previous": prev}
+        questionnaire = {"fatigue_self": self.fatigue_slider.value(), "sleep_last": last, "sleep_previous": prev}
         self.app.controller.dispatch("QUESTIONNAIRE_DONE", questionnaire)
         self.app.navigate("game")
 
@@ -741,6 +928,7 @@ class GameScreen(BaseScreen):
         self.timer = QTimer(self)
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self._tick)
+        self.voice_countdown_overlay = VoiceCountdownOverlay(lambda: self.screen())
 
         self.start_button = QPushButton("התחל משחק")
         self.status_label = message("המשחק מוכן")
@@ -755,23 +943,65 @@ class GameScreen(BaseScreen):
         self.camera_preview = QLabel()
 
         self.root.addWidget(title("הפעלת משחק"))
+        prep_panel = panel()
+        prep_layout = QVBoxLayout(prep_panel)
+        prep_layout.addWidget(message("המשחק יופעל במצב מסך מלא."))
+        prep_layout.addWidget(
+            message(
+                (
+                    "מעקב העיניים יתחבר ברקע בזמן טעינת המשחק, יש לוודא שהמשקפיים מורכבות ומחוברות למחשב."
+                    if using_glasses()
+                    else "מעקב העיניים יתחבר ברקע בזמן טעינת המשחק, יש לוודא שהפס מחובר ומכוון."
+                )
+            )
+        )
+        prep_layout.addWidget(message("במהלך הטעינה תופעל הנחיה קולית להשמעת קול."))
+        self.root.addWidget(prep_panel)
+        self.mission_banner = QFrame()
+        self.mission_banner.setObjectName("missionBanner")
+        self.mission_banner.setStyleSheet(
+            """
+            QFrame#missionBanner {
+                background-color: #fff3b0;
+                border: 4px solid #111111;
+                border-radius: 8px;
+            }
+            QLabel {
+                color: #111111;
+                background: transparent;
+            }
+            """
+        )
+        mission_layout = QVBoxLayout(self.mission_banner)
+        mission_layout.setContentsMargins(18, 14, 18, 14)
+        mission_layout.setSpacing(4)
+        mission_title = QLabel("הנחיית משחק חשובה")
+        mission_title.setAlignment(Qt.AlignCenter)
+        mission_title.setFont(QFont("Arial", 25, QFont.Bold))
+        mission_text = QLabel("יש לשמור על מהירות 500 קשר, רוב המטרות יוצגו בטווח בין 1500 ל3000 רגל")
+        mission_text.setAlignment(Qt.AlignCenter)
+        mission_text.setFont(QFont("Arial", 32, QFont.Black))
+        mission_text.setWordWrap(True)
+        mission_layout.addWidget(mission_title)
+        mission_layout.addWidget(mission_text)
+        self.root.addWidget(self.mission_banner)
         info_panel = panel()
         info_layout = QVBoxLayout(info_panel)
         info_layout.addWidget(
             message(
-                "המשחק יופעל במצב מסך מלא. במהלך הטעינה תופעל הנחיה קולית להשמעת קול כחלק ממדידת העייפות.\n"
+                "המשחק יופעל במצב מסך מלא. במהלך הטעינה תופעל הנחיה קולית להשמעת קול.\n"
                 +
                 (
-                    "מעקב העיניים יתחבר ברקע בזמן טעינת המשחק, יש לוודא שהמשקפיים מורכבות ומחוברות למחשב לפני לחיצה על כפתור ההתחלה."
+                    "מעקב העיניים יתחבר ברקע בזמן טעינת המשחק, יש לוודא שהמשקפיים מורכבות ומחוברות למחשב."
                     if using_glasses()
-                    else "מעקב העיניים יתחבר ברקע בזמן טעינת המשחק, יש לוודא שהפס מחובר ומכוון למסך לפני לחיצה על כפתור ההתחלה."
+                    else "מעקב העיניים יתחבר ברקע בזמן טעינת המשחק, יש לוודא שהפס מחובר ומכוון."
                 )
             )
         )
+        clear_layout(info_layout)
         info_layout.addWidget(
             message(
                 "בתחילת ההטסה אף המטוס מוטה מטה, נדרש למשוך את הסטיק באופן מההתחלה על מנת להמנע מהתרסקות.",
-                "warningText",
             )
         )
         self.root.addWidget(info_panel)
@@ -802,8 +1032,10 @@ class GameScreen(BaseScreen):
         self.app.eye_runtime.start_preview(cam_idx, self._on_preview_frame)
 
         if self.app.fg_pid or self.app.voice_only_running:
+            self.voice_countdown_overlay.watch(self.app.voice_session)
             self.timer.start()
         else:
+            self.voice_countdown_overlay.stop_watch()
             self.timer.stop()
             self.status_label.setText("מוכן")
             self.voice_label.clear()
@@ -855,6 +1087,7 @@ class GameScreen(BaseScreen):
         self.app.fg_pid = pid
         self.app.fg_started_at = time.time()
         self.app.fg_finished_handled = False
+        self.voice_countdown_overlay.watch(self.app.voice_session)
         self.timer.start()
         self._sync_buttons()
 
@@ -882,6 +1115,7 @@ class GameScreen(BaseScreen):
 
     def stop_session(self):
         self.timer.stop()
+        self.voice_countdown_overlay.stop_watch()
         self.app.fg_finished_handled = True
         self.eye_status_label.setText("מעקב עיניים: מעבד נתונים...")
 
@@ -954,6 +1188,7 @@ class GameScreen(BaseScreen):
                 self.app.voice_session = None
                 self.app.voice_only_running = False
                 self.app.fg_started_at = None
+                self.voice_countdown_overlay.stop_watch()
                 self.set_error(
                     "FlightGear נסגר מהר מדי. בדקי את נתיב FlightGear והריצי את logging_fg_start_ver5.py מטרמינל לפרטים."
                 )
@@ -995,6 +1230,7 @@ class GameScreen(BaseScreen):
 
     def _finish_to_results(self):
         self.timer.stop()
+        self.voice_countdown_overlay.stop_watch()
         self.app.fg_pid = 0
         self.app.voice_only_running = False
         self.app.fg_started_at = None
@@ -1108,6 +1344,7 @@ class GameScreen(BaseScreen):
         self.app.fg_finished_handled = False
         self.app.voice_only_running = True
         self.app.fg_started_at = time.time()
+        self.voice_countdown_overlay.watch(self.app.voice_session)
         self.timer.start()
         self._sync_buttons()
         if using_glasses():

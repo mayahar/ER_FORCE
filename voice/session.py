@@ -1,11 +1,9 @@
 import json
 import time
 import threading
-import zipfile
 from concurrent.futures import ThreadPoolExecutor, Future
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from xml.sax.saxutils import escape
 
 import numpy as np
 import sounddevice as sd
@@ -18,6 +16,8 @@ from .tts import speak_text
 from core.hardware_config import using_glasses
 
 pd = None
+_ILLEGAL_EXCEL_CHARS = "".join(chr(i) for i in range(32) if i not in (9, 10, 13))
+_ILLEGAL_EXCEL_TRANS = str.maketrans("", "", _ILLEGAL_EXCEL_CHARS)
 
 
 def _get_pandas():
@@ -40,8 +40,9 @@ class VoiceSessionManager:
     DEFAULT_REPORTS_ROOT = Path("voice_reports")
     FEATURE_ARRAY_KEYS = ("mfcc", "pitch", "lpc", "parcor", "delta_lpc")
 
-    # ׳§׳•׳‘׳¥ ׳”ײ¾WAV ׳©׳ ׳”׳¦׳׳™׳ "׳׳׳׳׳"
-    PROMPT_AUDIO_FILE = Path(__file__).parent / "Ahhhh.wav"
+    # קובץ ה־WAV של הצליל "אההההה"
+    PROMPT_AUDIO_FILE = Path(__file__).parent / "Full prompt.wav"
+    LEGACY_PROMPT_AUDIO_FILE = Path(__file__).parent / "Full prompt.wav.wav"
 
     def __init__(
         self,
@@ -170,7 +171,7 @@ class VoiceSessionManager:
                 event_id="voice_phrase_1",
                 prompt_text="Sustained vowel 'Ah'",
                 duration=10.0,
-                trigger_time=5.0,
+                trigger_time=0.0,
                 prompt_type="phrase",
                 event_type="phrase",
             )
@@ -179,14 +180,21 @@ class VoiceSessionManager:
     def _preload_prompt_audio(self) -> None:
         """Loads the prompt audio file into memory to minimize latency during playback."""
         try:
-            if self.PROMPT_AUDIO_FILE.exists():
-                audio, sr = sf.read(str(self.PROMPT_AUDIO_FILE), dtype="float32")
+            prompt_path = self._prompt_audio_path()
+            if prompt_path is not None:
+                audio, sr = sf.read(str(prompt_path), dtype="float32")
                 if audio.ndim > 1:
                     audio = np.mean(audio, axis=1)
                 self._prompt_audio_cache = audio
                 self._prompt_sr_cache = int(sr)
         except Exception:
             pass
+
+    def _prompt_audio_path(self) -> Optional[Path]:
+        for path in (self.PROMPT_AUDIO_FILE, self.LEGACY_PROMPT_AUDIO_FILE):
+            if path.exists():
+                return path
+        return None
 
     @property
     def pending_events(self) -> List[VoiceEvent]:
@@ -267,12 +275,13 @@ class VoiceSessionManager:
             sd.wait()
             return
 
-        if not self.PROMPT_AUDIO_FILE.exists():
+        prompt_path = self._prompt_audio_path()
+        if prompt_path is None:
             raise FileNotFoundError(
                 f"Prompt audio file not found: {self.PROMPT_AUDIO_FILE}"
             )
 
-        audio, sr = sf.read(str(self.PROMPT_AUDIO_FILE), dtype="float32")
+        audio, sr = sf.read(str(prompt_path), dtype="float32")
 
         if audio.ndim > 1:
             audio = np.mean(audio, axis=1)
@@ -286,7 +295,7 @@ class VoiceSessionManager:
             tobii_audio = None
 
             if is_tobii_mode:
-                print("[ER Force Voice] ׳׳׳×׳™׳ ׳׳™׳™׳¦׳•׳‘ ׳¢׳¨׳•׳¥ ׳”׳׳•׳“׳™׳• ׳”׳׳׳—׳•׳˜׳™ ׳׳•׳ ׳”׳׳©׳§׳₪׳™׳™׳...")
+                print("[ER Force Voice] ממתין לייצוב ערוץ האודיו האלחוטי מול המשקפיים...")
                 max_wait = 5.0
                 start_wait_ts = time.time()
                 tobii_audio = self._active_tobii_audio_context()
@@ -300,32 +309,36 @@ class VoiceSessionManager:
                         "No active Tobii recording was available; using local microphone."
                     )
 
-            # ׳”׳ ׳—׳™׳•׳× ׳§׳•׳׳™׳•׳× ׳׳׳©׳×׳׳© (TTS) ׳׳₪׳ ׳™ ׳×׳—׳™׳׳× ׳—׳׳•׳ ׳”׳”׳§׳׳˜׳” ׳”׳׳¡׳•׳ ׳›׳¨׳
+            # הנחיות קוליות למשתמש (TTS) לפני תחילת חלון ההקלטה המסונכרן
             voice_window = {}
 
             def run_voice_prompt(mark_start, mark_end):
                 if self.speak_prompts:
                     try:
-                        speak_text("Please keep making the following sound continuously until told to stop")
                         self._play_prompt_audio()
-                        speak_text("Recording started.")
                     except Exception as exc:
                         event.metadata["tts_error"] = str(exc)
 
                 voice_window["start_ts"] = time.time()
                 mark_start()
+                countdown_start_ts = time.time()
+                event.metadata["voice_countdown_started_at"] = countdown_start_ts
+                event.metadata["voice_countdown_duration"] = float(event.duration)
+                event.metadata.pop("voice_countdown_finished_at", None)
                 time.sleep(float(event.duration))
                 mark_end()
                 voice_window["end_ts"] = time.time()
+                event.metadata["voice_countdown_finished_at"] = voice_window["end_ts"]
 
-            # ׳§׳¨׳™׳׳” ׳׳׳§׳׳™׳˜ ׳”׳׳¨׳›׳–׳™ ׳©׳׳ ׳”׳ ׳׳× ׳”-Countdown ׳‘׳¦׳•׳¨׳” ׳׳¡׳•׳ ׳›׳¨׳ ׳×
+
+            # קריאה למקליט המרכזי שמנהל את ה-Countdown בצורה מסונכרנת
             audio, sample_rate = self.recorder.record(
                 event.duration,
                 tobii_runtime=self.tobii_runtime,
                 task_runner=run_voice_prompt,
             )
             
-            # ׳©׳׳™׳¨׳× ׳”׳ ׳×׳•׳ ׳™׳ ׳‘׳”׳×׳׳ ׳׳׳•׳“ ׳”׳₪׳¢׳™׳
+            # שמירת הנתונים בהתאם למוד הפעיל
             if tobii_audio is not None:
                 tobii_audio = self._active_tobii_audio_context() or tobii_audio
                 recording_started_at = float(tobii_audio["recording_started_at"])
@@ -419,7 +432,7 @@ class VoiceSessionManager:
                 audio, sample_rate = self._load_audio(event)
                 audio_loaded = True
             except Exception as exc:
-                event.error = f"׳˜׳¢׳™׳ ׳× ׳”׳׳•׳“׳™׳• ׳ ׳›׳©׳׳”: {exc}"
+                event.error = f"טעינת האודיו נכשלה: {exc}"
                 event.metadata["error_code"] = "AUDIO_LOAD_FAILED"
                 event.status = "failed"
 
@@ -466,7 +479,7 @@ class VoiceSessionManager:
                     event.status = "failed"
                     self._write_attempt_log({"status": "feature_extraction_failed", "active_event_id": event.event_id})
 
-            # ׳”׳‘׳˜׳—׳× ׳₪׳׳˜ ׳”׳ ׳×׳•׳ ׳™׳ ׳”׳’׳•׳׳׳™׳™׳ ׳‘׳׳™׳׳•׳ ׳’׳ ׳‘׳׳¦׳‘׳™ ׳›׳©׳ ׳©׳ ׳”׳₪׳™׳™׳₪׳׳™׳™׳
+            # הבטחת פלט הנתונים הגולמיים במילון גם במצבי כשל של הפיפיליין
             if event.status == "failed" and audio_loaded:
                 fallback_pitch = VoiceFeatureExtractor.extract_pitch(audio, sample_rate) if hasattr(VoiceFeatureExtractor, 'extract_pitch') else np.array([])
                 fallback_features = {
@@ -680,137 +693,40 @@ class VoiceSessionManager:
         self._write_xlsx(workbook_path, sheets)
 
     def _write_xlsx(self, path: Path, sheets) -> None:
-        sheet_xml = []
-        for _, df in sheets:
-            sheet_xml.append(self._worksheet_xml(df))
-
-        with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-            zf.writestr("[Content_Types].xml", self._content_types_xml(len(sheets)))
-            zf.writestr("_rels/.rels", self._root_rels_xml())
-            zf.writestr("xl/workbook.xml", self._workbook_xml([name for name, _ in sheets]))
-            zf.writestr("xl/_rels/workbook.xml.rels", self._workbook_rels_xml(len(sheets)))
-            zf.writestr("xl/styles.xml", self._styles_xml())
-            for index, xml in enumerate(sheet_xml, start=1):
-                zf.writestr(f"xl/worksheets/sheet{index}.xml", xml)
-
-    def _content_types_xml(self, sheet_count: int) -> str:
-        overrides = [
-            '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>',
-            '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>',
-        ]
-        for index in range(1, sheet_count + 1):
-            overrides.append(
-                f'<Override PartName="/xl/worksheets/sheet{index}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
-            )
-
-        return (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
-            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
-            '<Default Extension="xml" ContentType="application/xml"/>'
-            + "".join(overrides)
-            + "</Types>"
-        )
-
-    def _root_rels_xml(self) -> str:
-        return (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
-            "</Relationships>"
-        )
-
-    def _workbook_xml(self, sheet_names) -> str:
-        sheets_xml = []
-        for index, name in enumerate(sheet_names, start=1):
-            safe_name = escape(str(name).replace(":", "_").replace("/", "_").replace("\\", "_")[:31])
-            sheets_xml.append(
-                f'<sheet name="{safe_name}" sheetId="{index}" r:id="rId{index}"/>'
-            )
-
-        return (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<workbook xmlns="http://schemas.openxmlformats.org/workbookml/2006/main" '
-            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-            "<sheets>"
-            + "".join(sheets_xml)
-            + "</sheets></workbook>"
-        )
-
-    def _workbook_rels_xml(self, sheet_count: int) -> str:
-        rels = []
-        for index in range(1, sheet_count + 1):
-            rels.append(
-                f'<Relationship Id="rId{index}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet{index}.xml"/>'
-            )
-        rels.append(
-            f'<Relationship Id="rId{sheet_count + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
-        )
-        return (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-            + "".join(rels)
-            + "</Relationships>"
-        )
-
-    def _styles_xml(self) -> str:
-        return (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<styleSheet xmlns="http://schemas.openxmlformats.org/workbookml/2006/main">'
-            '<fonts count="1"><font><sz val="11"/><name val="Calibri"/></font></fonts>'
-            '<fills count="1"><fill><patternFill patternType="none"/></fill></fills>'
-            '<borders count="1"><border/></borders>'
-            '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-            '<cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs>'
-            "</styleSheet>"
-        )
-
-    def _worksheet_xml(self, df) -> str:
         pandas = _get_pandas()
         if pandas is None:
-            return ""
+            raise VoiceSessionError("Pandas is required for voice feature workbook export")
 
-        rows_xml = []
-        rows = [list(df.columns)] + df.astype(object).where(pandas.notnull(df), None).values.tolist()
+        with pandas.ExcelWriter(path, engine="openpyxl") as writer:
+            for sheet_name, df in sheets:
+                safe_name = self._excel_sheet_name(sheet_name)
+                safe_df = self._sanitize_excel_dataframe(df)
+                safe_df.to_excel(writer, sheet_name=safe_name, index=False)
 
-        for row_index, row in enumerate(rows, start=1):
-            cells = []
-            for col_index, value in enumerate(row, start=1):
-                cells.append(self._cell_xml(row_index, col_index, value))
-            rows_xml.append(f'<row r="{row_index}">' + "".join(cells) + "</row>")
+    def _excel_sheet_name(self, name: str) -> str:
+        safe_name = str(name or "sheet").translate(_ILLEGAL_EXCEL_TRANS)
+        for char in (":", "\\", "/", "?", "*", "[", "]"):
+            safe_name = safe_name.replace(char, "_")
+        safe_name = safe_name.strip("'")[:31].strip()
+        return safe_name or "sheet"
 
-        return (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<worksheet xmlns="http://schemas.openxmlformats.org/workbookml/2006/main">'
-            "<sheetData>"
-            + "".join(rows_xml)
-            + "</sheetData></worksheet>"
-        )
+    def _sanitize_excel_dataframe(self, df):
+        pandas = _get_pandas()
+        if pandas is None:
+            return df
 
-    def _cell_xml(self, row_index: int, col_index: int, value) -> str:
-        cell_ref = f"{self._column_name(col_index)}{row_index}"
+        safe_df = df.copy()
+        object_columns = safe_df.select_dtypes(include=["object"]).columns
+        for column in object_columns:
+            safe_df[column] = safe_df[column].map(self._sanitize_excel_value)
+        return safe_df
 
+    def _sanitize_excel_value(self, value):
         if value is None:
-            return f'<c r="{cell_ref}"/>'
-
-        if isinstance(value, (np.integer, int)):
-            return f'<c r="{cell_ref}"><v>{int(value)}</v></c>'
-
-        if isinstance(value, (np.floating, float)):
-            value = float(value)
-            if not np.isfinite(value):
-                return f'<c r="{cell_ref}"/>'
-            return f'<c r="{cell_ref}"><v>{value}</v></c>'
-
-        text = escape(str(value))
-        return f'<c r="{cell_ref}" t="inlineStr"><is><t>{text}</t></is></c>'
-
-    def _column_name(self, col_index: int) -> str:
-        name = ""
-        while col_index:
-            col_index, remainder = divmod(col_index - 1, 26)
-            name = chr(65 + remainder) + name
-        return name
+            return value
+        if isinstance(value, str):
+            return value.translate(_ILLEGAL_EXCEL_TRANS)
+        return value
 
     def _save_results_to_file_async(self, result: Dict[str, Any]) -> None:
         def save_after_ui_release() -> None:

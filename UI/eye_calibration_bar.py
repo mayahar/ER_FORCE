@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
+from typing import Any
 
 import tobii_research as tr
 from PySide6.QtCore import Qt, QTimer, Signal, QRectF
@@ -37,7 +38,8 @@ from tobii_research import (
 # 2 נקודות כיול בלבד - מספיק לחלוטין לבדיקת תקינות חומרה ועבודה מהירה
 DEFAULT_CALIBRATION_POINTS = (
     (0.15, 0.15),  # פינה שמאלית עליונה
-    (0.85, 0.85),  # פינה ימנית תתונה
+    (0.85, 0.15),  # פינה ימנית עליונה
+    (0.50, 0.75),  # מרכז-תחתון
 )
 
 DOT_LOOK_MS = 1200
@@ -60,7 +62,8 @@ SUCCESS_STATUSES = {
 
 HEAD_HOLD_SECONDS = 1.0
 HEAD_TO_DOTS_DELAY_MS = 120
-HEAD_POSITION_ENABLED = True
+CALIBRATION_INSTRUCTION_MS = 4200
+HEAD_POSITION_ENABLED = False
 TRACKER_CONNECT_TIMEOUT_MS = 20000
 POSITION_POLL_MS = 50
 HEAD_POSITION_SMOOTH_ALPHA = 0.12
@@ -591,6 +594,100 @@ def _mean_gaze(points: list[tuple[float, float]]) -> tuple[float, float] | None:
     return sum(xs) / len(xs), sum(ys) / len(ys)
 
 
+def _safe_float(value) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number):
+        return None
+    return number
+
+
+def _point_error(
+    target: tuple[float, float],
+    mean: tuple[float, float] | None,
+    plot_size: tuple[int, int],
+) -> dict[str, float | None]:
+    if mean is None:
+        return {"norm": None, "px": None}
+    norm = ((mean[0] - target[0]) ** 2 + (mean[1] - target[1]) ** 2) ** 0.5
+    return {
+        "norm": float(norm),
+        "px": float(norm * min(plot_size) * 0.85),
+    }
+
+
+def _eye_summary(
+    samples,
+    eye_attr: str,
+    target: tuple[float, float],
+    plot_size: tuple[int, int],
+) -> dict[str, Any]:
+    points = _eye_gaze_samples(samples, eye_attr)
+    mean = _mean_gaze(points)
+    error = _point_error(target, mean, plot_size)
+    return {
+        "valid_sample_count": len(points),
+        "mean_gaze": (
+            {"x": float(mean[0]), "y": float(mean[1])}
+            if mean is not None
+            else None
+        ),
+        "accuracy_error_norm": error["norm"],
+        "accuracy_error_px": error["px"],
+    }
+
+
+def summarize_calibration_result(
+    result,
+    *,
+    plot_size: tuple[int, int] = (400, 250),
+) -> dict[str, Any]:
+    """Convert Tobii calibration output into a stable JSON-friendly record."""
+    if result is None:
+        return {}
+
+    points: list[dict[str, Any]] = []
+    all_errors_norm: list[float] = []
+    all_errors_px: list[float] = []
+    for index, point in enumerate(getattr(result, "calibration_points", ()) or [], start=1):
+        tx, ty = point.position_on_display_area
+        target = (float(tx), float(ty))
+        samples = getattr(point, "calibration_samples", ()) or ()
+        left = _eye_summary(samples, "left_eye", target, plot_size)
+        right = _eye_summary(samples, "right_eye", target, plot_size)
+
+        for eye in (left, right):
+            norm = _safe_float(eye.get("accuracy_error_norm"))
+            px = _safe_float(eye.get("accuracy_error_px"))
+            if norm is not None:
+                all_errors_norm.append(norm)
+            if px is not None:
+                all_errors_px.append(px)
+
+        points.append(
+            {
+                "index": index,
+                "target": {"x": target[0], "y": target[1]},
+                "sample_count": len(samples),
+                "left_eye": left,
+                "right_eye": right,
+            }
+        )
+
+    mean_norm = sum(all_errors_norm) / len(all_errors_norm) if all_errors_norm else None
+    mean_px = sum(all_errors_px) / len(all_errors_px) if all_errors_px else None
+    return {
+        "status": str(getattr(result, "status", "")),
+        "point_count": len(points),
+        "plot_size_px": {"width": int(plot_size[0]), "height": int(plot_size[1])},
+        "mean_accuracy_error_norm": mean_norm,
+        "mean_accuracy_error_px": mean_px,
+        "points": points,
+    }
+
+
 class FixationMapCanvas(QWidget):
     """Calibration map: red = target; blue/green = all gaze samples per eye + mean."""
 
@@ -759,6 +856,44 @@ class ConnectingCanvas(QWidget):
         painter.drawText(0, h // 2 + 10, w, 36, Qt.AlignmentFlag.AlignHCenter, self._message)
 
 
+class CalibrationInstructionCanvas(QWidget):
+    """Large pre-calibration instruction shown before the eye-tracking flow."""
+
+    def paintEvent(self, _event) -> None:
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.fillRect(self.rect(), QColor("#07101f"))
+
+        w, h = self.width(), self.height()
+        title_font = QFont("Segoe UI", 46, QFont.Weight.Black)
+        body_font = QFont("Segoe UI", 31, QFont.Weight.Bold)
+        note_font = QFont("Segoe UI", 22, QFont.Weight.DemiBold)
+
+        painter.setPen(QColor("#ffdf5d"))
+        painter.setFont(title_font)
+        painter.drawText(
+            60,
+            int(h * 0.18),
+            w - 120,
+            80,
+            Qt.AlignmentFlag.AlignCenter,
+            "הנחיית כיול חשובה",
+        )
+
+        panel = QRectF(90, int(h * 0.34), w - 180, int(h * 0.34))
+        painter.setPen(QPen(QColor("#ffdf5d"), 5))
+        painter.setBrush(QColor("#14233d"))
+        painter.drawRoundedRect(panel, 8, 8)
+
+        painter.setPen(QColor("#ffffff"))
+        painter.setFont(body_font)
+        painter.drawText(
+            panel.adjusted(34, 22, -34, -22),
+            Qt.AlignmentFlag.AlignCenter | Qt.TextFlag.TextWordWrap,
+            "כאשר יופיעו נקודות אדומות על המסך:\nלהסתכל על מרכז כל נקודה עד שהיא נעלמת.",
+        )
+
+
 class EyeCalibrationDialog(QDialog):
     finished_calibration = Signal(bool, str)
 
@@ -784,6 +919,7 @@ class EyeCalibrationDialog(QDialog):
         self._hold_seconds = 0.0
         self._latest_guide = None
         self.preview_pixmap: QPixmap | None = None
+        self.calibration_summary: dict[str, Any] | None = None
         self._pending_collect: tuple[float, float] | None = None
         self._collect_pass = 0
         self._head_smoother = HeadPositionSmoother()
@@ -807,10 +943,12 @@ class EyeCalibrationDialog(QDialog):
 
         self.stack = QStackedWidget(self)
         self.connecting_canvas = ConnectingCanvas(self)
+        self.instruction_canvas = CalibrationInstructionCanvas(self)
         self.head_canvas = HeadPositionCanvas(self)
         self.dot_canvas = CalibrationDotCanvas(self)
         self.preview_canvas = FixationMapCanvas(self)
         self.stack.addWidget(self.connecting_canvas)
+        self.stack.addWidget(self.instruction_canvas)
         self.stack.addWidget(self.head_canvas)
         self.stack.addWidget(self.dot_canvas)
         self.stack.addWidget(self.preview_canvas)
@@ -896,7 +1034,7 @@ class EyeCalibrationDialog(QDialog):
                 app.processEvents()
 
             self._wake_tracker_lights()
-            QTimer.singleShot(300, self._begin_calibration_points)
+            QTimer.singleShot(300, self._show_calibration_instruction)
         except Exception as exc:
             self._connect_completed = True
             if hasattr(self, "_connect_timeout"):
@@ -948,6 +1086,15 @@ class EyeCalibrationDialog(QDialog):
             self._start_head_position_phase()
         else:
             self._start_dot_calibration()
+
+    def _show_calibration_instruction(self) -> None:
+        self.stack.setCurrentWidget(self.instruction_canvas)
+        self.status_label.setText("מיד מתחילים כיול עיניים")
+        self.status_label.show()
+        app = QApplication.instance()
+        if app is not None:
+            app.processEvents()
+        QTimer.singleShot(CALIBRATION_INSTRUCTION_MS, self._begin_calibration_points)
 
     def _set_status(self, text: str) -> None:
         if not self.status_label.isVisible():
@@ -1196,6 +1343,12 @@ class EyeCalibrationDialog(QDialog):
             self._calibration_result,
             plot_size=plot_size,
         )
+        self.calibration_summary = summarize_calibration_result(
+            self._calibration_result,
+            plot_size=plot_size,
+        )
+        if hasattr(self._runtime, "calibration_summary"):
+            self._runtime.calibration_summary = self.calibration_summary
         self.preview_pixmap = self.preview_canvas.render_pixmap(*plot_size)
         if self.save_dir is not None:
             self.save_dir.mkdir(parents=True, exist_ok=True)

@@ -128,6 +128,7 @@ class EyeTrackingRuntime:
         self.calibration_message = ""
         self.calibration_attempted = False
         self.calibration_preview_path = None
+        self.calibration_summary: dict[str, Any] | None = None
         
         # משתנה לשמירת מזהה ההקלטה הנוכחית מהמשקפיים
         self.current_recording_uuid = None
@@ -391,11 +392,16 @@ class EyeTrackingRuntime:
                 self._log(self.last_error)
                 return None, err
 
+            if features is not None:
+                features = dict(features)
+                features["calibration"] = self._calibration_metadata()
+
             if controller is not None:
                 apply_controller_eye_features(controller, features)
 
             self._save_features(recording_uuid, features)
             self._defer_raw_gaze_text(recording_uuid, gaze_text)
+            self.save_pending_raw_gaze_async()
             self.last_error = ""
             self._log(
                 f"עיבוד Tobii הסתיים בהצלחה: samples={self.raw_sample_count}, uuid={recording_uuid}"
@@ -758,6 +764,21 @@ class EyeTrackingRuntime:
         except Exception as exc:
             self._log(f"שמירת eye features נכשלה: {exc}")
 
+    def _calibration_metadata(self) -> dict[str, Any]:
+        metadata: dict[str, Any] = {
+            "attempted": bool(self.calibration_attempted),
+            "passed": bool(self.calibration_passed),
+            "message": self.calibration_message,
+            "tracker": self.tracker_label,
+            "preview_path": self.calibration_preview_path,
+            "method": "tobii_glasses_rest_single_point",
+            "target_points": [{"x": 0.5, "y": 0.5}],
+            "accuracy_available": False,
+        }
+        if self.calibration_summary:
+            metadata["result"] = self.calibration_summary
+        return metadata
+
     def _save_raw_gaze_text_async(self, path: Path, gaze_text: str) -> None:
         thread = threading.Thread(
             target=self._save_raw_gaze_text,
@@ -815,4 +836,6 @@ class EyeTrackingRuntime:
         self.calibration_passed = False
         self.calibration_message = ""
         self.calibration_attempted = False
+        self.calibration_preview_path = None
+        self.calibration_summary = None
 
