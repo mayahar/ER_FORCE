@@ -25,6 +25,9 @@ CALIBRATION_ATTEMPTS = 4
 CALIBRATION_START_DELAY_MS = 4200
 MARKER_SETTLE_SECONDS = 0.35
 SUCCESS_FEEDBACK_MS = 900
+INSTRUCTION_MAX_WIDTH = 760
+INSTRUCTION_MAX_HEIGHT = 150
+INSTRUCTION_TOP_MARGIN = 16
 
 
 class EyeCalibrationDialog(QDialog):
@@ -45,8 +48,9 @@ class EyeCalibrationDialog(QDialog):
 
         # שינוי: סידור אנכי עם מרווח עליון קבוע כדי שהטקסט יישאר למעלה ולא יפריע לסמן
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 50, 0, 0)  # מרווח של 50 פיקסלים מלמעלה
         layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+        layout.setContentsMargins(0, INSTRUCTION_TOP_MARGIN, 0, 0)
+        layout.setSpacing(0)
 
         self.instruction_label = QLabel(
             "הנחיית כיול חשובה\n\nלהסתכל עכשיו על מרכז הנקודה השחורה.\nלהחזיק מבט יציב ולא להזיז את הראש.",
@@ -55,11 +59,13 @@ class EyeCalibrationDialog(QDialog):
         # שינוי צבע הטקסט לשחור/אפור כהה כי הרקע הוא לבן (#FFFFFF)! טקסט לבן על רקע לבן לא ייקרא טוב.
         self.instruction_label.setStyleSheet(
             "color: #111111; background-color: #FFF3B0; border: 5px solid #111111; "
-            "border-radius: 8px; padding: 28px 44px; font-size: 30pt; "
+            "border-radius: 8px; padding: 10px 22px; font-size: 18pt; "
             "font-family: Arial; font-weight: bold;"
         )
         self.instruction_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.instruction_label.setWordWrap(True)
+        self.instruction_label.setMaximumWidth(INSTRUCTION_MAX_WIDTH)
+        self.instruction_label.setMaximumHeight(INSTRUCTION_MAX_HEIGHT)
         layout.addWidget(self.instruction_label)
 
         self.target_image_path = str(Path(__file__).resolve().parent / "image_325509.png")
@@ -96,7 +102,7 @@ class EyeCalibrationDialog(QDialog):
             self._calibration_succeeded = True
             self.instruction_label.setText("הכיול הצליח. עוברים למשחק...")
             self.instruction_label.setStyleSheet(
-                "color: #16833B; font-size: 24pt; font-family: Arial; font-weight: bold;"
+                "color: #16833B; font-size: 18pt; font-family: Arial; font-weight: bold;"
             )
             self.update()
             app = QApplication.instance()
@@ -112,8 +118,9 @@ class EyeCalibrationDialog(QDialog):
         self.runtime.calibration_passed = False
         self.runtime.calibration_message = message
         self.instruction_label.setText(message)
+        self.instruction_label.setMaximumHeight(260)
         self.instruction_label.setStyleSheet(
-            "color: #FF2222; font-size: 20pt; font-family: Arial; font-weight: bold;"
+            "color: #FF2222; font-size: 16pt; font-family: Arial; font-weight: bold;"
         )
         QTimer.singleShot(2500, lambda: self.finished_calibration.emit(False, message))
         QTimer.singleShot(2550, self.reject)

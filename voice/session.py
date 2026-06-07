@@ -481,13 +481,13 @@ class VoiceSessionManager:
 
             # הבטחת פלט הנתונים הגולמיים במילון גם במצבי כשל של הפיפיליין
             if event.status == "failed" and audio_loaded:
-                fallback_pitch = VoiceFeatureExtractor.extract_pitch(audio, sample_rate) if hasattr(VoiceFeatureExtractor, 'extract_pitch') else np.array([])
+                frame_count = len(audio) // 160
                 fallback_features = {
-                    "mfcc": np.zeros((len(audio) // 160, 13)),
-                    "pitch": fallback_pitch if fallback_pitch.size > 0 else np.zeros(len(audio) // 160),
-                    "lpc": np.zeros((len(audio) // 160, 10)),
-                    "parcor": np.zeros((len(audio) // 160, 10)),
-                    "delta_lpc": np.zeros(len(audio) // 160),
+                    "mfcc": np.zeros((frame_count, 13)),
+                    "pitch": np.zeros(frame_count),
+                    "lpc": np.zeros((frame_count, 10)),
+                    "parcor": np.zeros((frame_count, 10)),
+                    "delta_lpc": np.zeros(frame_count),
                 }
                 self._save_attempt_features(event, fallback_features)
                 
@@ -772,6 +772,9 @@ class VoiceSessionManager:
 
         for event in self._event_results:
             try:
+                if event.get("status") == "failed":
+                    continue
+
                 if not event.get("mfcc") or not event.get("lpc"):
                     continue
                     

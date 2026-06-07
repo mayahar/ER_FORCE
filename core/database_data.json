@@ -475,6 +475,153 @@
           "sleep_previous": 7
         }
       }
+    },
+    "19": {
+      "id": 19,
+      "name": "בוריס",
+      "sex": "male",
+      "age": 40,
+      "baseline": {
+        "voice": {
+          "dLPC": 0.13305401802062988,
+          "PARCOR": 0.4016125202178955,
+          "Pitch": 193.51220703125,
+          "MFCC": 15.53305435180664,
+          "LPC": 1532.083740234375,
+          "events": [
+            {
+              "event_id": "voice_phrase_1",
+              "prompt_text": "Sustained vowel 'Ah'",
+              "prompt_type": "phrase",
+              "event_type": "phrase",
+              "status": "completed",
+              "timestamp": 1780473888.5744703,
+              "duration": 10.0,
+              "attempt_id": "attempt_001",
+              "attempt_dir": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\19_2026-06-03_11-04-31\\voice\\attempts\\attempt_001",
+              "audio_path": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\19_2026-06-03_11-04-31\\voice\\attempts\\attempt_001\\voice_phrase_1_recorded.wav",
+              "input_device": {
+                "index": 1,
+                "name": "Microphone Array (Realtek(R) Au",
+                "native_sample_rate": 16000
+              },
+              "final_audio_source": "local",
+              "error": null
+            }
+          ]
+        },
+        "eye": {
+          "fixation_duration": 53.523462560074044,
+          "saccade_count": 32.953830478257906,
+          "fixation_count": 90.01277769524151
+        },
+        "game": {
+          "score": 83.0
+        },
+        "questionnaire": {
+          "fatigue_self": 5,
+          "sleep_last": 7,
+          "sleep_previous": 7
+        }
+      }
+    },
+    "20": {
+      "id": 20,
+      "name": "אפיק",
+      "sex": "male",
+      "age": 26,
+      "baseline": {
+        "voice": {
+          "dLPC": 0.2692587077617645,
+          "PARCOR": 0.5467759370803833,
+          "Pitch": 152.48126220703125,
+          "MFCC": 28.120140075683594,
+          "LPC": 1628.0294189453125,
+          "events": [
+            {
+              "event_id": "voice_phrase_1",
+              "prompt_text": "Sustained vowel 'Ah'",
+              "prompt_type": "phrase",
+              "event_type": "phrase",
+              "status": "completed",
+              "timestamp": 1780570150.2779443,
+              "duration": 10.0,
+              "attempt_id": "attempt_001",
+              "attempt_dir": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\20_2026-06-04_13-48-15\\voice\\attempts\\attempt_001",
+              "audio_path": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\20_2026-06-04_13-48-15\\voice\\attempts\\attempt_001\\voice_phrase_1_recorded.wav",
+              "input_device": {
+                "index": 1,
+                "name": "Microphone Array (Realtek(R) Au",
+                "native_sample_rate": 16000
+              },
+              "final_audio_source": "local",
+              "error": null
+            }
+          ]
+        },
+        "eye": {
+          "fixation_duration": 56.07299796434425,
+          "saccade_count": 56.35883583631851,
+          "fixation_count": 114.00342458145037
+        },
+        "game": {
+          "score": 73.0
+        },
+        "questionnaire": {
+          "fatigue_self": 5,
+          "sleep_last": 7,
+          "sleep_previous": 7
+        }
+      }
+    },
+    "21": {
+      "id": 21,
+      "name": "שיר",
+      "sex": "female",
+      "age": 21,
+      "baseline": {
+        "voice": {
+          "dLPC": 0.17057493329048157,
+          "PARCOR": 0.5872020125389099,
+          "Pitch": 238.72703552246094,
+          "MFCC": 27.36857795715332,
+          "LPC": 1392.0955810546875,
+          "events": [
+            {
+              "event_id": "voice_phrase_1",
+              "prompt_text": "Sustained vowel 'Ah'",
+              "prompt_type": "phrase",
+              "event_type": "phrase",
+              "status": "completed",
+              "timestamp": 1780571295.520861,
+              "duration": 10.0,
+              "attempt_id": "attempt_001",
+              "attempt_dir": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\21_2026-06-04_14-06-27\\voice\\attempts\\attempt_001",
+              "audio_path": "C:\\Users\\לינוי\\Documents\\ער FORCE\\Main\\sessions\\21_2026-06-04_14-06-27\\voice\\attempts\\attempt_001\\voice_phrase_1_recorded.wav",
+              "input_device": {
+                "index": 1,
+                "name": "Microphone Array (Realtek(R) Au",
+                "native_sample_rate": 16000
+              },
+              "final_audio_source": "local",
+              "error": null
+            }
+          ]
+        },
+        "eye": {
+          "fixation_duration": 52.79800946958137,
+          "saccade_count": 49.58150560396134,
+          "fixation_count": 124.97256207025872
+        },
+        "game": {
+          "score": 51.0
+        },
+        "questionnaire": {
+          "fatigue_self": 5,
+          "sleep_last": 7,
+          "sleep_previous": 7
+        }
+      }
     }
   }
 }

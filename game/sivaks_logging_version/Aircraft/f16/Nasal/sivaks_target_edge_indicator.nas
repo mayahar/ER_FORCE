@@ -109,9 +109,14 @@ var _geo_to_screen = func(geocoord) {
 var SivaksTargetEdge = {
     _arrow: nil,
     _timer: nil,
+    _default_visible_bottom_ratio: 0.68,
 
     _flip_y: func(py, h) {
         return h - py;
+    },
+
+    _mirror_from_center: func(px, py, w, h) {
+        return [w - px, h - py];
     },
 
     _clamp_to_edge: func(px, py, w, h, margin) {
@@ -133,6 +138,14 @@ var SivaksTargetEdge = {
 
     _point_angle: func(from_x, from_y, to_x, to_y) {
         return math.atan2(to_y - from_y, to_x - from_x);
+    },
+
+    _visible_bottom: func(h, margin) {
+        var ratio = getprop("/algorithm/game/target-edge-visible-bottom-ratio");
+        if (ratio == nil)
+            ratio = me._default_visible_bottom_ratio;
+        ratio = math.max(0.3, math.min(0.95, ratio));
+        return math.max(margin, math.min(h - margin, h * ratio));
     },
 
     init: func() {
@@ -207,20 +220,24 @@ var SivaksTargetEdge = {
         var w = proj.w;
         var h = proj.h;
         var margin = 44;
+        var visible_bottom = me._visible_bottom(h, margin);
         var px = proj.screen_xy[0];
         var py = me._flip_y(proj.screen_xy[1], h);
+        if (proj.is_behind) {
+            var mirrored = me._mirror_from_center(px, py, w, h);
+            px = mirrored[0];
+            py = mirrored[1];
+        }
         var on_screen =
             !proj.is_behind and
             px >= margin and px <= (w - margin) and
-            py >= margin and py <= (h - margin);
+            py >= margin and py <= visible_bottom;
 
         if (on_screen) {
             me._arrow.setVisible(0);
         } else {
-            var edge = me._clamp_to_edge(px, py, w, h, margin);
+            var edge = me._clamp_to_edge(px, py, w, visible_bottom + margin, margin);
             var angle = me._point_angle(edge[0], edge[1], px, py);
-            if (proj.is_behind)
-                angle = angle + math.pi;
             me._arrow.setTranslation(edge[0], edge[1]);
             me._arrow.setRotation(angle);
             me._arrow.setVisible(1);

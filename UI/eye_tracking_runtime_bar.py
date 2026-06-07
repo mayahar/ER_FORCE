@@ -20,7 +20,7 @@ from score.eye_features import apply_controller_eye_features
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # If True, the game will skip the Tobii calibration UI.
-SKIP_EYE_CALIBRATION = False
+SKIP_EYE_CALIBRATION = True
 
 
 class EyeTrackingRuntime:
