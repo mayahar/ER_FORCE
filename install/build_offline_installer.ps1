@@ -87,11 +87,19 @@ foreach ($dir in $dirs) {
 $files = @(
     "ERR_FORCE.exe",
     "ERR_FORCE_fast.cmd",
+    "CONFIGURE_JOYSTICK.cmd",
     "fatigue_features_editor.exe",
     "fatigue_protoype.bat",
+    "OPEN_DATA_FOLDER.cmd",
+    "OPEN_FATIGUE_WEIGHTS_EDITOR.cmd",
+    "OPEN_INSTALL_FOLDER.cmd",
+    "OPEN_REPORTS_FOLDER.cmd",
+    "OPEN_RESEARCH_CONFIG_EDITOR.cmd",
+    "RESEARCHER_PROTOCOL_HE.txt",
     "research_config_editor.exe",
     "requirements.txt",
     "README.md",
+    "VERIFY_EYE_TRACKER.cmd",
     "__init__.py"
 )
 foreach ($file in $files) {
@@ -102,9 +110,9 @@ foreach ($file in $files) {
 }
 
 Write-Step "Copying installer scripts"
-Copy-Item (Join-Path $InstallDir "offline_installer\install_app.cmd") (Join-Path $OutDir "install_app.cmd") -Force
-Copy-Item (Join-Path $InstallDir "offline_installer\install_app.ps1") (Join-Path $OutDir "install_app.ps1") -Force
-Copy-Item (Join-Path $InstallDir "offline_installer\README_INSTALLER.txt") (Join-Path $OutDir "README_INSTALLER.txt") -Force
+Get-ChildItem -Path (Join-Path $InstallDir "offline_installer") -File | ForEach-Object {
+    Copy-Item $_.FullName (Join-Path $OutDir $_.Name) -Force
+}
 
 Write-Step "Downloading Python $PythonVersion offline installer"
 Invoke-WebRequest -Uri $PythonUrl -OutFile $PythonInstaller
@@ -112,16 +120,24 @@ Invoke-WebRequest -Uri $PythonUrl -OutFile $PythonInstaller
 Write-Step "Downloading pip wheelhouse for Python 3.10"
 $Python = Find-Python310
 Write-Host "Using build Python: $Python"
-& $Python -m pip download `
-    --dest $Wheelhouse `
-    --only-binary=:all: `
-    --platform win_amd64 `
-    --implementation cp `
-    --python-version 310 `
-    --abi cp310 `
-    -r (Join-Path $RepoRoot "requirements.txt")
-if ($LASTEXITCODE -ne 0) {
-    throw "pip download failed (exit $LASTEXITCODE)"
+$RequirementFiles = @(
+    (Join-Path $RepoRoot "requirements.txt"),
+    (Join-Path $RepoRoot "eye_tracking_setup\requirements.txt")
+)
+foreach ($RequirementFile in $RequirementFiles) {
+    if (Test-Path $RequirementFile) {
+        & $Python -m pip download `
+            --dest $Wheelhouse `
+            --only-binary=:all: `
+            --platform win_amd64 `
+            --implementation cp `
+            --python-version 310 `
+            --abi cp310 `
+            -r $RequirementFile
+        if ($LASTEXITCODE -ne 0) {
+            throw "pip download failed for $RequirementFile (exit $LASTEXITCODE)"
+        }
+    }
 }
 
 Write-Step "Writing manifest"
@@ -130,7 +146,7 @@ $manifest = [ordered]@{
     built_at = (Get-Date).ToString("s")
     python_version = $PythonVersion
     includes_game = $true
-    install_entrypoint = "install_app.cmd"
+    install_entrypoint = "INSTALL_ON_WINDOWS.cmd"
     launcher = "ERR_FORCE_fast.cmd"
 }
 $manifest | ConvertTo-Json -Depth 4 | Set-Content -Encoding UTF8 (Join-Path $OutDir "manifest.json")

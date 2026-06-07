@@ -41,6 +41,16 @@ $VenvPython = Join-Path $InstallDir ".venv\Scripts\python.exe"
 Write-Host ""
 Write-Host "ER_FORCE offline installer"
 Write-Host "Install directory: $InstallDir"
+Write-Host "Installer folder: $InstallerRoot"
+
+$Identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+$Principal = New-Object Security.Principal.WindowsPrincipal($Identity)
+if ($Principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host ""
+    Write-Host "Warning: this installer is running as Administrator." -ForegroundColor Yellow
+    Write-Host "The app and Desktop shortcut will be created for this Windows account."
+    Write-Host "If this is not your normal user, close this window and run INSTALL_ON_WINDOWS.cmd normally."
+}
 
 Write-Step "1/5 Copying ER_FORCE files and game data"
 Invoke-Robocopy $AppPayload $InstallDir
@@ -67,9 +77,17 @@ if (-not (Test-Path $VenvPython)) {
 }
 
 Write-Step "4/5 Installing Python packages from offline wheelhouse"
-& $VenvPython -m pip install --no-index --find-links $Wheelhouse -r (Join-Path $InstallDir "requirements.txt")
-if ($LASTEXITCODE -ne 0) {
-    throw "pip install failed (exit $LASTEXITCODE)"
+$RequirementFiles = @(
+    (Join-Path $InstallDir "requirements.txt"),
+    (Join-Path $InstallDir "eye_tracking_setup\requirements.txt")
+)
+foreach ($RequirementFile in $RequirementFiles) {
+    if (Test-Path $RequirementFile) {
+        & $VenvPython -m pip install --no-index --find-links $Wheelhouse -r $RequirementFile
+        if ($LASTEXITCODE -ne 0) {
+            throw "pip install failed for $RequirementFile (exit $LASTEXITCODE)"
+        }
+    }
 }
 
 Write-Step "5/5 Creating desktop shortcut"
@@ -78,9 +96,97 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "Shortcut creation failed, but installation completed. You can run ERR_FORCE_fast.cmd manually." -ForegroundColor Yellow
 }
 
+$InstalledToFile = Join-Path $InstallerRoot "INSTALLED_TO.txt"
+$RunFromHere = Join-Path $InstallerRoot "RUN_ERR_FORCE_FROM_INSTALLED_LOCATION.cmd"
+Set-Content -Encoding UTF8 -Path $InstalledToFile -Value @(
+    "ERR_FORCE installed to:",
+    $InstallDir,
+    "",
+    "Launcher:",
+    (Join-Path $InstallDir "ERR_FORCE_fast.cmd")
+)
+Set-Content -Encoding ASCII -Path $RunFromHere -Value @(
+    "@echo off",
+    "setlocal",
+    "call `"$InstallDir\ERR_FORCE_fast.cmd`" %*",
+    "exit /b %ERRORLEVEL%"
+)
+
+$DesktopRoot = [Environment]::GetFolderPath("Desktop")
+$ToolsDir = Join-Path $DesktopRoot "ERR Force Tools"
+New-Item -ItemType Directory -Force -Path $ToolsDir | Out-Null
+
+function Write-ToolCmd([string]$Name, [string[]]$Lines) {
+    Set-Content -Encoding ASCII -Path (Join-Path $ToolsDir $Name) -Value $Lines
+}
+
+Write-ToolCmd "Run ERR Force.cmd" @(
+    "@echo off",
+    "setlocal",
+    "call `"$InstallDir\ERR_FORCE_fast.cmd`" %*",
+    "exit /b %ERRORLEVEL%"
+)
+Write-ToolCmd "Verify Eye Tracker.cmd" @(
+    "@echo off",
+    "setlocal",
+    "cd /d `"$InstallDir`"",
+    "call VERIFY_EYE_TRACKER.cmd",
+    "exit /b %ERRORLEVEL%"
+)
+Write-ToolCmd "Configure Joystick.cmd" @(
+    "@echo off",
+    "setlocal",
+    "cd /d `"$InstallDir`"",
+    "call CONFIGURE_JOYSTICK.cmd",
+    "exit /b %ERRORLEVEL%"
+)
+Write-ToolCmd "Open Data Folder.cmd" @(
+    "@echo off",
+    "setlocal",
+    "cd /d `"$InstallDir`"",
+    "call OPEN_DATA_FOLDER.cmd",
+    "exit /b %ERRORLEVEL%"
+)
+Write-ToolCmd "Open Reports Folder.cmd" @(
+    "@echo off",
+    "setlocal",
+    "cd /d `"$InstallDir`"",
+    "call OPEN_REPORTS_FOLDER.cmd",
+    "exit /b %ERRORLEVEL%"
+)
+Write-ToolCmd "Open Install Folder.cmd" @(
+    "@echo off",
+    "start `"`" explorer `"$InstallDir`"",
+    "exit /b 0"
+)
+Write-ToolCmd "Research Config Editor.cmd" @(
+    "@echo off",
+    "setlocal",
+    "cd /d `"$InstallDir`"",
+    "call OPEN_RESEARCH_CONFIG_EDITOR.cmd",
+    "exit /b %ERRORLEVEL%"
+)
+Write-ToolCmd "Fatigue Weights Editor.cmd" @(
+    "@echo off",
+    "setlocal",
+    "cd /d `"$InstallDir`"",
+    "call OPEN_FATIGUE_WEIGHTS_EDITOR.cmd",
+    "exit /b %ERRORLEVEL%"
+)
+
+$ProtocolSource = Join-Path $InstallDir "RESEARCHER_PROTOCOL_HE.txt"
+if (Test-Path $ProtocolSource) {
+    Copy-Item $ProtocolSource (Join-Path $ToolsDir "Researcher Protocol - Hebrew.txt") -Force
+}
+
 Write-Host ""
 Write-Host "Installation completed." -ForegroundColor Green
 Write-Host "Run:"
 Write-Host "  $InstallDir\ERR_FORCE_fast.cmd"
+Write-Host ""
+Write-Host "Also created:"
+Write-Host "  $InstalledToFile"
+Write-Host "  $RunFromHere"
+Write-Host "  $ToolsDir"
 Write-Host ""
 Write-Host "Note: Tobii device drivers / Eye Tracker Manager may still need to be installed from Tobii for the hardware to be detected."

@@ -19,6 +19,36 @@ except ImportError:
     pass
 
 
+def sync_err_force_joystick_profiles(script_dir):
+    """Copy project-managed FlightGear joystick profiles into FG_HOME."""
+    source_root = os.path.join(script_dir, "Input", "Joysticks")
+    if not os.path.isdir(source_root):
+        return
+
+    appdata = os.environ.get("APPDATA")
+    if not appdata:
+        return
+
+    target_root = os.path.join(appdata, "flightgear.org", "Input", "Joysticks")
+    copied = 0
+    for root, _, files in os.walk(source_root):
+        for name in files:
+            if not name.lower().endswith(".xml"):
+                continue
+            src = os.path.join(root, name)
+            rel = os.path.relpath(src, source_root)
+            dst = os.path.join(target_root, rel)
+            try:
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                shutil.copy2(src, dst)
+                copied += 1
+            except OSError as exc:
+                print(f"Joystick profile sync skipped for {src}: {exc}")
+
+    if copied:
+        print(f"Synced {copied} ERR_FORCE joystick profile(s) to {target_root}")
+
+
 def resolve_f16_aircraft_paths(script_dir):
     """
     Use the bundled aircraft path directly (saves disk by avoiding a second copy under data/Aircraft/f16).
@@ -579,6 +609,7 @@ def run_flightgear(fg_bin_path, fg_aircraft, aircraft_dir, aircraft, airport, xm
 # Example usage
 if __name__ == "__main__":
     _script_dir = os.path.dirname(os.path.abspath(__file__))
+    sync_err_force_joystick_profiles(_script_dir)
     bundle_aircraft_root, bundle_f16_dir = resolve_f16_aircraft_paths(_script_dir)
 
     # FlightGear install root (directory that contains bin/fgfs.exe and data/).
@@ -628,8 +659,6 @@ if __name__ == "__main__":
     # (Reverted: do not force scenery/terrain/visibility optimizations.)
     fg_command_args = [
         '--disable-splash-screen',
-        # Hide the top menubar (can also be toggled with F10).
-        '--prop:/sim/menubar/visibility=false',
         # Avoid redout wash during startup trim and session shutdown.
         '--prop:/sim/rendering/redout/enabled=false',
         # Speed-up: avoid parsing AI traffic schedules (not needed for CorrActions balloons).
@@ -651,6 +680,14 @@ if __name__ == "__main__":
         '--prop:/sim/sivaks/corractions-reset-request=0',
         '--prop:/algorithm/game/retry-count=0',
     ]
+
+    # Hide the top menubar during participant runs. For joystick setup runs,
+    # set SIVAKS_FG_SHOW_MENUBAR=1 so File -> Joystick Configuration is visible.
+    if os.environ.get("SIVAKS_FG_SHOW_MENUBAR", "").strip().lower() in ("1", "true", "yes", "y", "on"):
+        fg_command_args.append('--prop:/sim/menubar/visibility=true')
+    else:
+        # Can also be toggled with F10 in FlightGear.
+        fg_command_args.append('--prop:/sim/menubar/visibility=false')
 
     # Optional: skip JSBSim trim at startup (can be unstable for some aircraft/states).
     # Set SIVAKS_NOTRIM=1 if you want to try it again.
