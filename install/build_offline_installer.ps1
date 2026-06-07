@@ -88,6 +88,7 @@ foreach ($dir in $dirs) {
 $files = @(
     "ERR_FORCE.exe",
     "ERR_FORCE_fast.cmd",
+    "CALIBRATE_MICROPHONE.cmd",
     "fatigue_features_editor.exe",
     "RESEARCHER_PROTOCOL_HE.txt",
     "research_config_editor.exe",
@@ -148,4 +149,4 @@ Write-Host ""
 Write-Host "Offline installer folder is ready:" -ForegroundColor Green
 Write-Host "  $OutDir"
 Write-Host ""
-Write-Host "Copy this whole folder to the target PC and run install_app.cmd."
+Write-Host "Copy this whole folder to the target PC and run INSTALL_ON_WINDOWS.cmd."

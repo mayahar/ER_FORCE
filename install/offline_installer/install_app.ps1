@@ -140,6 +140,13 @@ Write-ToolCmd "Configure Joystick.cmd" @(
     "call scripts\CONFIGURE_JOYSTICK.cmd",
     "exit /b %ERRORLEVEL%"
 )
+Write-ToolCmd "Calibrate Microphone.cmd" @(
+    "@echo off",
+    "setlocal",
+    "cd /d `"$InstallDir`"",
+    "call scripts\CALIBRATE_MICROPHONE.cmd",
+    "exit /b %ERRORLEVEL%"
+)
 Write-ToolCmd "Open Data Folder.cmd" @(
     "@echo off",
     "setlocal",
