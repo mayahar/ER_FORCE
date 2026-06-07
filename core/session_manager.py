@@ -3,6 +3,8 @@ from pathlib import Path
 from datetime import datetime
 import json
 
+from core.research_repository import get_research_output_dir
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SESSIONS_ROOT = REPO_ROOT / "sessions"
 
@@ -18,12 +20,16 @@ class SessionPaths:
 
     eye_dir: Path
 
+    glasses_eye_dir: Path
+
+    bar_eye_dir: Path
+
     game_dir: Path
 
     results_dir: Path
 
 
-def create_session(subject_id: str):
+def create_session(subject_id: str, research_context=None):
 
     timestamp = datetime.now().strftime(
         "%Y-%m-%d_%H-%M-%S"
@@ -33,7 +39,10 @@ def create_session(subject_id: str):
         f"{subject_id}_{timestamp}"
     )
 
-    root = SESSIONS_ROOT / session_id
+    if research_context:
+        root = get_research_output_dir(research_context, subject_id) / "sessions" / session_id
+    else:
+        root = SESSIONS_ROOT / session_id
     root.mkdir(parents=True, exist_ok=True)
 
     voice_dir = root / "voice"
@@ -43,6 +52,10 @@ def create_session(subject_id: str):
 
     voice_dir.mkdir(parents=True, exist_ok=True)
     eye_dir.mkdir(exist_ok=True)
+    glasses_eye_dir = eye_dir / "glasses"
+    bar_eye_dir = eye_dir / "bar"
+    glasses_eye_dir.mkdir(exist_ok=True)
+    bar_eye_dir.mkdir(exist_ok=True)
     game_dir.mkdir(exist_ok=True)
     results_dir.mkdir(exist_ok=True)
 
@@ -61,6 +74,8 @@ def create_session(subject_id: str):
         root=root,
         voice_dir=voice_dir,
         eye_dir=eye_dir,
+        glasses_eye_dir=glasses_eye_dir,
+        bar_eye_dir=bar_eye_dir,
         game_dir=game_dir,
         results_dir=results_dir
     )

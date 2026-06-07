@@ -108,7 +108,7 @@ class EyeTrackingRuntime:
         screen=None,
         controller=None,
     ) -> tuple[bool, str]:
-        from .eye_calibration import run_eye_calibration
+        from .eye_calibration_bar import run_eye_calibration
 
         save_dir = None
         session = getattr(controller, "session", None) if controller else None

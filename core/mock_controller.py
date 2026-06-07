@@ -55,7 +55,7 @@ class Controller:
     # -------------------
     # LOAD SUBJECT
     # -------------------
-    def load_subject(self, subject_id):
+    def load_subject(self, subject_id, research_context=None):
 
         subject = get_subject(subject_id)
 
@@ -67,7 +67,7 @@ class Controller:
         self.subject = copy.deepcopy(subject)
 
         self.subject["id"] = subject.get("id", subject_id)
-        self.session = create_session(subject_id)
+        self.session = create_session(subject_id, research_context=research_context)
 
         self.features = {}
         self.questionnaire = {}

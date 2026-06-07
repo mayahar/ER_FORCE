@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 RESEARCH_CONFIG_PATH = Path(__file__).with_name("research_config.json")
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def load_research_config():
@@ -77,6 +78,8 @@ def get_current_research_day(today=None):
 
 def get_research_output_dir(research_context, subject_id=None):
     output_dir = Path(research_context.get("output_dir", "research_results"))
+    if not output_dir.is_absolute():
+        output_dir = REPO_ROOT / output_dir
 
     if subject_id is not None:
         output_dir = output_dir / f"participant_{subject_id}"

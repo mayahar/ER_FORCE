@@ -77,7 +77,8 @@ $dirs = @(
     "game",
     "install",
     "score",
-    "ui",
+    "scripts",
+    "UI",
     "voice"
 )
 foreach ($dir in $dirs) {
@@ -87,19 +88,11 @@ foreach ($dir in $dirs) {
 $files = @(
     "ERR_FORCE.exe",
     "ERR_FORCE_fast.cmd",
-    "CONFIGURE_JOYSTICK.cmd",
     "fatigue_features_editor.exe",
-    "fatigue_protoype.bat",
-    "OPEN_DATA_FOLDER.cmd",
-    "OPEN_FATIGUE_WEIGHTS_EDITOR.cmd",
-    "OPEN_INSTALL_FOLDER.cmd",
-    "OPEN_REPORTS_FOLDER.cmd",
-    "OPEN_RESEARCH_CONFIG_EDITOR.cmd",
     "RESEARCHER_PROTOCOL_HE.txt",
     "research_config_editor.exe",
     "requirements.txt",
     "README.md",
-    "VERIFY_EYE_TRACKER.cmd",
     "__init__.py"
 )
 foreach ($file in $files) {

@@ -28,12 +28,12 @@ def safe_filename_part(value):
 
 
 def get_report_dir(result, controller=None):
-    if controller and getattr(controller, "session", None):
-        return controller.session.results_dir
-
     research_context = (result or {}).get("research")
     if research_context:
         return get_research_output_dir(research_context, (result or {}).get("subject_id"))
+
+    if controller and getattr(controller, "session", None):
+        return controller.session.results_dir
 
     return REPORTS_DIR
 

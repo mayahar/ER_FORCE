@@ -63,7 +63,7 @@ cat > "$INSTALL_DIR/ERR_FORCE.command" <<EOF
 cd "$INSTALL_DIR"
 export PYTHONUTF8=1
 export PYTHONIOENCODING=utf-8
-exec "$VENV_DIR/bin/python" -m ui.app "\$@"
+exec "$VENV_DIR/bin/python" -m UI.app "\$@"
 EOF
 chmod +x "$INSTALL_DIR/ERR_FORCE.command"
 

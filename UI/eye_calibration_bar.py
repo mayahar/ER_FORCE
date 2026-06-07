@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import tobii_research as tr
-from PySide6.QtCore import Qt, QTimer, Signal, QRectF
+from PySide6.QtCore import Qt, QEventLoop, QTimer, Signal, QRectF
 from PySide6.QtGui import (
     QFont,
     QGuiApplication,
@@ -890,7 +890,7 @@ class CalibrationInstructionCanvas(QWidget):
         painter.drawText(
             panel.adjusted(34, 22, -34, -22),
             Qt.AlignmentFlag.AlignCenter | Qt.TextFlag.TextWordWrap,
-            "כאשר יופיעו נקודות אדומות על המסך:\nלהסתכל על מרכז כל נקודה עד שהיא נעלמת.",
+            "כאשר יופיעו נקודות אדומות על המסך:\nיש להסתכל על מרכז כל נקודה עד שהיא נעלמת",
         )
 
 
@@ -1366,7 +1366,16 @@ class EyeCalibrationDialog(QDialog):
         message = "הקליברציה הסתיימה בהצלחה, המשחק יופעל כעת."
         self.status_label.show()
         self.status_label.setText(message)
-        QTimer.singleShot(1800, lambda: self._finish(True, message))
+        QTimer.singleShot(2600, lambda: self._finish_success_now(message))
+
+    def _finish_success_now(self, message: str) -> None:
+        self._position_timer.stop()
+        self._unsubscribe_position_guide()
+        self._success = True
+        self._message = message
+        self.finished_calibration.emit(True, message)
+        self.accept()
+        self.close()
 
     def _abort_calibration(self) -> None:
         self._unsubscribe_gaze_wake()
@@ -1485,10 +1494,16 @@ def run_eye_calibration(
         if app is not None:
             app.processEvents()
 
+    loop = QEventLoop()
+    dialog.finished_calibration.connect(lambda _success, _message: loop.quit())
+    dialog.finished.connect(lambda _code: loop.quit())
+
     try:
         dialog.begin()
-        dialog.exec()
+        loop.exec()
     finally:
+        if dialog.isVisible():
+            dialog.close()
         if main_window is not None:
             main_window.show()
             main_window.raise_()

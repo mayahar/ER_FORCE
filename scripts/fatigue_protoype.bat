@@ -1,7 +1,7 @@
 @echo off
 REM Launch the PySide6 app from the Python 3.10 virtual environment.
 
-cd /d "%~dp0"
+cd /d "%~dp0\.."
 
 set "VENV=.venv"
 set "PYTHON=%VENV%\Scripts\python.exe"
@@ -25,6 +25,6 @@ if errorlevel 1 (
 )
 
 REM Run the app
-"%PYTHON%" -m ui.app
+"%PYTHON%" -m UI.app
 
 pause

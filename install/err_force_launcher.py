@@ -95,7 +95,7 @@ def main() -> int:
         if os.name == "nt" and python.name.lower() == "python.exe":
             creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
         completed = subprocess.run(
-            [str(python), "-m", "ui.app"],
+            [str(python), "-m", "UI.app"],
             cwd=str(root),
             env=env,
             creationflags=creationflags,

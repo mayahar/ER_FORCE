@@ -5,7 +5,7 @@ from __future__ import annotations
 from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError
 from typing import Any, Callable
 
-from core.hardware_config import using_glasses
+from core.hardware_config import using_combined, using_glasses
 
 
 def get_camera_index() -> int:
@@ -22,7 +22,11 @@ class EyeTrackingRuntime:
         self.export_paths = None
         self.raw_sample_count = 0
         self.tracker_connected = False
-        self.tracker_label = "Tobii Pro Glasses 3" if using_glasses() else ""
+        self.tracker_label = (
+            "Tobii Pro Glasses 3 + Tobii bar"
+            if using_combined()
+            else "Tobii Pro Glasses 3" if using_glasses() else ""
+        )
         self.calibration_passed = False
         self.calibration_message = ""
         self.calibration_preview_path = None
@@ -37,10 +41,12 @@ class EyeTrackingRuntime:
 
     def _ensure_runtime(self):
         if self._runtime is None:
-            if using_glasses():
-                from ui.eye_tracking_runtime_glasses import EyeTrackingRuntime as Runtime
+            if using_combined():
+                from UI.eye_tracking_runtime_combined import EyeTrackingRuntime as Runtime
+            elif using_glasses():
+                from UI.eye_tracking_runtime_glasses import EyeTrackingRuntime as Runtime
             else:
-                from ui.eye_tracking_runtime_bar import EyeTrackingRuntime as Runtime
+                from UI.eye_tracking_runtime_bar import EyeTrackingRuntime as Runtime
 
             runtime = Runtime()
             self._copy_state_to(runtime)
@@ -161,11 +167,11 @@ class EyeTrackingRuntime:
         controller = kwargs.get("controller")
         if controller is not None and hasattr(runtime, "configure_session"):
             runtime.configure_session(controller)
-        if hasattr(runtime, "run_calibration") and not using_glasses():
+        if hasattr(runtime, "run_calibration") and (using_combined() or not using_glasses()):
             result = runtime.run_calibration(*args, **kwargs)
             success, message = self._split_ok_error(result)
         else:
-            from ui.eye_calibration import run_eye_calibration
+            from UI.eye_calibration import run_eye_calibration
 
             success, message, preview = run_eye_calibration(
                 runtime,

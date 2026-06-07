@@ -1,13 +1,19 @@
 {
   "enabled": false,
-  "study_id": "sleep_deprivation_research",
-  "start_date": "2026-05-10",
-  "output_dir": "research_results/sleep_deprivation_research",
+  "study_id": "Dead_Tired",
+  "start_date": "2026-06-07",
+  "output_dir": "research_results/Dead_Tired_research",
   "participants": [
     {
-      "id": 665,
-      "name": "tkh vjid",
-      "sex": "male",
+      "id": 113,
+      "name": "",
+      "sex": "unknown",
+      "age": 18
+    },
+    {
+      "id": 118,
+      "name": "Participant 114",
+      "sex": "unknown",
       "age": 18
     }
   ],

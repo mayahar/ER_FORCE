@@ -10,8 +10,8 @@ if str(project_root) not in sys.path:
 
 from core.hardware_config import eye_tracker_mode, using_glasses
 from core.session_manager import create_session
-from ui.eye_runtime import EyeTrackingRuntime
-from ui.eye_tracking_runtime import _candidate_hosts
+from UI.eye_runtime import EyeTrackingRuntime
+from UI.eye_tracking_runtime import _candidate_hosts
 
 
 def print_host_diagnostics(runtime: EyeTrackingRuntime) -> None:

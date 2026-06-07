@@ -54,16 +54,16 @@ from core.subject_repository import (
 )
 from core.modality_features import voice_features_unused
 from score.eye_features import apply_eye_features_fallback
-from ui.eye_runtime import EyeTrackingRuntime, get_camera_index
-from ui.game_runtime import (
+from UI.eye_runtime import EyeTrackingRuntime, get_camera_index
+from UI.game_runtime import (
     create_voice_session,
     finalize_voice_session,
     is_pid_running,
     start_flightgear_session,
     terminate_session_process,
 )
-from ui.results_export import build_result_export_rows, export_result_csv, save_report_once
-from ui.theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
+from UI.results_export import build_result_export_rows, export_result_csv, save_report_once
+from UI.theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
 
 MODALITY_ORDER = ["game", "eye", "voice", "subjective"]
 MODALITY_LABELS = {"game": "משחק", "eye": "עיניים", "voice": "קול", "subjective": "שאלון"}
@@ -1001,7 +1001,7 @@ class GameScreen(BaseScreen):
         clear_layout(info_layout)
         info_layout.addWidget(
             message(
-                "בתחילת ההטסה אף המטוס מוטה מטה, נדרש למשוך את הסטיק באופן מההתחלה על מנת להמנע מהתרסקות.",
+                "בתחילת ההטסה אף המטוס מוטה מטה, נדרש למשוך את הסטיק מההתחלה על מנת להמנע מהתרסקות.",
             )
         )
         self.root.addWidget(info_panel)
@@ -1037,7 +1037,6 @@ class GameScreen(BaseScreen):
         else:
             self.voice_countdown_overlay.stop_watch()
             self.timer.stop()
-            self.status_label.setText("מוכן")
             self.voice_label.clear()
             self.eye_status_label.setText("עוקב עיניים: מוכן להקלטה")
 
@@ -1052,10 +1051,12 @@ class GameScreen(BaseScreen):
         self.start_button.setEnabled(False)
 
         if not self._ensure_eye_calibration():
+            self._log_startup_flow("calibration_returned_false")
             self.start_button.setEnabled(True)
             self._sync_buttons()
             return
 
+        self._log_startup_flow("calibration_returned_true")
         self.eye_status_label.setText("מעקב עיניים: מתחבר...")
         QGuiApplication.processEvents()
 
@@ -1072,6 +1073,7 @@ class GameScreen(BaseScreen):
 
         pid, error = start_flightgear_session(self.app.controller)
         if error:
+            self._log_startup_flow(f"flightgear_error: {error}")
             self.set_error(error)
             self.app.eye_runtime.stop_recording(self.app.controller)
             return
@@ -1079,11 +1081,13 @@ class GameScreen(BaseScreen):
         try:
             self.app.voice_session = create_voice_session(self.app.controller, self.app.eye_runtime)
         except Exception as exc:
+            self._log_startup_flow(f"voice_error: {exc}")
             terminate_session_process(pid)
             self.app.eye_runtime.stop_recording(self.app.controller)
             self.set_error(f"FlightGear הופעל, אבל הפעלת הקלטת הקול נכשלה: {exc}")
             return
 
+        self._log_startup_flow(f"flightgear_started: pid={pid}")
         self.app.fg_pid = pid
         self.app.fg_started_at = time.time()
         self.app.fg_finished_handled = False
@@ -1091,8 +1095,20 @@ class GameScreen(BaseScreen):
         self.timer.start()
         self._sync_buttons()
 
+    def _log_startup_flow(self, message):
+        session = getattr(self.app.controller, "session", None)
+        root = getattr(session, "root", None)
+        if root is None:
+            return
+        try:
+            path = root / "startup_flow.log"
+            previous = path.read_text(encoding="utf-8") if path.exists() else ""
+            path.write_text(previous + f"{time.time():.3f} {message}\n", encoding="utf-8")
+        except Exception:
+            pass
+
     def _ensure_eye_calibration(self) -> bool:
-        from ui.eye_tracking_runtime import SKIP_EYE_CALIBRATION
+        from UI.eye_tracking_runtime import SKIP_EYE_CALIBRATION
 
         if SKIP_EYE_CALIBRATION or self.app.eye_runtime.calibration_passed:
             return True
@@ -1509,7 +1525,7 @@ class ResultsScreen(BaseScreen):
 
         self.content.addWidget(self.tabs)
 
-        from ui.results_export import rows_to_csv
+        from UI.results_export import rows_to_csv
 
         csv_text = rows_to_csv(export_rows)
         path = save_report_once(subject_id, csv_text, result=result, controller=self.app.controller)

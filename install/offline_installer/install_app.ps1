@@ -130,28 +130,28 @@ Write-ToolCmd "Verify Eye Tracker.cmd" @(
     "@echo off",
     "setlocal",
     "cd /d `"$InstallDir`"",
-    "call VERIFY_EYE_TRACKER.cmd",
+    "call scripts\VERIFY_EYE_TRACKER.cmd",
     "exit /b %ERRORLEVEL%"
 )
 Write-ToolCmd "Configure Joystick.cmd" @(
     "@echo off",
     "setlocal",
     "cd /d `"$InstallDir`"",
-    "call CONFIGURE_JOYSTICK.cmd",
+    "call scripts\CONFIGURE_JOYSTICK.cmd",
     "exit /b %ERRORLEVEL%"
 )
 Write-ToolCmd "Open Data Folder.cmd" @(
     "@echo off",
     "setlocal",
     "cd /d `"$InstallDir`"",
-    "call OPEN_DATA_FOLDER.cmd",
+    "call scripts\OPEN_DATA_FOLDER.cmd",
     "exit /b %ERRORLEVEL%"
 )
 Write-ToolCmd "Open Reports Folder.cmd" @(
     "@echo off",
     "setlocal",
     "cd /d `"$InstallDir`"",
-    "call OPEN_REPORTS_FOLDER.cmd",
+    "call scripts\OPEN_REPORTS_FOLDER.cmd",
     "exit /b %ERRORLEVEL%"
 )
 Write-ToolCmd "Open Install Folder.cmd" @(
@@ -163,14 +163,14 @@ Write-ToolCmd "Research Config Editor.cmd" @(
     "@echo off",
     "setlocal",
     "cd /d `"$InstallDir`"",
-    "call OPEN_RESEARCH_CONFIG_EDITOR.cmd",
+    "call scripts\OPEN_RESEARCH_CONFIG_EDITOR.cmd",
     "exit /b %ERRORLEVEL%"
 )
 Write-ToolCmd "Fatigue Weights Editor.cmd" @(
     "@echo off",
     "setlocal",
     "cd /d `"$InstallDir`"",
-    "call OPEN_FATIGUE_WEIGHTS_EDITOR.cmd",
+    "call scripts\OPEN_FATIGUE_WEIGHTS_EDITOR.cmd",
     "exit /b %ERRORLEVEL%"
 )
 

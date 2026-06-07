@@ -12,7 +12,7 @@ from PySide6.QtGui import QColor, QGuiApplication, QPainter, QPen, QPixmap, QScr
 from PySide6.QtWidgets import QApplication, QDialog, QLabel, QVBoxLayout
 
 try:
-    from ui.eye_tracking_runtime import _request
+    from UI.eye_tracking_runtime import _request
 except Exception:
     _request = None
 
@@ -21,9 +21,9 @@ CALIBRATION_ENDPOINTS = (
     ("/rest/calibrate!calibrate", [True]),
     ("/rest/calibrate!run", []),
 )
-CALIBRATION_ATTEMPTS = 4
-CALIBRATION_START_DELAY_MS = 4200
-MARKER_SETTLE_SECONDS = 0.35
+CALIBRATION_ATTEMPTS = 10
+CALIBRATION_START_DELAY_MS = 5200
+MARKER_SETTLE_SECONDS = 0.7
 SUCCESS_FEEDBACK_MS = 900
 INSTRUCTION_MAX_WIDTH = 760
 INSTRUCTION_MAX_HEIGHT = 150

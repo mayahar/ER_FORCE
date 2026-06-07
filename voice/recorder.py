@@ -51,7 +51,7 @@ class VoiceRecorder:
 
         runtime = tobii_runtime
         if runtime is None and using_glasses():
-            from ui.eye_tracking_runtime_glasses import EyeTrackingRuntime
+            from UI.eye_tracking_runtime_glasses import EyeTrackingRuntime
 
             runtime = EyeTrackingRuntime()
 

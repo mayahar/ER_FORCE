@@ -6,12 +6,14 @@ __pycache__/
 *$py.class
 .venv/
 .venv-eye-tracking/
+venv/
 sessions/
 .voice_calib.json
 
 # =========================
 # Runtime / generated data
 # =========================
+research_results/
 game/sivaks_logging_version/runs/
 game/bin/
 
@@ -207,10 +209,13 @@ game/data/AI/Aircraft/performancedb.xml
 # =========================
 # Packaging / build output
 # =========================
+build/
 build/pyinstaller-err-force/
 dist/
 install/ERR_FORCE.spec
 install/ER_FORCE.spec
+fatigue_features_editor.exe
+research_config_editor.exe
 # ERR_FORCE.exe is committed so collaborators get the launcher for free.
 
 # =========================
@@ -218,5 +223,5 @@ install/ER_FORCE.spec
 # =========================
 sessions/
 scores_reports/
-ui/scores_reports/
+UI/scores_reports/
 *.log

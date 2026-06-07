@@ -41,7 +41,7 @@ score/
 
 scores_reports/
 
-ui/
+UI/
 ├── state.py
 ├── app.py
 ├── game_runtime.py
@@ -210,7 +210,7 @@ Likely contents:
 
 ---
 
-# ui/
+# UI/
 
 The frontend layer of the system.
 
@@ -223,7 +223,7 @@ Main application entry point.
 Run with:
 
 ```bash
-python -m ui.app
+python -m UI.app
 ```
 
 ---
