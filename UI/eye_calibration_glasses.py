@@ -156,6 +156,18 @@ class EyeCalibrationDialog(QDialog):
                 preferred_host=active_host,
             )
             if emit_response is None:
+                if callable(ensure_tracker):
+                    self._log("emit-markers failed; rechecking Tobii host stability before retry")
+                    ensure_tracker()
+                    active_host = getattr(self.runtime, "active_host", None)
+                    emit_response, emit_host, emit_error = _request(
+                        "POST",
+                        "/rest/calibrate!emit-markers",
+                        json_body=[],
+                        timeout=3.0,
+                        preferred_host=active_host,
+                    )
+            if emit_response is None:
                 errors.append(f"/rest/calibrate!emit-markers: {emit_error}")
                 self._log(errors[-1])
                 self._log("emit-markers failed; continuing with calibration attempt")

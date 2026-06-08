@@ -222,6 +222,4 @@ research_config_editor.exe
 # Runtime data (per-session outputs)
 # =========================
 sessions/
-scores_reports/
-UI/scores_reports/
 *.log

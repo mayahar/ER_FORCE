@@ -16,6 +16,11 @@ from eye_tracking_analysis.gaze_raw_export import (
     export_raw_gaze_recording,
 )
 from score.eye_features import apply_controller_eye_features
+from core.hardware_config import bar_head_position_enabled
+from core.session_manager import (
+    eye_tracker_calibration_status_from_runtime,
+    update_session_metadata,
+)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -108,7 +113,7 @@ class EyeTrackingRuntime:
         screen=None,
         controller=None,
     ) -> tuple[bool, str]:
-        from .eye_calibration_bar import run_eye_calibration
+        from . import eye_calibration_bar
 
         save_dir = None
         session = getattr(controller, "session", None) if controller else None
@@ -117,9 +122,10 @@ class EyeTrackingRuntime:
 
         self.calibration_attempted = True
         self.calibration_summary = None
+        eye_calibration_bar.HEAD_POSITION_ENABLED = bar_head_position_enabled()
         # Show the calibration UI first; connect to Tobii inside the dialog so
         # the user sees a fullscreen window instead of a frozen "מבצע כיול" label.
-        success, message, _preview = run_eye_calibration(
+        success, message, _preview = eye_calibration_bar.run_eye_calibration(
             runtime=self,
             parent=parent,
             screen=screen,
@@ -136,6 +142,15 @@ class EyeTrackingRuntime:
                 if preview_file.is_file():
                     self.calibration_preview_path = str(preview_file)
             self._save_calibration_record(controller, message)
+        session = getattr(controller, "session", None) if controller else None
+        update_session_metadata(
+            session,
+            {
+                "eye_tracker_calibration_status": (
+                    eye_tracker_calibration_status_from_runtime(self)
+                )
+            },
+        )
         return success, message
 
     def _save_calibration_record(self, controller, message: str) -> None:
@@ -144,7 +159,7 @@ class EyeTrackingRuntime:
             return
         eye_dir = Path(session.eye_dir)
         eye_dir.mkdir(parents=True, exist_ok=True)
-        from .eye_calibration import DEFAULT_CALIBRATION_POINTS
+        from .eye_calibration_bar import DEFAULT_CALIBRATION_POINTS
 
         payload = {
             "passed": True,

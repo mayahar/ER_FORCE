@@ -183,6 +183,23 @@ class EyeTrackingRuntime:
             if hasattr(runtime, "calibration_attempted"):
                 runtime.calibration_attempted = True
         self._sync_from_runtime()
+        if controller is not None:
+            try:
+                from core.session_manager import (
+                    eye_tracker_calibration_status_from_runtime,
+                    update_session_metadata,
+                )
+
+                update_session_metadata(
+                    controller.session,
+                    {
+                        "eye_tracker_calibration_status": (
+                            eye_tracker_calibration_status_from_runtime(runtime)
+                        )
+                    },
+                )
+            except Exception:
+                pass
         return success, message
 
     @staticmethod

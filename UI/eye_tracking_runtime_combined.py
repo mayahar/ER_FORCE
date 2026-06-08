@@ -8,7 +8,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from core.hardware_config import combined_eye_results_source
+from core.hardware_config import (
+    bar_head_position_enabled,
+    calibrate_bar,
+    calibrate_glasses,
+    combined_eye_results_source,
+)
+from core.session_manager import (
+    eye_tracker_calibration_status_from_runtime,
+    update_session_metadata,
+)
 from score.eye_features import apply_controller_eye_features, has_eye_features
 
 SKIP_EYE_CALIBRATION = False
@@ -122,35 +131,50 @@ class EyeTrackingRuntime:
         self.calibration_attempted = True
         self._write_flow_log("combined_calibration_start")
 
-        from UI.eye_calibration_glasses import run_eye_calibration as run_glasses_calibration
+        if calibrate_glasses():
+            from UI.eye_calibration_glasses import run_eye_calibration as run_glasses_calibration
 
-        glasses_success, glasses_message, glasses_preview = run_glasses_calibration(
-            runtime=self.glasses,
-            parent=parent,
-            screen=screen,
-        )
-        self._write_flow_log(f"glasses_calibration_returned: success={glasses_success}")
-        if hasattr(self.glasses, "calibration_preview_path"):
-            self.glasses.calibration_preview_path = glasses_preview
+            glasses_success, glasses_message, glasses_preview = run_glasses_calibration(
+                runtime=self.glasses,
+                parent=parent,
+                screen=screen,
+            )
+            self._write_flow_log(f"glasses_calibration_returned: success={glasses_success}")
+            if hasattr(self.glasses, "calibration_preview_path"):
+                self.glasses.calibration_preview_path = glasses_preview
+        else:
+            glasses_success = True
+            glasses_message = "glasses calibration skipped"
+            self.glasses.calibration_attempted = False
+            self.glasses.calibration_passed = True
+            self.glasses.calibration_message = glasses_message
+            self._write_flow_log("glasses_calibration_skipped")
 
         import UI.eye_calibration_bar as bar_calibration
 
-        bar_calibration.HEAD_POSITION_ENABLED = False
         bar = self._ensure_bar_runtime()
-        self._write_flow_log("bar_calibration_start")
-        try:
-            bar_success, bar_message = bar.run_calibration(
-                parent=parent,
-                screen=screen,
-                controller=_ControllerView(controller, self.bar_eye_dir),
-            )
-            self._write_flow_log(f"bar_calibration_returned: success={bar_success}")
-        except Exception as exc:
-            bar_success = False
-            bar_message = str(exc)
-            self._write_flow_log(f"bar_calibration_exception: {exc}")
+        if calibrate_bar():
+            bar_calibration.HEAD_POSITION_ENABLED = bar_head_position_enabled()
+            self._write_flow_log("bar_calibration_start")
+            try:
+                bar_success, bar_message = bar.run_calibration(
+                    parent=parent,
+                    screen=screen,
+                    controller=_ControllerView(controller, self.bar_eye_dir),
+                )
+                self._write_flow_log(f"bar_calibration_returned: success={bar_success}")
+            except Exception as exc:
+                bar_success = False
+                bar_message = str(exc)
+                self._write_flow_log(f"bar_calibration_exception: {exc}")
+        else:
+            bar_success = True
+            bar_message = "bar calibration skipped"
+            bar.calibration_attempted = False
+            bar.calibration_passed = True
+            bar.calibration_message = bar_message
+            self._write_flow_log("bar_calibration_skipped")
 
-        self.calibration_passed = True
         messages = []
         if glasses_success:
             messages.append("glasses calibration completed")
@@ -160,15 +184,21 @@ class EyeTrackingRuntime:
             messages.append("bar calibration completed")
         else:
             messages.append(f"bar calibration did not confirm success: {bar_message}")
+        selected_success = (
+            bool(glasses_success)
+            if self.selected_eye_source == "glasses"
+            else bool(bar_success)
+        )
+        self.calibration_passed = selected_success
         self.calibration_message = "; ".join(messages)
-        self.last_error = "" if glasses_success and bar_success else self.calibration_message
+        self.last_error = "" if selected_success else self.calibration_message
         self._sync_public_state()
         try:
             self._write_combined_calibration_record()
             self._write_flow_log("combined_calibration_record_written")
         except Exception as exc:
             self._write_flow_log(f"combined_calibration_record_error: {exc}")
-        return True, self.calibration_message
+        return selected_success, self.calibration_message
 
     def start(self, camera_index: int = 0, subject_id: str | None = None) -> tuple[bool, str]:
         self.last_error = ""
@@ -296,19 +326,32 @@ class EyeTrackingRuntime:
             "passed": bool(self.calibration_passed),
             "message": self.calibration_message,
             "glasses": {
+                "attempted": bool(getattr(self.glasses, "calibration_attempted", False)),
                 "passed": bool(getattr(self.glasses, "calibration_passed", False)),
                 "message": getattr(self.glasses, "calibration_message", ""),
                 "directory": str(self.glasses_eye_dir) if self.glasses_eye_dir else None,
             },
             "bar": {
+                "attempted": bool(getattr(self.bar, "calibration_attempted", False)) if self.bar is not None else False,
                 "passed": bool(getattr(self.bar, "calibration_passed", False)) if self.bar is not None else False,
                 "message": getattr(self.bar, "calibration_message", "") if self.bar is not None else "",
                 "directory": str(self.bar_eye_dir) if self.bar_eye_dir else None,
-                "head_position_enabled": False,
+                "head_position_enabled": bar_head_position_enabled(),
             },
         }
         path = self.session_eye_dir / "combined_calibration.json"
         path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        session = None
+        if self.session_eye_dir is not None:
+            session = type("SessionView", (), {"root": self.session_eye_dir.parent})()
+        update_session_metadata(
+            session,
+            {
+                "eye_tracker_calibration_status": (
+                    eye_tracker_calibration_status_from_runtime(self)
+                )
+            },
+        )
 
     def _write_flow_log(self, message: str) -> None:
         if self.session_eye_dir is None:

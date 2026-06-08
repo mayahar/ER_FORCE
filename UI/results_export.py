@@ -108,9 +108,11 @@ def build_result_export_rows(result):
     subject_id = result.get("subject_id", "UNKNOWN")
     research_context = result.get("research") or {}
     contributions = result.get("feature_contributions", {})
-    current_questionnaire = (result.get("features", {}) or {}).get("questionnaire", {}) or {}
+    current_features = result.get("features", {}) or {}
+    current_questionnaire = current_features.get("questionnaire", {}) or {}
     invalid_measurements = result.get("invalid_measurements") or []
     baseline = result.get("baseline") or {}
+    baseline_only = bool(result.get("baseline_only"))
 
     export_rows = []
     graph_rows = []
@@ -190,6 +192,70 @@ def build_result_export_rows(result):
                 }
             )
 
+    if baseline_only:
+        for modality, feats in current_features.items():
+            if not isinstance(feats, dict):
+                continue
+            export_modality = "subjective" if modality == "questionnaire" else modality
+            for fname, current_value in feats.items():
+                if fname not in FEATURES:
+                    continue
+                if (export_modality, fname) in exported_features:
+                    continue
+
+                valid_measurement, invalid_reason = _validate_export_feature(
+                    fname,
+                    current_value,
+                )
+                cfg = FEATURES.get(fname) or {}
+                export_row = {
+                    "subject_id": subject_id,
+                    "modality": export_modality,
+                    "feature": fname,
+                    "direction": cfg.get("direction"),
+                    "expected_change": cfg.get("expected_change"),
+                    "baseline": (baseline.get(modality) or {}).get(fname, current_value),
+                    "current": None,
+                    "relative_change": None,
+                    "normalized_effect": None,
+                    "raw_sigmoid": None,
+                    "fatigue_score": None,
+                    "feature_weight": None,
+                    "modality_feature_weight": None,
+                    "modality_weight": None,
+                    "final_modality_weight": None,
+                    "effective_weight": None,
+                    "contribution": None,
+                    "weighted_contribution": None,
+                    "feature_modality_contribution": None,
+                    "modality_score": None,
+                    "modality_final_contribution": None,
+                    "feature_final_contribution": None,
+                    "better_than_baseline": None,
+                    "valid_measurement": valid_measurement,
+                    "measurement_status": (
+                        "baseline"
+                        if valid_measurement is not False
+                        else "excluded_invalid_measurement"
+                    ),
+                    "invalid_reason": invalid_reason,
+                    "valid_range": _get_feature_valid_range(fname),
+                }
+
+                if research_context:
+                    export_row.update(
+                        {
+                            "study_id": research_context.get("study_id"),
+                            "research_day": research_context.get("day_number"),
+                            "research_condition": research_context.get("condition"),
+                            "sleep_last": research_context.get("sleep_last"),
+                            "sleep_previous": research_context.get("sleep_previous"),
+                        }
+                    )
+
+                export_rows.append(export_row)
+                exported_features.add((export_modality, fname))
+
     for invalid in invalid_measurements:
         modality = invalid.get("modality")
         fname = invalid.get("feature")
@@ -257,7 +323,7 @@ def build_result_export_rows(result):
             "subject_id": subject_id,
             "modality": "subjective",
             "feature": fname,
-            "baseline": None,
+            "baseline": (baseline.get("questionnaire") or {}).get(fname),
             "current": current_value,
             "fatigue_score": None,
             "relative_change": None,

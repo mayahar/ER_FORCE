@@ -1,0 +1,7 @@
+{
+  "eye_tracker_mode": "bar",
+  "combined_eye_results_source": "glasses",
+  "bar_calibration_mode": "without_head",
+  "glasses_calibration_enabled": true,
+  "glasses_host": ""
+}

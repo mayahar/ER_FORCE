@@ -18,6 +18,7 @@ import numpy as np
 
 # שומרים על אותם מייבאים של האנלייזר הקיים שלך
 from eye_tracking_analysis.eye_movement_analyzer import EyeMovementAnalyzer
+from core.hardware_config import glasses_host
 from score.eye_features import apply_controller_eye_features
 
 SKIP_EYE_CALIBRATION = False
@@ -28,10 +29,7 @@ VERBOSE_TOBII_STATUS = os.environ.get("TOBII_VERBOSE_STATUS", "").lower() in ("1
 # החליפי חזרה את ההגדרות בראש הקובץ eye_tracking_runtime.py למצבן הבטוח:
 
 GLASSES_ENV_HOST = os.environ.get("TOBII_GLASSES_HOST")
-GLASSES_IP = GLASSES_ENV_HOST
 GLASSES_FALLBACK_HOSTS = (
-    GLASSES_ENV_HOST,
-    GLASSES_IP,
     "TG03B-080203015551.local",
     "TG03B-080203015551",
 )
@@ -39,7 +37,7 @@ _LAST_WORKING_HOST = None
 
 def _unique_hosts() -> list[str]:
     hosts = []
-    for host in (_LAST_WORKING_HOST, *GLASSES_FALLBACK_HOSTS):
+    for host in (_LAST_WORKING_HOST, glasses_host(), GLASSES_ENV_HOST, *GLASSES_FALLBACK_HOSTS):
         if host and host not in hosts:
             hosts.append(host)
     return hosts

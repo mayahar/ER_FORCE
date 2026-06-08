@@ -90,6 +90,7 @@ $files = @(
     "ERR_FORCE_fast.cmd",
     "CALIBRATE_MICROPHONE.cmd",
     "fatigue_features_editor.exe",
+    "hardware_config_editor.exe",
     "RESEARCHER_PROTOCOL_HE.txt",
     "research_config_editor.exe",
     "requirements.txt",

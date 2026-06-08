@@ -180,6 +180,13 @@ Write-ToolCmd "Fatigue Weights Editor.cmd" @(
     "call scripts\OPEN_FATIGUE_WEIGHTS_EDITOR.cmd",
     "exit /b %ERRORLEVEL%"
 )
+Write-ToolCmd "Hardware Config Editor.cmd" @(
+    "@echo off",
+    "setlocal",
+    "cd /d `"$InstallDir`"",
+    "call scripts\OPEN_HARDWARE_CONFIG_EDITOR.cmd",
+    "exit /b %ERRORLEVEL%"
+)
 
 $ProtocolSource = Join-Path $InstallDir "RESEARCHER_PROTOCOL_HE.txt"
 if (Test-Path $ProtocolSource) {

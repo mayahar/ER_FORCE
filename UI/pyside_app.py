@@ -62,12 +62,26 @@ from UI.game_runtime import (
     start_flightgear_session,
     terminate_session_process,
 )
-from UI.results_export import build_result_export_rows, export_result_csv, save_report_once
+from UI.results_export import build_result_export_rows, save_report_once
 from UI.theme import APP_STYLESHEET, BACKGROUND, NEGATIVE, POSITIVE, SURFACE, TEXT
 
 MODALITY_ORDER = ["game", "eye", "voice", "subjective"]
 MODALITY_LABELS = {"game": "משחק", "eye": "עיניים", "voice": "קול", "subjective": "שאלון"}
 DISPLAY_SCORE_SCALE = 100
+FEATURE_LABELS = {
+    "dLPC": "dLPC",
+    "PARCOR": "PARCOR",
+    "LPC": "LPC",
+    "Pitch": "Pitch",
+    "MFCC": "MFCC",
+    "fixation_duration": "משך פיקסציה",
+    "fixation_count": "מספר פיקסציות",
+    "saccade_count": "מספר סקאדות",
+    "score": "ציון משחק",
+    "fatigue_self": "דיווח עייפות עצמי",
+    "sleep_last": "שינה בלילה האחרון",
+    "sleep_previous": "שינה בלילה הקודם",
+}
 
 
 def get_score_color(score):
@@ -83,7 +97,12 @@ def get_score_color(score):
 
 
 def fix_hebrew(text):
-    return "\n".join(line[::-1] for line in str(text).split("\n"))
+    def fix_line(line):
+        if any("\u0590" <= char <= "\u05ff" for char in line):
+            return line[::-1]
+        return line
+
+    return "\n".join(fix_line(line) for line in str(text).split("\n"))
 
 
 EXISTING_USER_MODE = "בדיקת עייפות למשתתף קיים"
@@ -387,7 +406,7 @@ class ClickableSlider(QSlider):
         super().mousePressEvent(event)
 
 
-def slider_row(label_text, minimum, maximum, value):
+def slider_row(label_text, minimum, maximum, value, endpoint_labels=None):
     container = QWidget()
     layout = QVBoxLayout(container)
     layout.setContentsMargins(0, 5, 0, 15)
@@ -428,11 +447,50 @@ def slider_row(label_text, minimum, maximum, value):
     layout.addWidget(label)
     layout.addWidget(slider)
     layout.addWidget(slider_tick_ruler(slider))
+    if endpoint_labels:
+        min_label, max_label = endpoint_labels
+        endpoint_row = QWidget()
+        endpoint_row.setLayoutDirection(Qt.LeftToRight)
+        endpoint_layout = QHBoxLayout(endpoint_row)
+        endpoint_layout.setContentsMargins(0, 0, 0, 0)
+        endpoint_layout.setSpacing(8)
+
+        min_text = QLabel(f"{minimum} - {min_label}")
+        max_text = QLabel(f"{maximum} - {max_label}")
+        for endpoint_label in (min_text, max_text):
+            endpoint_label.setStyleSheet("font-size: 13px; font-weight: bold; color: #c9d8ee;")
+            endpoint_label.setLayoutDirection(Qt.RightToLeft)
+
+        min_text.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        max_text.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        endpoint_layout.addWidget(min_text)
+        endpoint_layout.addStretch(1)
+        endpoint_layout.addWidget(max_text)
+        layout.addWidget(endpoint_row)
     return container, slider
 
 
 def feature_display_name(feature):
-    return str(feature).replace("_", "\n").title()
+    return FEATURE_LABELS.get(feature, str(feature).replace("_", "\n").title())
+
+
+def table_header_display_name(feature):
+    label = feature_display_name(feature).replace("\n", " ")
+    words = label.split()
+    if len(words) < 2:
+        return label
+
+    split_at = 1
+    best_delta = len(label)
+    for index in range(1, len(words)):
+        first = " ".join(words[:index])
+        second = " ".join(words[index:])
+        delta = abs(len(first) - len(second))
+        if delta < best_delta:
+            split_at = index
+            best_delta = delta
+
+    return " ".join(words[:split_at]) + "\n" + " ".join(words[split_at:])
 
 
 class BaseScreen(QWidget):
@@ -675,20 +733,29 @@ class EnterIdScreen(BaseScreen):
         )
 
         if self.app.controller.load_subject(subject_id):
-            is_new_user = not self.app.controller.has_baseline()
+            has_baseline = self.app.controller.has_baseline()
+            should_capture_baseline = (
+                not has_baseline
+                and bool(research_day.get("is_baseline_day", False))
+            )
+            if not has_baseline and not should_capture_baseline:
+                self.set_error(
+                    "לא קיימת מדידת ייחוס למשתתף זה. ניתן להמשיך במחקר רק אם הבייסליין נמדד ביום הראשון של הסדנה."
+                )
+                return
+
             research_context = {
                 "day_number": research_day["day_number"],
                 "condition": research_day["condition"],
                 "study_id": research_day.get("study_id", 1),
-                "sleep_last": participant_profile.get(f"sleep_day_{research_day['day_number']}_last", 0),
-                "sleep_previous": participant_profile.get(
-                    f"sleep_day_{research_day['day_number']}_previous", 0
-                ),
+                "sleep_last": research_day.get("sleep_last") or 0,
+                "sleep_previous": research_day.get("sleep_previous") or 0,
+                "is_baseline_day": bool(research_day.get("is_baseline_day", False)),
             }
             self.app.state = {
-                "screen": "new_user_sleep_gate" if is_new_user else "questionnaire",
+                "screen": "new_user_sleep_gate" if should_capture_baseline else "questionnaire",
                 "session_id": subject_id,
-                "baseline_capture": is_new_user,
+                "baseline_capture": should_capture_baseline,
                 "research_context": research_context,
             }
             self.app.result = None
@@ -829,7 +896,13 @@ class QuestionnaireScreen(BaseScreen):
         clear_layout(self.form_layout)
         research_context = self.app.state.get("research_context")
 
-        fatigue_row, self.fatigue_slider = slider_row("עד כמה אתה עייף כעת?", 1, 10, 5)
+        fatigue_row, self.fatigue_slider = slider_row(
+            "עד כמה אתה עייף כעת?",
+            1,
+            10,
+            5,
+            endpoint_labels=("לא עייף כלל", "עייף מאוד"),
+        )
         self.form_layout.addWidget(fatigue_row)
 
         if research_context:
@@ -896,21 +969,45 @@ class NewUserSleepGateScreen(BaseScreen):
     def activate(self):
         clear_layout(self.form_layout)
         self.error_label.clear()
+        research_context = self.app.state.get("research_context")
         
-        fatigue_row, self.fatigue_slider = slider_row("עד כמה אתה עייף כעת?", 1, 10, 5)
+        fatigue_row, self.fatigue_slider = slider_row(
+            "עד כמה אתה עייף כעת?",
+            1,
+            10,
+            5,
+            endpoint_labels=("לא עייף כלל", "עייף מאוד"),
+        )
         self.form_layout.addWidget(fatigue_row)
         sleep_last_row, self.sleep_last_slider = slider_row("כמה שעות ישנת אתמול?", 0, 8, 7)
         sleep_previous_row, self.sleep_previous_slider = slider_row("כמה שעות ישנת שלשום?", 0, 8, 7)
         self.form_layout.addWidget(sleep_last_row)
         self.form_layout.addWidget(sleep_previous_row)
+        if research_context:
+            sleep_last_row.setVisible(False)
+            sleep_previous_row.setVisible(False)
+            self.sleep_last_slider = None
+            self.sleep_previous_slider = None
+            self.form_layout.addWidget(
+                message(
+                    f"יום הסדנה {research_context['day_number']}: "
+                    f"שעות שינה אתמול={research_context.get('sleep_last')}, "
+                    f"שעות שינה שלשום={research_context.get('sleep_previous')}"
+                )
+            )
 
         continue_button = QPushButton("המשך")
         continue_button.clicked.connect(self._continue)
         self.form_layout.addWidget(continue_button, alignment=Qt.AlignLeft)
 
     def _continue(self):
-        last = self.sleep_last_slider.value()
-        prev = self.sleep_previous_slider.value()
+        research_context = self.app.state.get("research_context")
+        if research_context:
+            last = research_context.get("sleep_last", 0)
+            prev = research_context.get("sleep_previous", 0)
+        else:
+            last = self.sleep_last_slider.value()
+            prev = self.sleep_previous_slider.value()
         if last < 7 or prev < 7:
             self.set_error(
                 f"על מנת לבצע מדידת ייחוס (Baseline), על המשתתף לישון לפחות 7 שעות ביומיים האחרונים.\nנתוני המשתתף: אתמול {last} שעות, שלשום {prev} שעות."
@@ -918,6 +1015,14 @@ class NewUserSleepGateScreen(BaseScreen):
             return
 
         questionnaire = {"fatigue_self": self.fatigue_slider.value(), "sleep_last": last, "sleep_previous": prev}
+        if research_context:
+            questionnaire.update(
+                {
+                    "research_day": research_context["day_number"],
+                    "research_condition": research_context["condition"],
+                    "study_id": research_context["study_id"],
+                }
+            )
         self.app.controller.dispatch("QUESTIONNAIRE_DONE", questionnaire)
         self.app.navigate("game")
 
@@ -1425,25 +1530,123 @@ class ResultsScreen(BaseScreen):
     def _handle_baseline_capture(self):
         self.app.controller.run_multimodal_game()
         baseline = copy.deepcopy(self.app.controller.features)
+        invalid_features = self._baseline_invalid_features()
+        if invalid_features and not self._confirm_invalid_baseline(invalid_features):
+            baseline_result = self._build_baseline_result(baseline)
+            baseline_result["baseline_rejected"] = True
+            self.app.result = baseline_result
+            self.app.state["baseline_capture"] = False
+            self._render_result(baseline_result)
+            return
+
         subject_id = self.app.controller.subject.get("id")
+        if invalid_features:
+            baseline["_accepted_with_invalid_features"] = True
+            baseline["_invalid_features"] = [
+                {
+                    "modality": item.get("modality"),
+                    "feature": item.get("feature"),
+                    "value": item.get("value"),
+                    "reason": item.get("reason"),
+                    "valid_range": item.get("valid_range"),
+                }
+                for item in invalid_features
+            ]
         updated_subject = update_subject_baseline(subject_id, baseline)
         self.app.controller.subject = copy.deepcopy(updated_subject)
-        self.app.controller.compute_fatigue()
+        self.app.controller.result = None
 
+        baseline_result = self._build_baseline_result(baseline)
+        baseline_result["baseline"] = copy.deepcopy(updated_subject.get("baseline") or baseline)
+        baseline_result["baseline_saved_with_invalid_features"] = bool(invalid_features)
+        self.app.controller.result = None
+        self.app.result = baseline_result
+        self.app.state["baseline_capture"] = False
+        self._render_result(baseline_result)
+
+    def _build_baseline_result(self, baseline):
         baseline_result = copy.deepcopy(self.app.controller.get_result())
+        baseline_result["baseline_only"] = True
+        baseline_result["score"] = None
+        baseline_result["scores"] = {}
+        baseline_result["feature_contributions"] = {}
+        baseline_result["modality_contributions"] = {}
+        baseline_result["features"] = copy.deepcopy(baseline)
         research_context = self.app.state.get("research_context")
         if research_context:
             baseline_result["research"] = copy.deepcopy(research_context)
-            save_report_once(
-                subject_id,
-                export_result_csv(baseline_result),
-                result=baseline_result,
-                controller=self.app.controller,
-            )
+        return baseline_result
 
-        self.app.result = None
-        self.app.state["baseline_capture"] = False
-        self.app.navigate("baseline_saved")
+    def _baseline_invalid_features(self):
+        invalid = []
+        seen = set()
+        for item in self.app.controller.invalid_measurements:
+            modality = item.get("modality")
+            feature = item.get("feature")
+            if not modality or not feature:
+                continue
+            if (modality, feature) in seen:
+                continue
+            seen.add((modality, feature))
+            invalid.append(item)
+
+        game_score = ((self.app.controller.features or {}).get("game") or {}).get("score")
+        if game_score == 0 and ("game", "score") not in seen:
+            invalid.append(
+                {
+                    "modality": "game",
+                    "feature": "score",
+                    "value": game_score,
+                    "reason": "zero_game_score",
+                    "valid_range": (0.0, 100.0),
+                }
+            )
+        return invalid
+
+    def _confirm_invalid_baseline(self, invalid_features):
+        lines_by_modality = {}
+        for item in invalid_features:
+            modality = item.get("modality")
+            feature = item.get("feature")
+            label = FEATURE_LABELS.get(feature, feature)
+            value = item.get("value")
+            reason = item.get("reason")
+            valid_range = item.get("valid_range")
+            detail = label
+            if value is not None:
+                detail += f" (ערך: {value})"
+            if reason == "out_of_range" and valid_range:
+                detail += f" - מחוץ לטווח התקין {valid_range[0]}-{valid_range[1]}"
+            elif reason == "zero_game_score":
+                detail += " - ציון 0 במשחק; ייתכן שהמשחק דולג"
+            elif reason:
+                detail += " - חסר או לא מספרי"
+            lines_by_modality.setdefault(modality, []).append(detail)
+
+        sections = []
+        for modality in MODALITY_ORDER:
+            details = lines_by_modality.get(modality)
+            if not details:
+                continue
+            modality_label = MODALITY_LABELS.get(modality, modality)
+            sections.append(f"{modality_label}:\n" + "\n".join(f"• {detail}" for detail in details))
+
+        dialog_message = (
+            "סשן הבייסליין הסתיים, אבל נמצאו פיצ'רים שלא יצאו תקינים:\n\n"
+            + "\n\n".join(sections)
+            + "\n\nהאם בכל זאת להשתמש בסשן הזה כבייסליין?"
+        )
+
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Warning)
+        msg.setWindowTitle("בדיקת תקינות בייסליין")
+        msg.setText(dialog_message)
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg.button(QMessageBox.Yes).setText("כן, השתמש כבייסליין")
+        msg.button(QMessageBox.No).setText("לא, אל תשמור כבייסליין")
+        msg.setDefaultButton(QMessageBox.No)
+        msg.setLayoutDirection(Qt.RightToLeft)
+        return msg.exec() == QMessageBox.Yes
 
     def _render_result(self, result):
         if not result:
@@ -1452,6 +1655,7 @@ class ResultsScreen(BaseScreen):
 
         subject_id = result.get("subject_id", "UNKNOWN")
         score = result.get("score")
+        baseline_only = bool(result.get("baseline_only"))
 
         self.content.addWidget(message(f"דוח תוצאות עבור משתתף: {subject_id}"))
 
@@ -1499,6 +1703,8 @@ class ResultsScreen(BaseScreen):
 
         score_layout.addStretch()
         self.tabs.addTab(tab_score, "ציון סופי")
+        if baseline_only:
+            self.tabs.removeTab(self.tabs.indexOf(tab_score))
 
         export_rows, graph_rows = build_result_export_rows(result)
         ordered_rows = self._ordered_graph_rows(graph_rows)
@@ -1512,15 +1718,16 @@ class ResultsScreen(BaseScreen):
 
             tab_table = QWidget()
             table_layout = QVBoxLayout(tab_table)
-            table_layout.addWidget(self._build_table(table_rows))
+            table_layout.addWidget(self._build_table(table_rows, baseline_only=baseline_only))
             self.tabs.addTab(tab_table, "טבלת מדדים")
         else:
-            self.tabs.addTab(message("אין נתוני גרף זמינים."), "מדדים")
+            if not table_rows:
+                self.tabs.addTab(message("אין נתוני גרף זמינים."), "מדדים")
 
         if table_rows and not ordered_rows:
             tab_table = QWidget()
             table_layout = QVBoxLayout(tab_table)
-            table_layout.addWidget(self._build_table(table_rows))
+            table_layout.addWidget(self._build_table(table_rows, baseline_only=baseline_only))
             self.tabs.addTab(tab_table, "מדדים")
 
         self.content.addWidget(self.tabs)
@@ -1576,7 +1783,7 @@ class ResultsScreen(BaseScreen):
             rows = [row for row in ordered_rows if row.get("modality") == modality]
             for row in rows:
                 x_positions.append(current_x)
-                labels.append(feature_display_name(row["feature"]))
+                labels.append(fix_hebrew(feature_display_name(row["feature"])))
                 values.append(row["value"] * DISPLAY_SCORE_SCALE)
                 current_x += 1
             group_boundaries.append(current_x)
@@ -1664,13 +1871,18 @@ class ResultsScreen(BaseScreen):
         canvas.setMinimumHeight(380)
         return canvas
 
-    def _build_table(self, feature_rows):
-        headers = [""] + [feature_display_name(row.get("feature")) for row in feature_rows]
+    def _build_table(self, feature_rows, baseline_only=False):
+        headers = [""] + [table_header_display_name(row.get("feature")) for row in feature_rows]
         table_rows = [
             ("מצב ערנות", "baseline"),
-            ("מצב נוכחי", "current"),
-            ("תרומה לציון", "feature_final_contribution"),
         ]
+        if not baseline_only:
+            table_rows.extend(
+                [
+                    ("מצב נוכחי", "current"),
+                    ("תרומה לציון", "feature_final_contribution"),
+                ]
+            )
 
         table = QTableWidget(len(table_rows), len(headers))
         table.setHorizontalHeaderLabels(headers)
@@ -1696,6 +1908,8 @@ class ResultsScreen(BaseScreen):
                 table.setItem(row_idx, col_idx, item)
 
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.horizontalHeader().setDefaultAlignment(Qt.AlignCenter)
+        table.horizontalHeader().setMinimumHeight(56)
         table.verticalHeader().setVisible(False)
         table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         table.setMinimumHeight(180)

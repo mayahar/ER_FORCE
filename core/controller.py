@@ -92,6 +92,9 @@ class Controller:
 
     def has_baseline(self):
         baseline = (self.subject or {}).get("baseline") or {}
+        if baseline.get("_accepted_with_invalid_features"):
+            return True
+
         required = {
             "voice": ("dLPC", "PARCOR", "LPC", "Pitch", "MFCC"),
             "game": ("score",),
