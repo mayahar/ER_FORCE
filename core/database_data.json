@@ -623,6 +623,17 @@
         }
       }
     },
+    "25": {
+      "id": 25,
+      "name": "עכ",
+      "sex": "male",
+      "age": 18,
+      "baseline": {
+        "voice": {},
+        "eye": {},
+        "game": {}
+      }
+    },
     "113": {
       "id": 113,
       "name": "Subject 113",

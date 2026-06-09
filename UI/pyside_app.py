@@ -585,7 +585,7 @@ class InstructionsDialog(QDialog):
         scroll_content = QWidget()
         scroll_content.setLayoutDirection(Qt.RightToLeft)
         scroll_layout = QVBoxLayout(scroll_content)
-        scroll_layout.setContentsMargins(0, 0, 8, 0)
+        scroll_layout.setContentsMargins(0, 0, 8, 12)
         scroll_layout.setSpacing(0)
         scroll_layout.setAlignment(Qt.AlignRight | Qt.AlignTop)
 
@@ -594,10 +594,13 @@ class InstructionsDialog(QDialog):
         body_label.setWordWrap(True)
         body_label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         body_label.setLayoutDirection(Qt.RightToLeft)
-        body_label.setFixedWidth(self.width() - 86)
-        body_label.setStyleSheet("font-size: 15px; color: #dddddd; background: transparent;")
+        body_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        body_label.setMinimumWidth(self.width() - 110)
+        body_label.setStyleSheet(
+            "font-size: 15px; color: #dddddd; background: transparent; padding-bottom: 8px;"
+        )
         scroll_layout.addWidget(body_label, alignment=Qt.AlignRight | Qt.AlignTop)
-        scroll_layout.addStretch()
+        scroll_layout.addSpacing(10)
 
         scroll.setWidget(scroll_content)
         container_layout.addWidget(scroll)
@@ -1010,7 +1013,7 @@ class NewUserSleepGateScreen(BaseScreen):
             prev = self.sleep_previous_slider.value()
         if last < 7 or prev < 7:
             self.set_error(
-                f"על מנת לבצע מדידת ייחוס (Baseline), על המשתתף לישון לפחות 7 שעות ביומיים האחרונים.\nנתוני המשתתף: אתמול {last} שעות, שלשום {prev} שעות."
+                "מדידת משתתף חדש צריכה להתרחש במצב ערנות, ולכן יכולה להתרחש רק לאחר שני לילות רצופים של 7 שעות שינה"
             )
             return
 
@@ -1504,7 +1507,7 @@ class ResultsScreen(BaseScreen):
         self.saved_path = None
         self.root.addWidget(title("תוצאות"))
         self.content = QVBoxLayout()
-        self.root.addLayout(self.content)
+        self.root.addLayout(self.content, 1)
 
     def activate(self):
         clear_layout(self.content)
@@ -1661,6 +1664,7 @@ class ResultsScreen(BaseScreen):
 
         self.tabs = QTabWidget()
         self.tabs.setLayoutDirection(Qt.RightToLeft)
+        self.tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         tab_score = QWidget()
         score_layout = QVBoxLayout(tab_score)
@@ -1730,7 +1734,7 @@ class ResultsScreen(BaseScreen):
             table_layout.addWidget(self._build_table(table_rows, baseline_only=baseline_only))
             self.tabs.addTab(tab_table, "מדדים")
 
-        self.content.addWidget(self.tabs)
+        self.content.addWidget(self.tabs, 1)
 
         from UI.results_export import rows_to_csv
 
@@ -1741,6 +1745,7 @@ class ResultsScreen(BaseScreen):
 
         new_button = QPushButton("התחל מפגש חדש")
         new_button.setMaximumWidth(200)
+        new_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         new_button.clicked.connect(self._new_session)
         self.content.addWidget(new_button, alignment=Qt.AlignLeft)
 

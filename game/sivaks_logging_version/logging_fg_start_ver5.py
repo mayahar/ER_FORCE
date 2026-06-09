@@ -658,9 +658,22 @@ if __name__ == "__main__":
     # Additional command-line arguments (optional)
     # (Reverted: do not force scenery/terrain/visibility optimizations.)
     fg_command_args = [
+        '--restore-defaults',
+        '--disable-save-on-exit',
         '--disable-splash-screen',
         # Avoid redout wash during startup trim and session shutdown.
         '--prop:/sim/rendering/redout/enabled=false',
+        # Keep the HUD view deterministic between sessions; otherwise FlightGear can reuse
+        # cockpit view offsets from a prior run and start with the HUD already shifted.
+        '--prop:/sim/view[0]/config/pitch-offset-deg=-15',
+        '--prop:/sim/view[0]/config/y-offset-m=0.8579',
+        '--prop:/sim/view[0]/config/z-offset-m=-4.1050',
+        '--prop:/sim/view[0]/pitch-offset-deg=-15',
+        '--prop:/sim/view[0]/y-offset-m=0.8579',
+        '--prop:/sim/view[0]/z-offset-m=-4.1050',
+        '--prop:/sim/current-view/pitch-offset-deg=-15',
+        '--prop:/sim/current-view/y-offset-m=0.8579',
+        '--prop:/sim/current-view/z-offset-m=-4.1050',
         # Speed-up: avoid parsing AI traffic schedules (not needed for CorrActions balloons).
         '--disable-ai-traffic',
         # Speed-up: do not use the TerraSync scenery folder (loads a lot of tiles).
